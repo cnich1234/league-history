@@ -13,7 +13,7 @@
     "merge:history": "node scripts/merge-history-dump.mjs"
   },
   "dependencies": {
-    "next": "15.1.6",
+    "next": "^15.5.23",
     "react": "19.0.0",
     "react-dom": "19.0.0"
   }

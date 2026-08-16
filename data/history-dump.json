@@ -1,0 +1,2012 @@
+[
+ {
+  "id": 264063,
+  "seasonId": 2008,
+  "scoringPeriodId": 16,
+  "settings": {
+   "name": "PITBALL66",
+   "scheduleSettings": {
+    "divisions": [
+     {
+      "id": 0,
+      "name": "Division 1",
+      "size": 8
+     }
+    ]
+   }
+  },
+  "teams": [
+   {
+    "divisionId": 0,
+    "id": 1,
+    "name": "Steel Ball",
+    "owners": [
+     "{E34CFB8D-9454-4B86-9F7B-487E63123C20}"
+    ],
+    "playoffSeed": 3,
+    "rankCalculatedFinal": 1,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 7,
+      "losses": 7,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 2,
+    "name": "Matadors 7-0",
+    "owners": [
+     "{FF4D143B-04BA-4ABA-875B-9534719AEB96}"
+    ],
+    "playoffSeed": 8,
+    "rankCalculatedFinal": 5,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 5,
+      "losses": 9,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 3,
+    "name": "Old Dirty Bastard",
+    "owners": [
+     "{8A74A3B1-B792-4381-8CE2-36986393892A}"
+    ],
+    "playoffSeed": 1,
+    "rankCalculatedFinal": 2,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 10,
+      "losses": 4,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 4,
+    "name": "Computadora Diablo",
+    "owners": [
+     "{51881F56-9FD8-4E01-B0E2-93123F04DCB8}"
+    ],
+    "playoffSeed": 5,
+    "rankCalculatedFinal": 8,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 7,
+      "losses": 7,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 5,
+    "name": "D.C. George Dub-yah.",
+    "owners": [
+     "{4395374F-E65E-4974-A336-CC405BEC8763}"
+    ],
+    "playoffSeed": 7,
+    "rankCalculatedFinal": 7,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 6,
+      "losses": 8,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 6,
+    "name": "Team Rissland",
+    "owners": [
+     "{B6D2F68F-B360-4ED0-AC5B-DC46664A5BC3}"
+    ],
+    "playoffSeed": 4,
+    "rankCalculatedFinal": 3,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 7,
+      "losses": 7,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 7,
+    "name": "tell your mom I said Hi",
+    "owners": [
+     "{59B40F44-923D-47C5-8003-A45C44DEBC33}"
+    ],
+    "playoffSeed": 6,
+    "rankCalculatedFinal": 6,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 7,
+      "losses": 7,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 8,
+    "name": "Team Meyerhoff",
+    "owners": [
+     "{DACF41A0-9585-492A-8108-5A8D99FC81E1}"
+    ],
+    "playoffSeed": 2,
+    "rankCalculatedFinal": 4,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 7,
+      "losses": 7,
+      "ties": 0
+     }
+    }
+   }
+  ]
+ },
+ {
+  "id": 264063,
+  "seasonId": 2009,
+  "scoringPeriodId": 16,
+  "settings": {
+   "name": "PITBALL",
+   "scheduleSettings": {
+    "divisions": [
+     {
+      "id": 0,
+      "name": "Division 1",
+      "size": 8
+     }
+    ]
+   }
+  },
+  "teams": [
+   {
+    "divisionId": 0,
+    "id": 1,
+    "name": "Steel Ball",
+    "owners": [
+     "{E34CFB8D-9454-4B86-9F7B-487E63123C20}"
+    ],
+    "playoffSeed": 7,
+    "rankCalculatedFinal": 5,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 3,
+      "losses": 10,
+      "ties": 1
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 2,
+    "name": "Matadors 7-0",
+    "owners": [
+     "{FF4D143B-04BA-4ABA-875B-9534719AEB96}"
+    ],
+    "playoffSeed": 6,
+    "rankCalculatedFinal": 6,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 6,
+      "losses": 8,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 3,
+    "name": "Old Dirty Bastard",
+    "owners": [
+     "{8A74A3B1-B792-4381-8CE2-36986393892A}"
+    ],
+    "playoffSeed": 2,
+    "rankCalculatedFinal": 4,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 9,
+      "losses": 5,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 4,
+    "name": "Computadora Diablo",
+    "owners": [
+     "{CC17DFA5-A98E-4BB4-84E2-02747F65CE41}"
+    ],
+    "playoffSeed": 1,
+    "rankCalculatedFinal": 3,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 9,
+      "losses": 5,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 5,
+    "name": "D.C. George Dub-yah.",
+    "owners": [
+     "{4395374F-E65E-4974-A336-CC405BEC8763}"
+    ],
+    "playoffSeed": 3,
+    "rankCalculatedFinal": 1,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 9,
+      "losses": 5,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 6,
+    "name": "Team Rissland",
+    "owners": [
+     "{B6D2F68F-B360-4ED0-AC5B-DC46664A5BC3}"
+    ],
+    "playoffSeed": 8,
+    "rankCalculatedFinal": 7,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 3,
+      "losses": 11,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 7,
+    "name": "The Calamity",
+    "owners": [
+     "{59B40F44-923D-47C5-8003-A45C44DEBC33}"
+    ],
+    "playoffSeed": 4,
+    "rankCalculatedFinal": 2,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 9,
+      "losses": 5,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 8,
+    "name": "fuck yo shit",
+    "owners": [
+     "{823D57F2-BD47-40F3-B8F5-3F50818B1FC1}"
+    ],
+    "playoffSeed": 5,
+    "rankCalculatedFinal": 8,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 7,
+      "losses": 6,
+      "ties": 1
+     }
+    }
+   }
+  ]
+ },
+ {
+  "id": 264063,
+  "seasonId": 2010,
+  "scoringPeriodId": 16,
+  "settings": {
+   "name": "League of Extraodinary Gentlemen",
+   "scheduleSettings": {
+    "divisions": [
+     {
+      "id": 0,
+      "name": "Division 1",
+      "size": 8
+     }
+    ]
+   }
+  },
+  "teams": [
+   {
+    "divisionId": 0,
+    "id": 1,
+    "name": "Steel Ball",
+    "owners": [
+     "{E34CFB8D-9454-4B86-9F7B-487E63123C20}"
+    ],
+    "playoffSeed": 2,
+    "rankCalculatedFinal": 3,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 9,
+      "losses": 5,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 2,
+    "name": "Matadors 7-0",
+    "owners": [
+     "{FF4D143B-04BA-4ABA-875B-9534719AEB96}"
+    ],
+    "playoffSeed": 1,
+    "rankCalculatedFinal": 2,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 12,
+      "losses": 2,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 3,
+    "name": "Old Dirty Bastard",
+    "owners": [
+     "{8A74A3B1-B792-4381-8CE2-36986393892A}"
+    ],
+    "playoffSeed": 3,
+    "rankCalculatedFinal": 1,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 9,
+      "losses": 5,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 4,
+    "name": "Computadora Diablo",
+    "owners": [
+     "{CC17DFA5-A98E-4BB4-84E2-02747F65CE41}"
+    ],
+    "playoffSeed": 8,
+    "rankCalculatedFinal": 6,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 2,
+      "losses": 12,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 5,
+    "name": "D.C. George Dub-yah.",
+    "owners": [
+     "{4395374F-E65E-4974-A336-CC405BEC8763}"
+    ],
+    "playoffSeed": 7,
+    "rankCalculatedFinal": 8,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 5,
+      "losses": 9,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 6,
+    "name": "I Like Money",
+    "owners": [
+     "{62BBC6DF-3DC6-49DC-A61B-C1E47313C6B0}"
+    ],
+    "playoffSeed": 6,
+    "rankCalculatedFinal": 7,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 6,
+      "losses": 8,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 7,
+    "name": "Twilight of the Thunder God",
+    "owners": [
+     "{59B40F44-923D-47C5-8003-A45C44DEBC33}"
+    ],
+    "playoffSeed": 5,
+    "rankCalculatedFinal": 5,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 6,
+      "losses": 8,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 8,
+    "name": "fuck yo shit",
+    "owners": [
+     "{823D57F2-BD47-40F3-B8F5-3F50818B1FC1}"
+    ],
+    "playoffSeed": 4,
+    "rankCalculatedFinal": 4,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 7,
+      "losses": 7,
+      "ties": 0
+     }
+    }
+   }
+  ]
+ },
+ {
+  "id": 264063,
+  "seasonId": 2011,
+  "scoringPeriodId": 16,
+  "settings": {
+   "name": "League of Extraodinary Gentlemen",
+   "scheduleSettings": {
+    "divisions": [
+     {
+      "id": 0,
+      "name": "Division 1",
+      "size": 8
+     }
+    ]
+   }
+  },
+  "teams": [
+   {
+    "divisionId": 0,
+    "id": 1,
+    "name": "Steel Ball",
+    "owners": [
+     "{E34CFB8D-9454-4B86-9F7B-487E63123C20}"
+    ],
+    "playoffSeed": 7,
+    "rankCalculatedFinal": 8,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 5,
+      "losses": 9,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 2,
+    "name": "Matadors 7-0",
+    "owners": [
+     "{FF4D143B-04BA-4ABA-875B-9534719AEB96}"
+    ],
+    "playoffSeed": 1,
+    "rankCalculatedFinal": 2,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 13,
+      "losses": 1,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 3,
+    "name": "Old Dirty Bastard",
+    "owners": [
+     "{8A74A3B1-B792-4381-8CE2-36986393892A}"
+    ],
+    "playoffSeed": 6,
+    "rankCalculatedFinal": 7,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 5,
+      "losses": 8,
+      "ties": 1
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 4,
+    "name": "Computadora Diablo",
+    "owners": [
+     "{CC17DFA5-A98E-4BB4-84E2-02747F65CE41}"
+    ],
+    "playoffSeed": 4,
+    "rankCalculatedFinal": 3,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 7,
+      "losses": 7,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 5,
+    "name": "First Class Fucktards",
+    "owners": [
+     "{4395374F-E65E-4974-A336-CC405BEC8763}"
+    ],
+    "playoffSeed": 3,
+    "rankCalculatedFinal": 1,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 7,
+      "losses": 7,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 7,
+    "name": "Das Leveler",
+    "owners": [
+     "{59B40F44-923D-47C5-8003-A45C44DEBC33}"
+    ],
+    "playoffSeed": 2,
+    "rankCalculatedFinal": 4,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 8,
+      "losses": 6,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 8,
+    "name": "fuck yo shit",
+    "owners": [
+     "{823D57F2-BD47-40F3-B8F5-3F50818B1FC1}"
+    ],
+    "playoffSeed": 5,
+    "rankCalculatedFinal": 6,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 6,
+      "losses": 7,
+      "ties": 1
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 9,
+    "name": "SkeetSkeet Like a Water Hose",
+    "owners": [
+     "{6419246A-3DA2-428C-8538-98CF0048943A}"
+    ],
+    "playoffSeed": 8,
+    "rankCalculatedFinal": 5,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 4,
+      "losses": 10,
+      "ties": 0
+     }
+    }
+   }
+  ]
+ },
+ {
+  "id": 264063,
+  "seasonId": 2012,
+  "scoringPeriodId": 16,
+  "settings": {
+   "name": "League of Extraodinary Gentlemen",
+   "scheduleSettings": {
+    "divisions": [
+     {
+      "id": 0,
+      "name": "Division 1",
+      "size": 8
+     }
+    ]
+   }
+  },
+  "teams": [
+   {
+    "divisionId": 0,
+    "id": 1,
+    "name": "Steel Ball",
+    "owners": [
+     "{E34CFB8D-9454-4B86-9F7B-487E63123C20}"
+    ],
+    "playoffSeed": 2,
+    "rankCalculatedFinal": 2,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 9,
+      "losses": 5,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 2,
+    "name": "Matadors 7-0",
+    "owners": [
+     "{FF4D143B-04BA-4ABA-875B-9534719AEB96}"
+    ],
+    "playoffSeed": 6,
+    "rankCalculatedFinal": 7,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 6,
+      "losses": 8,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 3,
+    "name": "Old Dirty Bastard",
+    "owners": [
+     "{8A74A3B1-B792-4381-8CE2-36986393892A}"
+    ],
+    "playoffSeed": 5,
+    "rankCalculatedFinal": 5,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 6,
+      "losses": 8,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 4,
+    "name": "Computadora Diablo",
+    "owners": [
+     "{CC17DFA5-A98E-4BB4-84E2-02747F65CE41}"
+    ],
+    "playoffSeed": 7,
+    "rankCalculatedFinal": 8,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 6,
+      "losses": 8,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 5,
+    "name": "Vinegar Strokes",
+    "owners": [
+     "{F37CB081-DD56-4AA6-AD27-8E1139CB1319}"
+    ],
+    "playoffSeed": 1,
+    "rankCalculatedFinal": 1,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 9,
+      "losses": 5,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 7,
+    "name": "The Reign",
+    "owners": [
+     "{59B40F44-923D-47C5-8003-A45C44DEBC33}"
+    ],
+    "playoffSeed": 8,
+    "rankCalculatedFinal": 6,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 4,
+      "losses": 10,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 8,
+    "name": "fuck yo shit",
+    "owners": [
+     "{823D57F2-BD47-40F3-B8F5-3F50818B1FC1}"
+    ],
+    "playoffSeed": 3,
+    "rankCalculatedFinal": 4,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 9,
+      "losses": 5,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 9,
+    "name": "SkeetSkeet Like a Water Hose",
+    "owners": [
+     "{B6D2F68F-B360-4ED0-AC5B-DC46664A5BC3}"
+    ],
+    "playoffSeed": 4,
+    "rankCalculatedFinal": 3,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 7,
+      "losses": 7,
+      "ties": 0
+     }
+    }
+   }
+  ]
+ },
+ {
+  "id": 264063,
+  "seasonId": 2013,
+  "scoringPeriodId": 16,
+  "settings": {
+   "name": "League of ExtraordinaryGentlemen",
+   "scheduleSettings": {
+    "divisions": [
+     {
+      "id": 0,
+      "name": "Division 1",
+      "size": 10
+     }
+    ]
+   }
+  },
+  "teams": [
+   {
+    "divisionId": 0,
+    "id": 1,
+    "name": "Steel Ball",
+    "owners": [
+     "{E34CFB8D-9454-4B86-9F7B-487E63123C20}"
+    ],
+    "playoffSeed": 1,
+    "rankCalculatedFinal": 2,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 11,
+      "losses": 3,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 2,
+    "name": "Matadors 7-0",
+    "owners": [
+     "{FF4D143B-04BA-4ABA-875B-9534719AEB96}"
+    ],
+    "playoffSeed": 3,
+    "rankCalculatedFinal": 1,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 9,
+      "losses": 5,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 3,
+    "name": "Old Dirty Bastard",
+    "owners": [
+     "{8A74A3B1-B792-4381-8CE2-36986393892A}"
+    ],
+    "playoffSeed": 6,
+    "rankCalculatedFinal": 8,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 6,
+      "losses": 8,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 4,
+    "name": "Computadora Diablo",
+    "owners": [
+     "{CC17DFA5-A98E-4BB4-84E2-02747F65CE41}"
+    ],
+    "playoffSeed": 9,
+    "rankCalculatedFinal": 10,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 5,
+      "losses": 9,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 5,
+    "name": "Vinegar Strokes",
+    "owners": [
+     "{F37CB081-DD56-4AA6-AD27-8E1139CB1319}"
+    ],
+    "playoffSeed": 2,
+    "rankCalculatedFinal": 4,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 10,
+      "losses": 4,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 7,
+    "name": "The Reign",
+    "owners": [
+     "{59B40F44-923D-47C5-8003-A45C44DEBC33}"
+    ],
+    "playoffSeed": 5,
+    "rankCalculatedFinal": 5,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 6,
+      "losses": 8,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 8,
+    "name": "fuck yo shit",
+    "owners": [
+     "{823D57F2-BD47-40F3-B8F5-3F50818B1FC1}"
+    ],
+    "playoffSeed": 10,
+    "rankCalculatedFinal": 7,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 5,
+      "losses": 9,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 9,
+    "name": "SkeetSkeet Like a Water Hose",
+    "owners": [
+     "{B6D2F68F-B360-4ED0-AC5B-DC46664A5BC3}"
+    ],
+    "playoffSeed": 7,
+    "rankCalculatedFinal": 6,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 6,
+      "losses": 8,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 10,
+    "name": "Insert new team name here",
+    "owners": [
+     "{4395374F-E65E-4974-A336-CC405BEC8763}"
+    ],
+    "playoffSeed": 4,
+    "rankCalculatedFinal": 3,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 7,
+      "losses": 7,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 11,
+    "name": "Riley Cooper's N-Bombs",
+    "owners": [
+     "{62BBC6DF-3DC6-49DC-A61B-C1E47313C6B0}"
+    ],
+    "playoffSeed": 8,
+    "rankCalculatedFinal": 9,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 5,
+      "losses": 9,
+      "ties": 0
+     }
+    }
+   }
+  ]
+ },
+ {
+  "id": 264063,
+  "seasonId": 2014,
+  "scoringPeriodId": 16,
+  "settings": {
+   "name": "League of ExtraordinaryGentlemen",
+   "scheduleSettings": {
+    "divisions": [
+     {
+      "id": 0,
+      "name": "Division 1",
+      "size": 10
+     }
+    ]
+   }
+  },
+  "teams": [
+   {
+    "divisionId": 0,
+    "id": 1,
+    "name": "Steel Ball",
+    "owners": [
+     "{E34CFB8D-9454-4B86-9F7B-487E63123C20}"
+    ],
+    "playoffSeed": 5,
+    "rankCalculatedFinal": 8,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 8,
+      "losses": 6,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 2,
+    "name": "Matadors 7-0",
+    "owners": [
+     "{FF4D143B-04BA-4ABA-875B-9534719AEB96}"
+    ],
+    "playoffSeed": 7,
+    "rankCalculatedFinal": 9,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 6,
+      "losses": 8,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 3,
+    "name": "Old Dirty Bastard",
+    "owners": [
+     "{8A74A3B1-B792-4381-8CE2-36986393892A}"
+    ],
+    "playoffSeed": 2,
+    "rankCalculatedFinal": 1,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 10,
+      "losses": 4,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 4,
+    "name": "Computadora Diablo",
+    "owners": [
+     "{CC17DFA5-A98E-4BB4-84E2-02747F65CE41}"
+    ],
+    "playoffSeed": 4,
+    "rankCalculatedFinal": 4,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 8,
+      "losses": 6,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 5,
+    "name": "AP is a Switch Hitter",
+    "owners": [
+     "{F37CB081-DD56-4AA6-AD27-8E1139CB1319}"
+    ],
+    "playoffSeed": 6,
+    "rankCalculatedFinal": 6,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 6,
+      "losses": 8,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 7,
+    "name": "The Reign",
+    "owners": [
+     "{59B40F44-923D-47C5-8003-A45C44DEBC33}"
+    ],
+    "playoffSeed": 3,
+    "rankCalculatedFinal": 3,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 10,
+      "losses": 4,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 8,
+    "name": "fuck yo shit",
+    "owners": [
+     "{823D57F2-BD47-40F3-B8F5-3F50818B1FC1}"
+    ],
+    "playoffSeed": 1,
+    "rankCalculatedFinal": 2,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 11,
+      "losses": 3,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 9,
+    "name": "SkeetSkeet Like a Water Hose",
+    "owners": [
+     "{B6D2F68F-B360-4ED0-AC5B-DC46664A5BC3}"
+    ],
+    "playoffSeed": 8,
+    "rankCalculatedFinal": 5,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 4,
+      "losses": 10,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 10,
+    "name": "Insert new team name here",
+    "owners": [
+     "{4395374F-E65E-4974-A336-CC405BEC8763}"
+    ],
+    "playoffSeed": 10,
+    "rankCalculatedFinal": 10,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 3,
+      "losses": 11,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 11,
+    "name": "Honey Badger DGAF",
+    "owners": [
+     "{62BBC6DF-3DC6-49DC-A61B-C1E47313C6B0}"
+    ],
+    "playoffSeed": 9,
+    "rankCalculatedFinal": 7,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 4,
+      "losses": 10,
+      "ties": 0
+     }
+    }
+   }
+  ]
+ },
+ {
+  "id": 264063,
+  "seasonId": 2015,
+  "scoringPeriodId": 16,
+  "settings": {
+   "name": "League of ExtraordinaryGentlemen",
+   "scheduleSettings": {
+    "divisions": [
+     {
+      "id": 0,
+      "name": "Division 1",
+      "size": 10
+     }
+    ]
+   }
+  },
+  "teams": [
+   {
+    "divisionId": 0,
+    "id": 1,
+    "name": "Steel Ball",
+    "owners": [
+     "{E34CFB8D-9454-4B86-9F7B-487E63123C20}"
+    ],
+    "playoffSeed": 7,
+    "rankCalculatedFinal": 9,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 5,
+      "losses": 9,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 2,
+    "name": "Matadors 7-0",
+    "owners": [
+     "{FF4D143B-04BA-4ABA-875B-9534719AEB96}"
+    ],
+    "playoffSeed": 10,
+    "rankCalculatedFinal": 10,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 4,
+      "losses": 10,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 3,
+    "name": "Hoyer The Destroyer",
+    "owners": [
+     "{8A74A3B1-B792-4381-8CE2-36986393892A}"
+    ],
+    "playoffSeed": 1,
+    "rankCalculatedFinal": 3,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 11,
+      "losses": 3,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 4,
+    "name": "I Cashed @  WSOP x 3",
+    "owners": [
+     "{DEAC121C-EC58-49B8-AC12-1CEC5859B8A6}"
+    ],
+    "playoffSeed": 5,
+    "rankCalculatedFinal": 8,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 7,
+      "losses": 7,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 5,
+    "name": "Suck On Dez Nuts",
+    "owners": [
+     "{F37CB081-DD56-4AA6-AD27-8E1139CB1319}"
+    ],
+    "playoffSeed": 3,
+    "rankCalculatedFinal": 4,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 9,
+      "losses": 5,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 7,
+    "name": "The Reign",
+    "owners": [
+     "{59B40F44-923D-47C5-8003-A45C44DEBC33}"
+    ],
+    "playoffSeed": 2,
+    "rankCalculatedFinal": 2,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 9,
+      "losses": 4,
+      "ties": 1
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 8,
+    "name": "fuck yo shit",
+    "owners": [
+     "{823D57F2-BD47-40F3-B8F5-3F50818B1FC1}"
+    ],
+    "playoffSeed": 8,
+    "rankCalculatedFinal": 6,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 4,
+      "losses": 9,
+      "ties": 1
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 9,
+    "name": "SkeetSkeet Like a Water Hose",
+    "owners": [
+     "{B6D2F68F-B360-4ED0-AC5B-DC46664A5BC3}"
+    ],
+    "playoffSeed": 4,
+    "rankCalculatedFinal": 1,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 9,
+      "losses": 5,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 10,
+    "name": "Insert new team name here",
+    "owners": [
+     "{4395374F-E65E-4974-A336-CC405BEC8763}"
+    ],
+    "playoffSeed": 9,
+    "rankCalculatedFinal": 7,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 4,
+      "losses": 10,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 11,
+    "name": "Demaryius Targaryen",
+    "owners": [
+     "{62BBC6DF-3DC6-49DC-A61B-C1E47313C6B0}"
+    ],
+    "playoffSeed": 6,
+    "rankCalculatedFinal": 5,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 7,
+      "losses": 7,
+      "ties": 0
+     }
+    }
+   }
+  ]
+ },
+ {
+  "id": 264063,
+  "seasonId": 2016,
+  "scoringPeriodId": 16,
+  "settings": {
+   "name": "League of ExtraordinaryGentlemen",
+   "scheduleSettings": {
+    "divisions": [
+     {
+      "id": 0,
+      "name": "Division 1",
+      "size": 10
+     }
+    ]
+   }
+  },
+  "teams": [
+   {
+    "divisionId": 0,
+    "id": 1,
+    "name": "Steel Ball",
+    "owners": [
+     "{E34CFB8D-9454-4B86-9F7B-487E63123C20}"
+    ],
+    "playoffSeed": 8,
+    "rankCalculatedFinal": 9,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 5,
+      "losses": 9,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 2,
+    "name": "Millennium  Falcons",
+    "owners": [
+     "{BF8E29D3-4434-4127-87D7-74ADD481E718}"
+    ],
+    "playoffSeed": 4,
+    "rankCalculatedFinal": 2,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 8,
+      "losses": 6,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 3,
+    "name": "DeAndre El Bano",
+    "owners": [
+     "{8A74A3B1-B792-4381-8CE2-36986393892A}"
+    ],
+    "playoffSeed": 7,
+    "rankCalculatedFinal": 6,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 6,
+      "losses": 8,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 4,
+    "name": "I Cashed @  WSOP x 3",
+    "owners": [
+     "{DEAC121C-EC58-49B8-AC12-1CEC5859B8A6}"
+    ],
+    "playoffSeed": 10,
+    "rankCalculatedFinal": 7,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 5,
+      "losses": 9,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 5,
+    "name": "Twerkin' It",
+    "owners": [
+     "{F37CB081-DD56-4AA6-AD27-8E1139CB1319}"
+    ],
+    "playoffSeed": 6,
+    "rankCalculatedFinal": 5,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 7,
+      "losses": 7,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 7,
+    "name": "The Reign",
+    "owners": [
+     "{59B40F44-923D-47C5-8003-A45C44DEBC33}"
+    ],
+    "playoffSeed": 3,
+    "rankCalculatedFinal": 1,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 8,
+      "losses": 6,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 8,
+    "name": "fuck yo shit",
+    "owners": [
+     "{823D57F2-BD47-40F3-B8F5-3F50818B1FC1}"
+    ],
+    "playoffSeed": 2,
+    "rankCalculatedFinal": 4,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 9,
+      "losses": 5,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 9,
+    "name": "\"YOU LIKE THAT\" lace'm up",
+    "owners": [
+     "{B6D2F68F-B360-4ED0-AC5B-DC46664A5BC3}"
+    ],
+    "playoffSeed": 1,
+    "rankCalculatedFinal": 3,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 9,
+      "losses": 5,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 10,
+    "name": "Forte Inch Ditka",
+    "owners": [
+     "{4395374F-E65E-4974-A336-CC405BEC8763}"
+    ],
+    "playoffSeed": 5,
+    "rankCalculatedFinal": 8,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 8,
+      "losses": 6,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 11,
+    "name": "Fucked by Gronk's Dick",
+    "owners": [
+     "{62BBC6DF-3DC6-49DC-A61B-C1E47313C6B0}"
+    ],
+    "playoffSeed": 9,
+    "rankCalculatedFinal": 10,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 5,
+      "losses": 9,
+      "ties": 0
+     }
+    }
+   }
+  ]
+ },
+ {
+  "id": 264063,
+  "seasonId": 2017,
+  "scoringPeriodId": 16,
+  "settings": {
+   "name": "League of ExtraordinaryGentlemen",
+   "scheduleSettings": {
+    "divisions": [
+     {
+      "id": 0,
+      "name": "Division 1",
+      "size": 10
+     }
+    ]
+   }
+  },
+  "teams": [
+   {
+    "divisionId": 0,
+    "id": 1,
+    "name": "Steel Ball",
+    "owners": [
+     "{E34CFB8D-9454-4B86-9F7B-487E63123C20}"
+    ],
+    "playoffSeed": 4,
+    "rankCalculatedFinal": 4,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 8,
+      "losses": 6,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 2,
+    "name": "Millennium  Falcons",
+    "owners": [
+     "{BF8E29D3-4434-4127-87D7-74ADD481E718}"
+    ],
+    "playoffSeed": 6,
+    "rankCalculatedFinal": 8,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 7,
+      "losses": 7,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 3,
+    "name": "I Drink, And I Know Things",
+    "owners": [
+     "{8A74A3B1-B792-4381-8CE2-36986393892A}"
+    ],
+    "playoffSeed": 7,
+    "rankCalculatedFinal": 9,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 6,
+      "losses": 8,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 4,
+    "name": "I Cashed @  WSOP x 4",
+    "owners": [
+     "{DEAC121C-EC58-49B8-AC12-1CEC5859B8A6}"
+    ],
+    "playoffSeed": 9,
+    "rankCalculatedFinal": 7,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 4,
+      "losses": 10,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 5,
+    "name": "28 - 3",
+    "owners": [
+     "{F37CB081-DD56-4AA6-AD27-8E1139CB1319}"
+    ],
+    "playoffSeed": 5,
+    "rankCalculatedFinal": 5,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 7,
+      "losses": 7,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 7,
+    "name": "The Reign",
+    "owners": [
+     "{59B40F44-923D-47C5-8003-A45C44DEBC33}"
+    ],
+    "playoffSeed": 8,
+    "rankCalculatedFinal": 6,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 6,
+      "losses": 8,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 8,
+    "name": "Chicken Cutlet",
+    "owners": [
+     "{823D57F2-BD47-40F3-B8F5-3F50818B1FC1}"
+    ],
+    "playoffSeed": 10,
+    "rankCalculatedFinal": 10,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 4,
+      "losses": 10,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 9,
+    "name": "Krispy Kareem !!!",
+    "owners": [
+     "{B6D2F68F-B360-4ED0-AC5B-DC46664A5BC3}"
+    ],
+    "playoffSeed": 2,
+    "rankCalculatedFinal": 2,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 9,
+      "losses": 5,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 10,
+    "name": "Forte Inch Ditka",
+    "owners": [
+     "{4395374F-E65E-4974-A336-CC405BEC8763}"
+    ],
+    "playoffSeed": 1,
+    "rankCalculatedFinal": 1,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 11,
+      "losses": 3,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 11,
+    "name": "Team  Gronkey Punch",
+    "owners": [
+     "{62BBC6DF-3DC6-49DC-A61B-C1E47313C6B0}"
+    ],
+    "playoffSeed": 3,
+    "rankCalculatedFinal": 3,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 8,
+      "losses": 6,
+      "ties": 0
+     }
+    }
+   }
+  ]
+ },
+ {
+  "id": 264063,
+  "seasonId": 2018,
+  "scoringPeriodId": 16,
+  "settings": {
+   "name": "League of ExtraordinaryGentlemen",
+   "scheduleSettings": {
+    "divisions": [
+     {
+      "id": 0,
+      "name": "Division 1",
+      "size": 10
+     }
+    ]
+   }
+  },
+  "teams": [
+   {
+    "divisionId": 0,
+    "id": 1,
+    "name": "Steel Ball",
+    "owners": [
+     "{E34CFB8D-9454-4B86-9F7B-487E63123C20}"
+    ],
+    "playoffSeed": 9,
+    "rankCalculatedFinal": 9,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 5,
+      "losses": 9,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 2,
+    "name": "Kerryon My Wayward Son",
+    "owners": [
+     "{BF8E29D3-4434-4127-87D7-74ADD481E718}"
+    ],
+    "playoffSeed": 3,
+    "rankCalculatedFinal": 4,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 9,
+      "losses": 5,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 3,
+    "name": "OD B",
+    "owners": [
+     "{8A74A3B1-B792-4381-8CE2-36986393892A}"
+    ],
+    "playoffSeed": 6,
+    "rankCalculatedFinal": 6,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 6,
+      "losses": 8,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 4,
+    "name": "I Cashed @  WSOP x 4",
+    "owners": [
+     "{DEAC121C-EC58-49B8-AC12-1CEC5859B8A6}"
+    ],
+    "playoffSeed": 10,
+    "rankCalculatedFinal": 8,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 3,
+      "losses": 11,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 5,
+    "name": "28 - 3",
+    "owners": [
+     "{F37CB081-DD56-4AA6-AD27-8E1139CB1319}"
+    ],
+    "playoffSeed": 1,
+    "rankCalculatedFinal": 3,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 12,
+      "losses": 2,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 7,
+    "name": "The Reign",
+    "owners": [
+     "{59B40F44-923D-47C5-8003-A45C44DEBC33}"
+    ],
+    "playoffSeed": 8,
+    "rankCalculatedFinal": 5,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 6,
+      "losses": 8,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 8,
+    "name": "fuck yo shit",
+    "owners": [
+     "{823D57F2-BD47-40F3-B8F5-3F50818B1FC1}"
+    ],
+    "playoffSeed": 4,
+    "rankCalculatedFinal": 1,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 7,
+      "losses": 7,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 9,
+    "name": "Krispy Kareem !!!",
+    "owners": [
+     "{B6D2F68F-B360-4ED0-AC5B-DC46664A5BC3}",
+     "{02D15407-7C14-4A7E-BDDE-576FE6062918}"
+    ],
+    "playoffSeed": 5,
+    "rankCalculatedFinal": 7,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 6,
+      "losses": 8,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 10,
+    "name": "More Than A Thielen",
+    "owners": [
+     "{4395374F-E65E-4974-A336-CC405BEC8763}"
+    ],
+    "playoffSeed": 7,
+    "rankCalculatedFinal": 10,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 6,
+      "losses": 8,
+      "ties": 0
+     }
+    }
+   },
+   {
+    "divisionId": 0,
+    "id": 11,
+    "name": "Team  Gronkey Punch",
+    "owners": [
+     "{62BBC6DF-3DC6-49DC-A61B-C1E47313C6B0}"
+    ],
+    "playoffSeed": 2,
+    "rankCalculatedFinal": 2,
+    "rankFinal": 0,
+    "record": {
+     "overall": {
+      "wins": 10,
+      "losses": 4,
+      "ties": 0
+     }
+    }
+   }
+  ]
+ }
+]

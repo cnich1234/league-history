@@ -1,0 +1,14 @@
+node_modules/
+.next/
+out/
+.env.local
+.DS_Store
+
+# Raw ESPN dumps are ~12MB and only needed to regenerate league.json.
+# The derived data/league.json IS committed — Vercel builds from it.
+data/raw/
+
+# Scratch files from API probing
+.kh*.json
+.lh.json
+.capture-note.txt

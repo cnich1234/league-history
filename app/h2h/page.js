@@ -32,8 +32,8 @@ export default function HeadToHeadPage() {
       <header className="page-head">
         <h1>Head to Head</h1>
         <div className="sub">
-          Regular-season record, row vs column ·{' '}
-          {league.scheduledSeasons[0]}–{league.scheduledSeasons.at(-1)}
+          Regular-season record, row vs column · all{' '}
+          {league.seasons.filter((s) => s.played).length} seasons
         </div>
       </header>
 
@@ -94,14 +94,6 @@ export default function HeadToHeadPage() {
         <div className="note">
           Scroll sideways to see every matchup. Green means the row manager leads
           the series. Managers with fewer than 20 games are omitted.
-          <br />
-          <br />
-          Head-to-head covers <strong>{league.scheduledSeasons[0]}–
-          {league.scheduledSeasons.at(-1)}</strong> only. ESPN serves game-by-game
-          results for those seasons; earlier ones return final standings without a
-          schedule, so individual matchups are not recoverable. Season records and
-          championships elsewhere in the app cover all{' '}
-          {league.seasons.filter((s) => s.played).length} seasons.
         </div>
       </section>
 

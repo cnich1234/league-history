@@ -19,7 +19,6 @@ export default function OwnerPage({ params }) {
   const league = getLeague();
   const h2h = getHeadToHead(owner.slug);
   const seasons = [...owner.seasons].sort((a, b) => b.season - a.season);
-  const scheduled = new Set(league.scheduledSeasons);
 
   const best = h2h.filter((row) => row.games >= 3).sort((a, b) => b.winPct - a.winPct)[0];
   const worst = h2h.filter((row) => row.games >= 3).sort((a, b) => a.winPct - b.winPct)[0];
@@ -67,13 +66,9 @@ export default function OwnerPage({ params }) {
           </div>
           <div className="tile">
             <div className="label">Points/game</div>
-            {/* pointsFor only accumulates over scheduled seasons, so divide by
-                those games rather than the all-time total. */}
             <div className="value">{owner.pointsPerScheduledGame ?? '—'}</div>
             <div className="meta">
-              {owner.pointsFor > 0
-                ? `${Math.round(owner.pointsFor).toLocaleString()} since ${league.scheduledSeasons[0]}`
-                : 'not recorded'}
+              {Math.round(owner.pointsFor).toLocaleString()} all-time
             </div>
           </div>
           <div className="tile">
@@ -152,13 +147,8 @@ export default function OwnerPage({ params }) {
                     {season.wins}-{season.losses}
                     {season.ties ? `-${season.ties}` : ''}
                   </td>
-                  {/* Points only exist for seasons ESPN serves a schedule for. */}
-                  <td className={scheduled.has(season.season) ? '' : 'dim'}>
-                    {scheduled.has(season.season) ? season.pointsFor : '—'}
-                  </td>
-                  <td className={scheduled.has(season.season) ? '' : 'dim'}>
-                    {scheduled.has(season.season) ? season.pointsAgainst : '—'}
-                  </td>
+                  <td>{season.pointsFor}</td>
+                  <td>{season.pointsAgainst}</td>
                   <td>
                     {season.finish === 1 ? (
                       <span title="Champion">🏆</span>
@@ -175,12 +165,6 @@ export default function OwnerPage({ params }) {
             </tbody>
           </table>
         </div>
-        {seasons.some((season) => !scheduled.has(season.season)) && (
-          <div className="note">
-            Points are unavailable before {league.scheduledSeasons[0]} — ESPN
-            returns final standings for those seasons but no game-level detail.
-          </div>
-        )}
       </section>
 
       <section className="section">
@@ -224,8 +208,8 @@ export default function OwnerPage({ params }) {
           </table>
         </div>
         <div className="note">
-          Head-to-head covers regular-season meetings. Playoff meetings are noted
-          separately under each opponent.
+          Regular-season meetings across all {league.seasons.filter((s) => s.played).length}{' '}
+          seasons. Playoff meetings are noted separately under each opponent.
         </div>
       </section>
     </>

@@ -123,7 +123,38 @@ for (const { season, data } of seasons) {
   const regularSeasonWeeks =
     data.settings?.scheduleSettings?.matchupPeriodCount ?? 14;
 
+  // The imported pre-2019 payloads tag every game with playoffTierType
+  // ("NONE" = regular season). That is authoritative — verified against the
+  // standings: 2008 has exactly 56 NONE games and a 56-56 league record.
+  // The seasons fetched directly lack the field, so fall back to week numbers
+  // there.
+  const hasTierData = schedule.some((game) => game.playoffTierType);
+  const isPlayoffGame = (game) =>
+    hasTierData
+      ? game.playoffTierType && game.playoffTierType !== 'NONE'
+      : game.matchupPeriodId > regularSeasonWeeks;
+
   const finishes = [];
+
+  // Regular-season points per team, accumulated from the schedule so every
+  // season is covered the same way.
+  const seasonPointsFor = new Map();
+  const seasonPointsAgainst = new Map();
+  for (const game of playedGames) {
+    if (isPlayoffGame(game)) continue;
+    for (const [side, opponent] of [
+      [game.home, game.away],
+      [game.away, game.home],
+    ]) {
+      const teamId = side?.teamId;
+      if (teamId == null) continue;
+      seasonPointsFor.set(teamId, (seasonPointsFor.get(teamId) ?? 0) + (side.totalPoints ?? 0));
+      seasonPointsAgainst.set(
+        teamId,
+        (seasonPointsAgainst.get(teamId) ?? 0) + (opponent?.totalPoints ?? 0)
+      );
+    }
+  }
 
   if (played) {
     for (const team of teams) {
@@ -136,8 +167,15 @@ for (const { season, data } of seasons) {
       entry.wins += record.wins ?? 0;
       entry.losses += record.losses ?? 0;
       entry.ties += record.ties ?? 0;
-      entry.pointsFor += record.pointsFor ?? 0;
-      entry.pointsAgainst += record.pointsAgainst ?? 0;
+
+      // Points come from the schedule, not from record.overall: the imported
+      // pre-2019 payloads carry per-game scores but no pointsFor, so summing
+      // games is the only source that covers every season consistently.
+      const teamPointsFor = seasonPointsFor.get(team.id) ?? record.pointsFor ?? 0;
+      const teamPointsAgainst =
+        seasonPointsAgainst.get(team.id) ?? record.pointsAgainst ?? 0;
+      entry.pointsFor += teamPointsFor;
+      entry.pointsAgainst += teamPointsAgainst;
 
       const finish = team.rankCalculatedFinal || null;
       if (finish === 1) entry.championships++;
@@ -162,8 +200,8 @@ for (const { season, data } of seasons) {
         wins: record.wins ?? 0,
         losses: record.losses ?? 0,
         ties: record.ties ?? 0,
-        pointsFor: Math.round((record.pointsFor ?? 0) * 10) / 10,
-        pointsAgainst: Math.round((record.pointsAgainst ?? 0) * 10) / 10,
+        pointsFor: Math.round(teamPointsFor * 10) / 10,
+        pointsAgainst: Math.round(teamPointsAgainst * 10) / 10,
         finish,
         playoffSeed: team.playoffSeed || null,
         madePlayoffs,
@@ -185,7 +223,7 @@ for (const { season, data } of seasons) {
     const awaySlug = teamOwner.get(game.away?.teamId);
     const homePoints = game.home?.totalPoints ?? 0;
     const awayPoints = game.away?.totalPoints ?? 0;
-    const isPlayoff = game.matchupPeriodId > regularSeasonWeeks;
+    const isPlayoff = isPlayoffGame(game);
 
     allGames.push({
       season,

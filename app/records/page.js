@@ -3,7 +3,6 @@ import {
   getScoringExtremes,
   getMarginExtremes,
   getOwners,
-  getLeague,
   getPlayedSeasons,
 } from '@/lib/data';
 import RankRow from '@/components/RankRow';
@@ -33,14 +32,12 @@ const BOARDS = [
     format: (v) => Math.round(v).toLocaleString(),
     detail: (o) => `${o.pointsPerScheduledGame ?? '—'} per game`,
     filter: (o) => o.pointsFor > 0,
-    scoped: true,
   },
   {
     title: 'Highest Scoring Average',
     field: 'pointsPerScheduledGame',
     detail: (o) => `${Math.round(o.pointsFor).toLocaleString()} total`,
     filter: (o) => o.scheduledGames >= 40,
-    scoped: true,
   },
   {
     title: 'Best Point Differential',
@@ -49,7 +46,6 @@ const BOARDS = [
     detail: (o) =>
       `${Math.round(o.pointsFor).toLocaleString()} for / ${Math.round(o.pointsAgainst).toLocaleString()} against`,
     filter: (o) => o.pointsFor > 0,
-    scoped: true,
   },
   {
     title: 'Most Consistent',
@@ -58,7 +54,6 @@ const BOARDS = [
     format: (v) => `±${v}`,
     detail: (o) => `${o.pointsPerScheduledGame} per game`,
     filter: (o) => o.scheduledGames >= 40,
-    scoped: true,
   },
   {
     title: 'Runner-Up Finishes',
@@ -78,9 +73,6 @@ export default function RecordsPage() {
   const { highest, lowest } = getScoringExtremes();
   const { blowout, nailbiter } = getMarginExtremes();
   const owners = getOwners();
-  const league = getLeague();
-  const scheduledFrom = league.scheduledSeasons[0];
-  const scheduledTo = league.scheduledSeasons.at(-1);
   const playedSeasons = getPlayedSeasons();
 
   // Championship rate: titles per season played, for managers with 3+ seasons.
@@ -139,10 +131,6 @@ export default function RecordsPage() {
             </div>
           </div>
         </div>
-        <div className="note">
-          Single-game records cover {scheduledFrom}–{scheduledTo}. ESPN returns
-          final standings for earlier seasons but no individual scores.
-        </div>
       </section>
 
       {BOARDS.map((board) => {
@@ -176,12 +164,6 @@ export default function RecordsPage() {
             </div>
             {board.minGames ? (
               <div className="note">Minimum {board.minGames} games played.</div>
-            ) : null}
-            {board.scoped ? (
-              <div className="note">
-                {scheduledFrom}–{scheduledTo} only — ESPN does not serve
-                game-level scoring for earlier seasons.
-              </div>
             ) : null}
             {board.field === 'consistency' ? (
               <div className="note">

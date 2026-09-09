@@ -7,22 +7,32 @@
  * dynamic route threw, and /owner/[slug] and /writeups/[slug] became 404s while
  * the build reported success.
  */
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { readdirSync, readFileSync, statSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 
-const ROOT = 'out';
+// Static export wrote to out/; a server build prerenders into
+// .next/server/app. Check whichever exists so dropping `output: 'export'`
+// does not silently turn this verification off.
+const ROOT = existsSync('out') ? 'out' : join('.next', 'server', 'app');
 const bad = [];
 
 function walk(dir) {
   for (const entry of readdirSync(dir)) {
     const full = join(dir, entry);
     if (statSync(full).isDirectory()) walk(full);
-    else if (entry.endsWith('.html')) {
+    // Next ships its own error documents (_error, _global-error, 404, 500).
+    // Those are SUPPOSED to carry the marker; flagging them would make this
+    // check cry wolf and get ignored, which defeats the point.
+    else if (entry.endsWith('.html') && !/^_?(global-error|error|404|500)\.html$/.test(entry)) {
       if (readFileSync(full, 'utf8').includes('__next_error__')) bad.push(full);
     }
   }
 }
 
+if (!existsSync(ROOT)) {
+  console.error(`No build output at ${ROOT}. Run \`next build\` first.`);
+  process.exit(1);
+}
 walk(ROOT);
 
 if (bad.length) {

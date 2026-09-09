@@ -587,3 +587,230 @@ tbody tr:last-child td {
 @media (prefers-reduced-motion: reduce) {
   .live-dot { animation: none; }
 }
+
+/* ---- The Book ---- */
+
+.login {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.field {
+  width: 100%;
+  padding: 13px 14px;
+  border-radius: 11px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 15px;
+  font-family: inherit;
+  /* 16px prevents iOS zooming the page on focus; 15 + no zoom needs this. */
+  -webkit-appearance: none;
+}
+
+.field:focus {
+  outline: none;
+  border-color: var(--teal-dim);
+}
+
+.btn-primary {
+  padding: 13px 18px;
+  border: 0;
+  border-radius: 11px;
+  background: var(--teal);
+  color: #06231d;
+  font-weight: 800;
+  font-size: 15px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.btn-primary:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.btn-sm {
+  padding: 9px 15px;
+  font-size: 13.5px;
+  border-radius: 9px;
+}
+
+.form-error {
+  color: var(--negative);
+  font-size: 13px;
+  padding: 2px 2px 0;
+}
+
+.bankroll-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--teal-ghost), transparent);
+  border: 1px solid rgba(18, 214, 172, 0.28);
+}
+
+.bankroll-amount {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--teal);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+}
+
+.bankroll-record {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-align: right;
+}
+
+.market {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 12px 13px;
+  margin-bottom: 8px;
+}
+
+.market-placed {
+  opacity: 0.75;
+}
+
+.market-head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 10px;
+}
+
+.market-title {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.market-head .dim {
+  font-size: 11.5px;
+}
+
+.options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  /* Comfortable tap target on a phone. */
+  min-height: 46px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--surface-raised);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.option-on {
+  border-color: var(--teal);
+  background: var(--teal-ghost);
+}
+
+.option:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.option-label {
+  font-weight: 650;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.option-odds {
+  font-weight: 800;
+  color: var(--teal);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.stake-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 10px;
+}
+
+.stake-input {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 0 11px;
+  border-radius: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: var(--surface-raised);
+  flex-shrink: 0;
+}
+
+.stake-prefix {
+  color: var(--text-dim);
+  font-weight: 700;
+}
+
+.stake-input input {
+  width: 62px;
+  padding: 10px 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: 15px;
+  font-family: inherit;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  -moz-appearance: textfield;
+}
+
+.stake-input input::-webkit-outer-spin-button,
+.stake-input input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.stake-input input:focus {
+  outline: none;
+}
+
+.stake-preview {
+  flex: 1;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.stake-preview strong {
+  color: var(--teal);
+  font-weight: 800;
+}
+
+.pill-on {
+  background: var(--teal-ghost);
+  color: var(--teal);
+}
+
+.row-me {
+  border: 1px solid rgba(18, 214, 172, 0.3);
+}
+
+.pos {
+  color: var(--positive);
+}

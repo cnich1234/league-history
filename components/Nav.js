@@ -7,9 +7,9 @@ const TABS = [
   { href: '/', label: 'Home', icon: '🏈' },
   { href: '/trophies', label: 'Points', icon: '🏅' },
   { href: '/writeups', label: 'Reads', icon: '📰' },
+  { href: '/book', label: 'The Book', icon: '🎲' },
   { href: '/records', label: 'Records', icon: '🏆' },
   { href: '/owners', label: 'Owners', icon: '👥' },
-  { href: '/h2h', label: 'H2H', icon: '⚔️' },
 ];
 
 export default function Nav() {

@@ -12,3 +12,4 @@ data/raw/
 .kh*.json
 .lh.json
 .capture-note.txt
+.neon

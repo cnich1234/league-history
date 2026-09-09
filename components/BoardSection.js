@@ -1,101 +1,64 @@
-import BetSlip from './BetSlip';
-
-const KIND_LABEL = {
-  h2h: 'Head to head',
-  spread: 'Spreads',
-  total: 'Team totals',
-  prop: 'Player props',
-};
-const KIND_ORDER = ['h2h', 'spread', 'total', 'prop'];
+import MatchupCard from './MatchupCard';
 
 /**
- * The week's board, grouped by lock day and then by bet type.
+ * The week's board: matchups, grouped by the day they lock.
  *
- * Lock day is the outer grouping because it is the thing that actually costs
- * someone money if they misread it. Markets lock on their own game day, so a
- * flat list mixes "closes tonight" with "closes Sunday" and the only hint is a
- * small label -- which is exactly the confusion this avoids.
+ * Two levels, both earning their place. Lock day is the outer grouping because
+ * misreading it is what costs someone a bet -- a flat list mixes "closes
+ * tonight" with "closes Saturday" and the only hint is a small label. Matchup
+ * is the inner grouping because that is how people decide: pick the game you
+ * have an opinion about, then pick how to bet it.
  *
- * Matchups and spreads almost always land on the earliest group: a lineup locks
- * before ANY of its starters plays, and with twenty starters at least one is
- * usually in the Thursday game. That is deliberate -- betting a matchup after
- * one of its players has already scored is not a bet -- but it surprises
- * people, so the group says why.
- *
- * Categories collapse via native <details>, not React state: it works before
- * hydration, survives a failed script load, and gets keyboard and screen-reader
- * behaviour for free. Head to head opens by default because it is the bet
- * everyone came for; the ten player props do not need to push everything else
- * off a phone screen.
+ * Matchups almost always land in the earliest group. A lineup locks before ANY
+ * of its starters plays, and with twenty starters at least one is usually in
+ * the Thursday game. That is deliberate -- betting a matchup after one of its
+ * players has already scored is not a bet -- but it surprises people, so the
+ * earliest group says why.
  */
-export default function BoardSection({ markets, myByMarket, bankrollCents }) {
+export default function BoardSection({ games, myByMarket, bankrollCents }) {
   const byDay = {};
-  for (const m of markets) {
-    const key = new Date(m.locks_at).toISOString().slice(0, 10);
-    (byDay[key] ??= []).push(m);
+  for (const g of games) {
+    const key = new Date(g.locksAt).toISOString().slice(0, 10);
+    (byDay[key] ??= []).push(g);
   }
 
   const days = Object.keys(byDay).sort();
 
   return days.map((day, i) => {
-    const dayMarkets = byDay[day];
+    const dayGames = byDay[day];
     const isEarliest = i === 0;
-    const byKind = {};
-    for (const m of dayMarkets) (byKind[m.kind] ??= []).push(m);
+    const betCount = dayGames.reduce((n, g) => n + g.marketCount, 0);
 
     return (
       <section className="section" key={day}>
         <div className="day-head">
           <h2>{dayLabel(day)}</h2>
           <span className="day-count">
-            {dayMarkets.length} bet{dayMarkets.length === 1 ? '' : 's'}
+            {dayGames.length} game{dayGames.length === 1 ? '' : 's'} · {betCount} bets
           </span>
         </div>
         <p className="day-note">Closes {closesLabel(day)}</p>
-        {isEarliest && hasLineupMarkets(dayMarkets) && (
+        {isEarliest && (
           <p className="day-why">
-            Matchups and spreads close now because at least one starter plays{' '}
+            These close first because at least one starter plays{' '}
             {dayLabel(day).replace(' games', '')}.
           </p>
         )}
 
-        {KIND_ORDER.filter((k) => byKind[k]?.length).map((kind) => (
-          <details className="kind-group" key={kind} open={kind === 'h2h'}>
-            <summary className="kind-label">
-              <span className="kind-name">{KIND_LABEL[kind]}</span>
-              <span className="kind-meta">
-                {betCount(byKind[kind], myByMarket)}
-                <span className="kind-chevron" aria-hidden="true" />
-              </span>
-            </summary>
-            {byKind[kind].map((m) => (
-              <BetSlip
-                key={m.id}
-                market={{ ...m, id: String(m.id) }}
-                existingBet={myByMarket[String(m.id)] ?? null}
-                bankrollCents={bankrollCents}
-              />
-            ))}
-          </details>
+        {dayGames.map((g, j) => (
+          <MatchupCard
+            key={g.key}
+            game={g}
+            myByMarket={myByMarket}
+            bankrollCents={bankrollCents}
+            // Open the first card so the page never looks like a list of empty
+            // headers; the rest stay closed so a phone shows all five games.
+            defaultOpen={isEarliest && j === 0}
+          />
         ))}
       </section>
     );
   });
-}
-
-/**
- * "6 bets · 2 placed" -- so a collapsed group still says whether you have acted
- * on it, which is the one thing worth knowing without opening it.
- */
-function betCount(markets, myByMarket) {
-  const placed = markets.filter((m) => myByMarket[String(m.id)]).length;
-  const label = `${markets.length} bet${markets.length === 1 ? '' : 's'}`;
-  return placed ? `${label} · ${placed} placed` : label;
-}
-
-/** True when a group contains whole-lineup markets, which lock earliest. */
-function hasLineupMarkets(markets) {
-  return markets.some((m) => m.kind === 'h2h' || m.kind === 'spread');
 }
 
 /** "Sunday games" -- what the bets are ON, not when they close. */

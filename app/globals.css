@@ -1018,3 +1018,118 @@ tbody tr:last-child td {
   line-height: 1.4;
   color: var(--text-dim);
 }
+
+/* ---- Matchup drilldown ---- */
+
+.matchup {
+  background: var(--surface);
+  border-radius: 12px;
+  margin-bottom: 9px;
+  overflow: hidden;
+}
+
+.matchup-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 13px 14px;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.matchup-head::-webkit-details-marker {
+  display: none;
+}
+
+.matchup-head:focus-visible {
+  outline: 2px solid var(--teal-dim);
+  outline-offset: -2px;
+}
+
+.matchup-main {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+
+.matchup-title {
+  font-size: 14.5px;
+  font-weight: 750;
+  color: var(--text);
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.matchup-meta {
+  font-size: 11.5px;
+  font-weight: 650;
+  color: var(--text-dim);
+}
+
+.matchup-placed {
+  color: var(--teal);
+}
+
+.matchup-chevron {
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--text-dim);
+  border-bottom: 2px solid var(--text-dim);
+  transform: rotate(45deg);
+  transition: transform 0.15s ease;
+  margin-top: -4px;
+  flex-shrink: 0;
+}
+
+.matchup[open] .matchup-chevron {
+  transform: rotate(-135deg);
+  margin-top: 2px;
+}
+
+.matchup[open] .matchup-head {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.matchup-body {
+  padding: 12px 10px 6px;
+}
+
+.matchup-kind {
+  margin-bottom: 12px;
+}
+
+.matchup-kind-label {
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin: 0 0 6px 4px;
+}
+
+/* Inside a matchup the market card is already on a panel, so drop its own
+   background and let the group provide the surface. */
+.matchup-body .market {
+  background: var(--surface-raised);
+}
+
+/* Nested padding leaves each column under the 150px the outer board assumes,
+   which stacked every pair. Inside a card 116px is enough for "Over 128.5" and
+   a price, and long team names still wrap rather than overflow. */
+.matchup-body .options {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 116px), 1fr));
+}
+
+.matchup-body .market {
+  padding: 10px 11px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .matchup-chevron {
+    transition: none;
+  }
+}

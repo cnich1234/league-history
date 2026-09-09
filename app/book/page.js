@@ -6,6 +6,7 @@ import {
   getMyBets,
   visibleBets,
   getPrizePool,
+  groupByMatchup,
 } from '@/lib/book';
 import { formatMoney, formatOdds } from '@/lib/odds';
 import Login from '@/components/Login';
@@ -57,6 +58,8 @@ export default async function BookPage({ searchParams }) {
 
   const open = markets.filter((m) => new Date(m.locks_at).getTime() > now);
   const locked = markets.filter((m) => new Date(m.locks_at).getTime() <= now);
+  // Matchup drilldown: pick the game, then how to bet it.
+  const games = groupByMatchup(open);
 
   // Other people's bets, only from markets that have already locked.
   const others = publicBets.filter((b) => b.bettor !== slug);
@@ -86,9 +89,9 @@ export default async function BookPage({ searchParams }) {
         </div>
       </section>
 
-      {open.length > 0 ? (
+      {games.length > 0 ? (
         <BoardSection
-          markets={open}
+          games={games}
           myByMarket={myByMarket}
           bankrollCents={Number(me.balance_cents)}
         />

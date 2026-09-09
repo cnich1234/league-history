@@ -12,7 +12,6 @@ import { payoutCents } from '../lib/odds.js';
 
 const sql = neon(process.env.DATABASE_URL);
 const TEST_SEASON = 9998;
-const OPENING = 100000;
 
 let failed = 0;
 const check = (label, actual, expected) => {
@@ -129,10 +128,17 @@ try {
 console.log('\ncleanup');
 const [{ n }] = await sql`select count(*)::int as n from markets where season = ${TEST_SEASON}`;
 check('test data removed', n, 0);
-const drifted = await sql`select slug from bankrolls where balance_cents <> ${OPENING} order by slug`;
+// Real league bets now exist, so a flat $1000 is no longer the invariant.
+// What must hold is that every balance is explained by its own ledger.
+const mismatched = await sql`
+  select b.slug from bankrolls b
+  join (select bettor, coalesce(sum(amount_cents), 0) as total from ledger group by bettor) l
+    on l.bettor = b.slug
+  where b.balance_cents <> l.total
+  order by b.slug`;
 check(
-  'every bankroll back to $1000',
-  drifted.map((r) => r.slug),
+  'every balance equals its ledger',
+  mismatched.map((r) => r.slug),
   [],
 );
 

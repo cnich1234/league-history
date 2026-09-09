@@ -20,7 +20,9 @@
     "db:seed": "node --env-file=.env.local scripts/seed-bettors.mjs",
     "db:check": "node --env-file=.env.local scripts/db-check.mjs",
     "test:book": "node --env-file=.env.local scripts/book.test.mjs",
-    "test:odds": "node scripts/odds.test.mjs"
+    "test:odds": "node scripts/odds.test.mjs",
+    "markets": "node --env-file=.env.local scripts/build-markets.mjs",
+    "test:buyin": "node --env-file=.env.local scripts/buyin.test.mjs"
   },
   "dependencies": {
     "@neon/config": "^1.3.2",

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { currentBettor } from '@/lib/auth';
+import { currentBettor, listBettors, isCommissioner } from '@/lib/auth';
 import {
   getBankrolls,
   getBettor,
@@ -35,6 +35,8 @@ export default async function BookPage({ searchParams }) {
   ]);
 
   if (!slug) {
+    // The login list needs claim status, which the bankroll view does not carry.
+    const roster = await listBettors();
     return (
       <main className="page">
         <header className="page-head">
@@ -42,17 +44,18 @@ export default async function BookPage({ searchParams }) {
           <p className="dim">Play-money sportsbook. Most money at the end wins $200.</p>
         </header>
         <section className="section">
-          <Login bettors={bankrolls} />
+          <Login bettors={roster} />
         </section>
       </main>
     );
   }
 
-  const [me, markets, myBets, publicBets] = await Promise.all([
+  const [me, markets, myBets, publicBets, commissioner] = await Promise.all([
     getBettor(slug),
     getMarketsForWeek(SEASON, week),
     getMyBets(slug),
     visibleBets(SEASON, week),
+    isCommissioner(),
   ]);
 
   const myByMarket = Object.fromEntries(myBets.map((b) => [String(b.market_id), b]));
@@ -193,6 +196,14 @@ export default async function BookPage({ searchParams }) {
         <Link className="dim" href="/book/rules">
           House rules →
         </Link>
+        {commissioner && (
+          <>
+            {' · '}
+            <Link className="dim" href="/book/admin">
+              Commissioner →
+            </Link>
+          </>
+        )}
       </section>
     </main>
   );

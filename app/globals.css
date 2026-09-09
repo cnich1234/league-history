@@ -814,3 +814,48 @@ tbody tr:last-child td {
 .pos {
   color: var(--positive);
 }
+
+.claim-note {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--teal);
+  background: var(--teal-ghost);
+  border-radius: 9px;
+  padding: 10px 12px;
+  margin: 0;
+}
+
+.admin-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.btn-ghost {
+  padding: 7px 11px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-ghost:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.btn-ghost-on {
+  border-color: rgba(18, 214, 172, 0.4);
+  color: var(--teal);
+}
+
+.btn-ghost-paid {
+  border-color: rgba(18, 214, 172, 0.4);
+  color: var(--teal);
+  background: var(--teal-ghost);
+}

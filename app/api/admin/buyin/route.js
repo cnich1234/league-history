@@ -1,20 +1,11 @@
 import { NextResponse } from 'next/server';
-import { currentBettor } from '@/lib/auth';
+import { isCommissioner } from '@/lib/auth';
 import { recordBuyin, markBuyinCollected } from '@/lib/book';
 
 export const dynamic = 'force-dynamic';
 
-// Only the commissioner can approve a re-up or mark cash collected.
-const COMMISSIONER = process.env.BOOK_COMMISSIONER ?? 'chris-nicholson';
-
-async function requireCommissioner() {
-  const slug = await currentBettor();
-  if (slug !== COMMISSIONER) return null;
-  return slug;
-}
-
 export async function POST(request) {
-  if (!(await requireCommissioner())) {
+  if (!(await isCommissioner())) {
     return NextResponse.json({ error: 'Not allowed.' }, { status: 403 });
   }
 

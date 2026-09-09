@@ -177,3 +177,63 @@ data/
   raw/               Per-season ESPN dumps (gitignored)
   league.json        Everything the app renders (committed)
 ```
+
+## Trophy Room (weekly points)
+
+Managers earn points for weekly achievements. Both a weekly winner and a
+running season total are tracked.
+
+```bash
+npm run week 3      # score week 3, update data/weekly.json
+```
+
+Reruns are idempotent -- scoring the same week twice recomputes and replaces it,
+and season standings are always derived from scratch rather than incremented, so
+a correction can never leave a stale total behind.
+
+Achievements live in `scripts/achievements.mjs`, one definition each, returning
+the winners for a week. Ties award everyone tied; arbitrarily breaking a tie is
+worse than two people sharing a badge. Points are weighted so decisions beat
+luck -- leading the week in raw score is +3, but leaving the fewest points on
+your bench is +4, because one is your roster and the other is you.
+
+`npm test` exercises all 14 against a hand-built week with known answers. This
+matters because week 1 had no scores during development, so without it the
+engine's first real run would have been unverified.
+
+### Live gameday scoring
+
+`/trophies` polls Sleeper from the browser every 60s and computes the same
+achievements client-side, so points move while games are being played.
+
+The site is a static export with no server, which is what keeps it free and
+login-free. Sleeper's API is public and CORS-enabled, so the browser can read it
+directly -- no backend needed. Nothing is persisted from the live view; running
+`npm run week <n>` afterwards is what makes a week official.
+
+Two consequences worth knowing:
+
+- **Streak and upset awards do not fire live.** They need prior-week records,
+  which the live view does not load. They appear once the week is scored.
+- **`lib/achievements-client.js` is generated**, not hand-written. Edit
+  `scripts/achievements.mjs` and run `npm run sync:achievements`. If the two
+  drift, Sunday's projected points will not match Tuesday's official ones.
+
+`npm run players` regenerates `public/players.json`, the slim name/position map
+the live view needs. Sleeper's full player file is ~15MB; filtering to rostered
+players only makes it 6KB. Re-run it after waiver moves.
+
+## Writeups
+
+Previews and recaps are markdown files in `content/writeups/`, named
+`draft-recap.md` or `<preview|recap>-week-<n>.md`. Copy them from league-bot's
+`out/` directory, commit, and Vercel redeploys:
+
+```bash
+cp ../league-bot/out/recap-week-3.md content/writeups/
+```
+
+`components/Markdown.js` renders them. It is a deliberately small parser
+covering exactly what league-bot emits -- headers, paragraphs, bold, italic,
+rules, lists -- rather than a dependency added to a static export for content we
+generate and therefore control. Extend it if the bot starts emitting tables.

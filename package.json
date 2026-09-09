@@ -10,7 +10,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "merge:history": "node scripts/merge-history-dump.mjs"
+    "merge:history": "node scripts/merge-history-dump.mjs",
+    "week": "node scripts/build-weekly.mjs",
+    "players": "node scripts/build-player-map.mjs",
+    "sync:achievements": "node scripts/sync-achievements.mjs",
+    "test": "node scripts/achievements.test.mjs"
   },
   "dependencies": {
     "next": "^15.5.23",

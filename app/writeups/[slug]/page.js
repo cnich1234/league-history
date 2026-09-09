@@ -7,13 +7,15 @@ export function generateStaticParams() {
   return getWriteups().map((w) => ({ slug: w.slug }));
 }
 
-export function generateMetadata({ params }) {
-  const w = getWriteup(params.slug);
+export async function generateMetadata({ params }) {
+  const { slug } = await params;
+  const w = getWriteup(slug);
   return { title: w?.title ?? 'Writeup' };
 }
 
-export default function WriteupPage({ params }) {
-  const writeup = getWriteup(params.slug);
+export default async function WriteupPage({ params }) {
+  const { slug } = await params;
+  const writeup = getWriteup(slug);
   if (!writeup) notFound();
 
   return (

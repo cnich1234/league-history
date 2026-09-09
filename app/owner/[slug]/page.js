@@ -7,13 +7,15 @@ export function generateStaticParams() {
   return getOwners().map((owner) => ({ slug: owner.slug }));
 }
 
-export function generateMetadata({ params }) {
-  const owner = getOwner(params.slug);
+export async function generateMetadata({ params }) {
+  const { slug } = await params;
+  const owner = getOwner(slug);
   return { title: owner?.name ?? 'Manager' };
 }
 
-export default function OwnerPage({ params }) {
-  const owner = getOwner(params.slug);
+export default async function OwnerPage({ params }) {
+  const { slug } = await params;
+  const owner = getOwner(slug);
   if (!owner) notFound();
 
   const league = getLeague();

@@ -11,18 +11,20 @@ export function generateStaticParams() {
   return weeks.length ? weeks : [{ week: '1' }];
 }
 
-export function generateMetadata({ params }) {
-  return { title: `Week ${params.week}` };
+export async function generateMetadata({ params }) {
+  const { week } = await params;
+  return { title: `Week ${week}` };
 }
 
-export default function WeekPage({ params }) {
-  const week = getWeek(params.week);
+export default async function WeekPage({ params }) {
+  const { week: weekParam } = await params;
+  const week = getWeek(weekParam);
   if (!week) {
     return (
       <main className="page">
         <Link href="/trophies" className="back">‹ Trophy Room</Link>
         <header className="page-head">
-          <h1>Week {params.week}</h1>
+          <h1>Week {weekParam}</h1>
         </header>
         <section className="section">
           <div className="empty">This week has not been scored yet.</div>

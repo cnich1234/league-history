@@ -11,7 +11,8 @@
 import { neon } from '@neondatabase/serverless';
 import { readFileSync } from 'node:fs';
 import { SLEEPER_OWNERS } from './sleeper-owners.mjs';
-import { h2hProbability, twoWayOdds, probabilityToOdds } from '../lib/odds.js';
+import { h2hProbability, twoWayOdds } from '../lib/odds.js';
+import { teamGameDates, lockTimeFor, lockInstantFor } from '../lib/schedule.js';
 
 const sql = neon(process.env.DATABASE_URL);
 const LEAGUE_ID = process.env.SLEEPER_LEAGUE_ID ?? '1389735198932877312';
@@ -29,16 +30,12 @@ if (!week) {
   process.exit(1);
 }
 
+// Each market computes its own lock from the NFL schedule. --lock overrides
+// every market with one time, which is only for testing.
 const lockFlag = process.argv.indexOf('--lock');
-// Default lock is the coming Sunday at 1pm ET, when the early games start.
-const locksAt = lockFlag > -1 ? new Date(process.argv[lockFlag + 1]) : nextSundayKickoff();
-if (Number.isNaN(locksAt.getTime())) throw new Error('Could not parse --lock as a date.');
-
-function nextSundayKickoff() {
-  const d = new Date();
-  d.setUTCDate(d.getUTCDate() + ((7 - d.getUTCDay()) % 7 || 7));
-  d.setUTCHours(17, 0, 0, 0); // 1pm ET
-  return d;
+const lockOverride = lockFlag > -1 ? new Date(process.argv[lockFlag + 1]) : null;
+if (lockOverride && Number.isNaN(lockOverride.getTime())) {
+  throw new Error('Could not parse --lock as a date.');
 }
 
 const [state, users, rosters, matchups] = await Promise.all([
@@ -74,6 +71,18 @@ async function loadProjections(season, week) {
 const season = Number(state.season);
 const players = JSON.parse(readFileSync(PLAYERS, 'utf8'));
 const projections = await loadProjections(season, week);
+const gameDates = await teamGameDates(season, week);
+// If the schedule is unavailable a market must still get a defensible lock;
+// the latest game day of the week is the safest fallback.
+const latestGameDay = Object.values(gameDates).sort().pop();
+const fallbackLock = latestGameDay ? lockInstantFor(latestGameDay) : new Date(Date.now() + 86400e3);
+
+/** NFL teams a lineup depends on, for computing that market's lock time. */
+const teamsOf = (matchup) =>
+  (matchup.starters ?? [])
+    .filter((id) => id && id !== '0')
+    .map((id) => players[id]?.team)
+    .filter(Boolean);
 console.log(`Loaded ${Object.keys(projections).length} player projections.`);
 
 /** Positional fallback for a player Sleeper has no projection for. */
@@ -107,7 +116,7 @@ for (const m of matchups) (byMatchup[m.matchup_id] ??= []).push(m);
 let created = 0;
 let skipped = 0;
 
-async function createMarket({ kind, title, subtitle, meta, options }) {
+async function createMarket({ kind, title, subtitle, meta, options, locksAt }) {
   const [existing] = await sql`
     select id from markets
     where season = ${season} and week = ${week} and kind = ${kind} and title = ${title}`;
@@ -117,7 +126,8 @@ async function createMarket({ kind, title, subtitle, meta, options }) {
   }
   const [m] = await sql`
     insert into markets (season, week, kind, title, subtitle, locks_at, meta)
-    values (${season}, ${week}, ${kind}, ${title}, ${subtitle}, ${locksAt}, ${JSON.stringify(meta)}::jsonb)
+    values (${season}, ${week}, ${kind}, ${title}, ${subtitle}, ${lockOverride ?? locksAt},
+            ${JSON.stringify(meta)}::jsonb)
     returning id`;
   for (const o of options) {
     await sql`
@@ -125,7 +135,8 @@ async function createMarket({ kind, title, subtitle, meta, options }) {
       values (${m.id}, ${o.key}, ${o.label}, ${o.odds})`;
   }
   created++;
-  console.log(`  + ${kind.padEnd(7)} ${title}`);
+  const when = (lockOverride ?? locksAt).toISOString().replace('T', ' ').slice(0, 16);
+  console.log(`  + ${kind.padEnd(7)} ${title}  [locks ${when}Z]`);
   for (const o of options) console.log(`      ${o.key.padEnd(6)} ${o.label} @ ${o.odds > 0 ? '+' : ''}${o.odds}`);
   return m.id;
 }
@@ -142,12 +153,17 @@ for (const pair of Object.values(byMatchup)) {
   const pHome = h2hProbability(projHome, projAway);
   const { home: oddsHome, away: oddsAway } = twoWayOdds(pHome);
 
+  // A matchup locks before ANY of its starters plays -- otherwise a Thursday
+  // result is already known when someone bets the game on Saturday.
+  const matchupLock = lockTimeFor([...teamsOf(a), ...teamsOf(b)], gameDates, fallbackLock);
+
   // 1. Head to head
   await createMarket({
     kind: 'h2h',
     title: `${home.team} vs ${away.team}`,
     subtitle: 'Who wins the matchup',
     meta: { homeRoster: a.roster_id, awayRoster: b.roster_id, homeSlug: home.slug, awaySlug: away.slug },
+    locksAt: matchupLock,
     options: [
       { key: 'home', label: home.team, odds: oddsHome },
       { key: 'away', label: away.team, odds: oddsAway },
@@ -168,6 +184,7 @@ for (const pair of Object.values(byMatchup)) {
       homeRoster: a.roster_id, awayRoster: b.roster_id,
       favouriteSlug: favourite.slug, underdogSlug: underdog.slug, spread: absSpread,
     },
+    locksAt: matchupLock,
     options: [
       { key: 'cover', label: `${favourite.team} -${absSpread}`, odds: -110 },
       { key: 'nocover', label: `${underdog.team} +${absSpread}`, odds: -110 },
@@ -175,16 +192,19 @@ for (const pair of Object.values(byMatchup)) {
   });
 
   // 3. Team total. Over/under on one side's score.
-  for (const [side, team, proj, rosterId] of [
-    ['home', home, projHome, a.roster_id],
-    ['away', away, projAway, b.roster_id],
+  for (const [side, team, proj, rosterId, matchup] of [
+    ['home', home, projHome, a.roster_id, a],
+    ['away', away, projAway, b.roster_id, b],
   ]) {
     const line = Math.round(proj * 2) / 2 + 0.5;
+    // A team total only depends on that team's own starters.
+    const totalLock = lockTimeFor(teamsOf(matchup), gameDates, fallbackLock);
     await createMarket({
       kind: 'total',
       title: `${team.team} over/under ${line}`,
       subtitle: `Does ${team.team} score more than ${line}?`,
       meta: { rosterId, slug: team.slug, line, side },
+      locksAt: totalLock,
       options: [
         { key: 'over', label: `Over ${line}`, odds: -110 },
         { key: 'under', label: `Under ${line}`, odds: -110 },
@@ -209,6 +229,7 @@ for (const m of matchups) {
       rosterId: m.roster_id,
       slug: team.slug,
       team: team.team,
+      nflTeam: p.team,
       projection: projectPlayer(id),
     });
   }
@@ -223,7 +244,11 @@ for (const prop of propCandidates.slice(0, 10)) {
     title: `${prop.name} over/under ${line}`,
     subtitle: `${prop.position} · started by ${prop.team}`,
     meta: { playerId: prop.playerId, playerName: prop.name, position: prop.position,
-            rosterId: prop.rosterId, slug: prop.slug, line },
+            rosterId: prop.rosterId, slug: prop.slug, line,
+            nflTeam: prop.nflTeam },
+    // A prop locks on its own player's game day, so a Thursday player's prop
+    // closes Thursday while a Sunday player's stays open through Saturday.
+    locksAt: lockTimeFor([prop.nflTeam], gameDates, fallbackLock),
     options: [
       { key: 'over', label: `Over ${line}`, odds: -110 },
       { key: 'under', label: `Under ${line}`, odds: -110 },

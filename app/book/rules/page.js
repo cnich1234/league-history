@@ -64,6 +64,23 @@ export default async function RulesPage() {
             Lines come from Sleeper&apos;s own weekly projections. Nobody sets them by hand.
           </p>
 
+          <h2>Parlays</h2>
+          <p>
+            Pick two or more legs and combine them into one bet. Every leg has to win.
+            The odds multiply, so three coin-flips at -110 pays about <strong>+596</strong>{' '}
+            — a $50 parlay returns close to $348.
+          </p>
+          <p>
+            A parlay locks when its <strong>earliest</strong> leg does. Put a Thursday
+            player in your slip and the whole thing has to be built by Wednesday night.
+          </p>
+          <p>
+            If a leg is voided — a prop on someone who never played — that leg drops out
+            and the rest are re-priced. A two-leg parlay with one dead leg becomes a
+            straight bet on the survivor.
+          </p>
+          <p>Maximum six legs, and the usual $10–$250 stake limits apply.</p>
+
           <h2>Going broke</h2>
           <p>
             If you run out, a <strong>$20 buy-in</strong> gets you back to $1,000. The $20

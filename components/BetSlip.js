@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useSlip } from './SlipProvider';
 
 const MIN = 10;
 const MAX = 250;
@@ -22,6 +23,7 @@ const money = (n) =>
  * on the server, because this component is trivially editable in dev tools.
  */
 export default function BetSlip({ market, existingBet, disabled, bankrollCents }) {
+  const slip = useSlip();
   const [selected, setSelected] = useState(null);
   const [stake, setStake] = useState('25');
   const [error, setError] = useState(null);
@@ -92,7 +94,11 @@ export default function BetSlip({ market, existingBet, disabled, bankrollCents }
           <button
             key={o.option_key}
             type="button"
-            className={`option ${selected?.option_key === o.option_key ? 'option-on' : ''}`}
+            className={`option ${
+              selected?.option_key === o.option_key || slip.selected(market.id, o.option_key)
+                ? 'option-on'
+                : ''
+            }`}
             onClick={() => setSelected(selected?.option_key === o.option_key ? null : o)}
             disabled={disabled}
           >
@@ -134,6 +140,26 @@ export default function BetSlip({ market, existingBet, disabled, bankrollCents }
             {busy ? '…' : 'Place'}
           </button>
         </div>
+      )}
+
+      {selected && !disabled && (
+        <button
+          className={`parlay-add ${slip.selected(market.id, selected.option_key) ? 'parlay-add-on' : ''}`}
+          type="button"
+          onClick={() =>
+            slip.toggle({
+              marketId: market.id,
+              optionKey: selected.option_key,
+              odds: selected.odds,
+              label: selected.label,
+              marketTitle: market.title,
+            })
+          }
+        >
+          {slip.selected(market.id, selected.option_key)
+            ? '✓ In parlay slip'
+            : '+ Add to parlay instead'}
+        </button>
       )}
 
       {error && <div className="form-error">{error}</div>}

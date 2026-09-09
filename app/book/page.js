@@ -12,6 +12,8 @@ import { formatMoney, formatOdds } from '@/lib/odds';
 import Login from '@/components/Login';
 import BoardSection from '@/components/BoardSection';
 import BookTabs from '@/components/BookTabs';
+import { SlipProvider } from '@/components/SlipProvider';
+import ParlaySlip from '@/components/ParlaySlip';
 
 export const metadata = { title: 'The Book' };
 // Reads a session cookie and live odds, so this page can never be prerendered.
@@ -90,11 +92,14 @@ export default async function BookPage({ searchParams }) {
       </section>
 
       {games.length > 0 ? (
-        <BoardSection
-          games={games}
-          myByMarket={myByMarket}
-          bankrollCents={Number(me.balance_cents)}
-        />
+        <SlipProvider>
+          <BoardSection
+            games={games}
+            myByMarket={myByMarket}
+            bankrollCents={Number(me.balance_cents)}
+          />
+          <ParlaySlip bankrollCents={Number(me.balance_cents)} />
+        </SlipProvider>
       ) : (
         <section className="section">
           <div className="empty">

@@ -1133,3 +1133,183 @@ tbody tr:last-child td {
     transition: none;
   }
 }
+
+/* ---- Parlay slip ---- */
+
+.parlay-add {
+  display: block;
+  width: 100%;
+  margin-top: 7px;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px dashed rgba(255, 255, 255, 0.14);
+  background: transparent;
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.parlay-add-on {
+  border-style: solid;
+  border-color: var(--teal-dim);
+  color: var(--teal);
+  background: var(--teal-ghost);
+}
+
+.slip {
+  position: fixed;
+  /* Sits above the tab bar, which is 56px plus the phone's home indicator. */
+  bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+  left: 0;
+  right: 0;
+  z-index: 40;
+  background: var(--surface-raised);
+  border-top: 1px solid rgba(18, 214, 172, 0.35);
+  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.4);
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.slip-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 16px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.slip-count {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--teal);
+  color: #06231d;
+  font-size: 12.5px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.slip-summary {
+  flex: 1;
+  font-size: 13.5px;
+  font-weight: 750;
+  min-width: 0;
+}
+
+.slip-odds {
+  color: var(--teal);
+  font-weight: 800;
+}
+
+.slip-chevron {
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--text-dim);
+  border-bottom: 2px solid var(--text-dim);
+  transform: rotate(-135deg);
+  margin-top: 3px;
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+}
+
+.slip-chevron-up {
+  transform: rotate(45deg);
+  margin-top: -3px;
+}
+
+.slip-body {
+  padding: 0 16px 14px;
+  max-height: 52vh;
+  overflow-y: auto;
+}
+
+.slip-leg {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.slip-leg-main {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  flex: 1;
+}
+
+.slip-leg-pick {
+  font-size: 13px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.slip-leg-market {
+  font-size: 11px;
+  color: var(--text-dim);
+  overflow-wrap: anywhere;
+}
+
+.slip-leg-odds {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--teal);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.slip-remove {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  border: 0;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 19px;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.slip-note {
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.slip-place {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 12px;
+}
+
+.slip-clear {
+  margin-top: 10px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slip-chevron {
+    transition: none;
+  }
+}

@@ -61,7 +61,12 @@ export default async function BookPage({ searchParams }) {
   const open = markets.filter((m) => new Date(m.locks_at).getTime() > now);
   const locked = markets.filter((m) => new Date(m.locks_at).getTime() <= now);
   // Matchup drilldown: pick the game, then how to bet it.
+  //
+  // Locked matchups stay on the board, greyed out. Dropping them made three of
+  // five games disappear on a Wednesday and read as "markets are missing"
+  // rather than "these already closed".
   const games = groupByMatchup(open);
+  const lockedGames = groupByMatchup(locked);
 
   // Other people's bets, only from markets that have already locked.
   const others = publicBets.filter((b) => b.bettor !== slug);
@@ -90,6 +95,14 @@ export default async function BookPage({ searchParams }) {
           </div>
         </div>
       </section>
+
+      {games.length === 0 && lockedGames.length > 0 && (
+        <section className="section">
+          <div className="empty">
+            Every market for week {week} has locked. New markets appear Tuesday.
+          </div>
+        </section>
+      )}
 
       {games.length > 0 ? (
         <SlipProvider>
@@ -126,6 +139,31 @@ export default async function BookPage({ searchParams }) {
               </div>
             ))}
           </div>
+        </section>
+      )}
+
+      {lockedGames.length > 0 && (
+        <section className="section">
+          <div className="section-head">
+            <h2>Locked</h2>
+            <span className="dim">{lockedGames.length} game(s) closed</span>
+          </div>
+          {lockedGames.map((g) => (
+            <div className="matchup matchup-locked" key={g.key}>
+              <div className="matchup-head">
+                <span className="matchup-main">
+                  <span className="matchup-title">{g.title}</span>
+                  <span className="matchup-meta">
+                    {g.marketCount} bets · closed{' '}
+                    {new Date(g.locksAt).toLocaleDateString('en-US', {
+                      weekday: 'short',
+                      timeZone: 'UTC',
+                    })}
+                  </span>
+                </span>
+              </div>
+            </div>
+          ))}
         </section>
       )}
 

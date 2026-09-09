@@ -1313,3 +1313,13 @@ tbody tr:last-child td {
     transition: none;
   }
 }
+
+/* A locked matchup stays on the board so the week never looks incomplete,
+   but reads clearly as closed rather than bettable. */
+.matchup-locked {
+  opacity: 0.5;
+}
+
+.matchup-locked .matchup-head {
+  cursor: default;
+}

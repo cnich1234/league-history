@@ -1,14 +1,18 @@
-import Link from 'next/link';
+import { isCommissioner } from '@/lib/auth';
+import BookTabs from '@/components/BookTabs';
 
 export const metadata = { title: 'House Rules' };
+export const dynamic = 'force-dynamic';
 
-export default function RulesPage() {
+export default async function RulesPage() {
+  const commissioner = await isCommissioner();
   return (
     <main className="page">
-      <Link href="/book" className="back">‹ The Book</Link>
       <header className="page-head">
         <h1>House Rules</h1>
       </header>
+
+      <BookTabs commissioner={commissioner} />
 
       <section className="section">
         <div className="prose">

@@ -699,7 +699,11 @@ tbody tr:last-child td {
 
 .options {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  /* Two columns only when both fit. A fixed `1fr 1fr` forced long team names
+     ("I cashed @ WSOP X 8 -3.5") past the right edge on a phone, because grid
+     tracks do not shrink below their content. auto-fit with a minimum lets the
+     pair stack instead of overflowing. */
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
   gap: 7px;
 }
 
@@ -711,6 +715,8 @@ tbody tr:last-child td {
   /* Comfortable tap target on a phone. */
   min-height: 46px;
   padding: 9px 12px;
+  /* Without this a flex item refuses to shrink below its content width. */
+  min-width: 0;
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: var(--surface-raised);
@@ -733,9 +739,11 @@ tbody tr:last-child td {
 
 .option-label {
   font-weight: 650;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  /* Wrap rather than clip: a truncated "Seal Team N…" reads as a bug, and the
+     row can afford two lines. min-width:0 lets it actually shrink inside flex. */
+  min-width: 0;
+  overflow-wrap: anywhere;
+  line-height: 1.25;
 }
 
 .option-odds {
@@ -858,4 +866,80 @@ tbody tr:last-child td {
   border-color: rgba(18, 214, 172, 0.4);
   color: var(--teal);
   background: var(--teal-ghost);
+}
+
+/* ---- The Book: tabs and day-grouped board ---- */
+
+.book-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 18px;
+  overflow-x: auto;
+  /* Tabs scroll rather than wrap on a narrow phone. */
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.book-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.book-tab {
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.book-tab-on {
+  background: var(--teal-ghost);
+  color: var(--teal);
+}
+
+.day-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 2px;
+}
+
+.day-head h2 {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+  margin: 0;
+  color: var(--text);
+  text-transform: none;
+}
+
+.day-count {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-dim);
+  flex-shrink: 0;
+}
+
+.day-note {
+  margin: 0 0 12px;
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--negative);
+}
+
+.kind-group {
+  margin-bottom: 14px;
+}
+
+.kind-label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin: 0 0 6px 2px;
 }

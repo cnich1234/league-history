@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { isCommissioner, listBettors } from '@/lib/auth';
 import { getBankrolls, getBuyins, getPrizePool } from '@/lib/book';
 import AdminPanel from '@/components/AdminPanel';
+import BookTabs from '@/components/BookTabs';
 
 export const metadata = { title: 'Commissioner' };
 export const dynamic = 'force-dynamic';
@@ -41,6 +42,7 @@ export default async function AdminPage() {
         <h1>Commissioner</h1>
         <p className="dim">Password resets, re-ups, and the pot.</p>
       </header>
+      <BookTabs commissioner />
       <AdminPanel
         bettors={merged}
         buyins={buyins.map((b) => ({ ...b, id: String(b.id) }))}

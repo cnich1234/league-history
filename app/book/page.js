@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { currentBettor, listBettors, isCommissioner } from '@/lib/auth';
 import {
   getBankrolls,
@@ -10,19 +9,14 @@ import {
 } from '@/lib/book';
 import { formatMoney, formatOdds } from '@/lib/odds';
 import Login from '@/components/Login';
-import BetSlip from '@/components/BetSlip';
+import BoardSection from '@/components/BoardSection';
+import BookTabs from '@/components/BookTabs';
 
 export const metadata = { title: 'The Book' };
 // Reads a session cookie and live odds, so this page can never be prerendered.
 export const dynamic = 'force-dynamic';
 
 const SEASON = Number(process.env.BOOK_SEASON ?? 2026);
-const KIND_LABEL = {
-  h2h: 'Head to head',
-  spread: 'Spreads',
-  total: 'Team totals',
-  prop: 'Player props',
-};
 
 export default async function BookPage({ searchParams }) {
   const params = await searchParams;
@@ -64,11 +58,6 @@ export default async function BookPage({ searchParams }) {
   const open = markets.filter((m) => new Date(m.locks_at).getTime() > now);
   const locked = markets.filter((m) => new Date(m.locks_at).getTime() <= now);
 
-  // Group open markets by kind so the board reads like a sportsbook rather than
-  // one undifferentiated list of thirty things.
-  const byKind = {};
-  for (const m of open) (byKind[m.kind] ??= []).push(m);
-
   // Other people's bets, only from markets that have already locked.
   const others = publicBets.filter((b) => b.bettor !== slug);
 
@@ -81,6 +70,8 @@ export default async function BookPage({ searchParams }) {
           {pool.buyinsOutstanding > 0 && ` (+${formatMoney(pool.outstandingCents)} owed)`}
         </p>
       </header>
+
+      <BookTabs commissioner={commissioner} />
 
       <section className="section">
         <div className="bankroll-card">
@@ -96,24 +87,11 @@ export default async function BookPage({ searchParams }) {
       </section>
 
       {open.length > 0 ? (
-        Object.entries(KIND_LABEL).map(([kind, label]) =>
-          byKind[kind]?.length ? (
-            <section className="section" key={kind}>
-              <div className="section-head">
-                <h2>{label}</h2>
-                <span className="dim">{lockSummary(byKind[kind])}</span>
-              </div>
-              {byKind[kind].map((m) => (
-                <BetSlip
-                  key={m.id}
-                  market={{ ...m, id: String(m.id) }}
-                  existingBet={myByMarket[String(m.id)] ?? null}
-                  bankrollCents={Number(me.balance_cents)}
-                />
-              ))}
-            </section>
-          ) : null,
-        )
+        <BoardSection
+          markets={open}
+          myByMarket={myByMarket}
+          bankrollCents={Number(me.balance_cents)}
+        />
       ) : (
         <section className="section">
           <div className="empty">
@@ -192,33 +170,8 @@ export default async function BookPage({ searchParams }) {
         </div>
       </section>
 
-      <section className="section">
-        <Link className="dim" href="/book/rules">
-          House rules →
-        </Link>
-        {commissioner && (
-          <>
-            {' · '}
-            <Link className="dim" href="/book/admin">
-              Commissioner →
-            </Link>
-          </>
-        )}
-      </section>
     </main>
   );
-}
-
-/** "locks Thu, Sun" -- markets in one group can lock on different days. */
-function lockSummary(markets) {
-  const days = [
-    ...new Set(
-      markets.map((m) =>
-        new Date(m.locks_at).toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' }),
-      ),
-    ),
-  ];
-  return `locks ${days.join(', ')}`;
 }
 
 function statusLabel(bet) {

@@ -3,13 +3,27 @@
   "headers": [
     {
       "source": "/manifest.json",
-      "headers": [{ "key": "Cache-Control", "value": "public, max-age=3600" }]
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
+        }
+      ]
     },
     {
       "source": "/icon-(.*).png",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=604800, immutable" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=604800, immutable"
+        }
       ]
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron",
+      "schedule": "0 9 * * 2"
     }
   ]
 }

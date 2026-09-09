@@ -21,6 +21,12 @@ const KIND_ORDER = ['h2h', 'spread', 'total', 'prop'];
  * usually in the Thursday game. That is deliberate -- betting a matchup after
  * one of its players has already scored is not a bet -- but it surprises
  * people, so the group says why.
+ *
+ * Categories collapse via native <details>, not React state: it works before
+ * hydration, survives a failed script load, and gets keyboard and screen-reader
+ * behaviour for free. Head to head opens by default because it is the bet
+ * everyone came for; the ten player props do not need to push everything else
+ * off a phone screen.
  */
 export default function BoardSection({ markets, myByMarket, bankrollCents }) {
   const byDay = {};
@@ -54,8 +60,14 @@ export default function BoardSection({ markets, myByMarket, bankrollCents }) {
         )}
 
         {KIND_ORDER.filter((k) => byKind[k]?.length).map((kind) => (
-          <div className="kind-group" key={kind}>
-            <div className="kind-label">{KIND_LABEL[kind]}</div>
+          <details className="kind-group" key={kind} open={kind === 'h2h'}>
+            <summary className="kind-label">
+              <span className="kind-name">{KIND_LABEL[kind]}</span>
+              <span className="kind-meta">
+                {betCount(byKind[kind], myByMarket)}
+                <span className="kind-chevron" aria-hidden="true" />
+              </span>
+            </summary>
             {byKind[kind].map((m) => (
               <BetSlip
                 key={m.id}
@@ -64,11 +76,21 @@ export default function BoardSection({ markets, myByMarket, bankrollCents }) {
                 bankrollCents={bankrollCents}
               />
             ))}
-          </div>
+          </details>
         ))}
       </section>
     );
   });
+}
+
+/**
+ * "6 bets · 2 placed" -- so a collapsed group still says whether you have acted
+ * on it, which is the one thing worth knowing without opening it.
+ */
+function betCount(markets, myByMarket) {
+  const placed = markets.filter((m) => myByMarket[String(m.id)]).length;
+  const label = `${markets.length} bet${markets.length === 1 ? '' : 's'}`;
+  return placed ? `${label} · ${placed} placed` : label;
 }
 
 /** True when a group contains whole-lineup markets, which lock earliest. */

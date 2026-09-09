@@ -26,8 +26,20 @@ export default async function RulesPage() {
           <h2>When bets lock</h2>
           <p>
             Every market closes at <strong>midnight Arizona time on the morning of the
-            game</strong>. Markets lock separately — a bet involving a Thursday player
-            closes Thursday, while a Sunday-only matchup stays open through Saturday night.
+            game</strong> — so a Sunday bet closes Saturday night, and a Thursday bet
+            closes Wednesday night.
+          </p>
+          <p>
+            A market closes as soon as <strong>any</strong> player it depends on takes the
+            field. For a player prop that is just that player&apos;s game. For a matchup or
+            a spread it is twenty starters, and one of them is usually in the Thursday
+            game — so <strong>most matchups and spreads close Wednesday night</strong>.
+            That is on purpose: once someone has already scored, betting the matchup
+            is not really betting.
+          </p>
+          <p>
+            Team totals and props usually stay open longer, since they depend on fewer
+            players.
           </p>
           <p>
             Once a market locks, everyone&apos;s bets on it become public. Before that,

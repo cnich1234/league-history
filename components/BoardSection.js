@@ -15,6 +15,12 @@ const KIND_ORDER = ['h2h', 'spread', 'total', 'prop'];
  * someone money if they misread it. Markets lock on their own game day, so a
  * flat list mixes "closes tonight" with "closes Sunday" and the only hint is a
  * small label -- which is exactly the confusion this avoids.
+ *
+ * Matchups and spreads almost always land on the earliest group: a lineup locks
+ * before ANY of its starters plays, and with twenty starters at least one is
+ * usually in the Thursday game. That is deliberate -- betting a matchup after
+ * one of its players has already scored is not a bet -- but it surprises
+ * people, so the group says why.
  */
 export default function BoardSection({ markets, myByMarket, bankrollCents }) {
   const byDay = {};
@@ -25,8 +31,9 @@ export default function BoardSection({ markets, myByMarket, bankrollCents }) {
 
   const days = Object.keys(byDay).sort();
 
-  return days.map((day) => {
+  return days.map((day, i) => {
     const dayMarkets = byDay[day];
+    const isEarliest = i === 0;
     const byKind = {};
     for (const m of dayMarkets) (byKind[m.kind] ??= []).push(m);
 
@@ -39,6 +46,12 @@ export default function BoardSection({ markets, myByMarket, bankrollCents }) {
           </span>
         </div>
         <p className="day-note">Closes {closesLabel(day)}</p>
+        {isEarliest && hasLineupMarkets(dayMarkets) && (
+          <p className="day-why">
+            Matchups and spreads close now because at least one starter plays{' '}
+            {dayLabel(day).replace(' games', '')}.
+          </p>
+        )}
 
         {KIND_ORDER.filter((k) => byKind[k]?.length).map((kind) => (
           <div className="kind-group" key={kind}>
@@ -56,6 +69,11 @@ export default function BoardSection({ markets, myByMarket, bankrollCents }) {
       </section>
     );
   });
+}
+
+/** True when a group contains whole-lineup markets, which lock earliest. */
+function hasLineupMarkets(markets) {
+  return markets.some((m) => m.kind === 'h2h' || m.kind === 'spread');
 }
 
 /** "Sunday games" -- what the bets are ON, not when they close. */

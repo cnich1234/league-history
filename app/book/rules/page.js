@@ -1,0 +1,79 @@
+import Link from 'next/link';
+
+export const metadata = { title: 'House Rules' };
+
+export default function RulesPage() {
+  return (
+    <main className="page">
+      <Link href="/book" className="back">‹ The Book</Link>
+      <header className="page-head">
+        <h1>House Rules</h1>
+      </header>
+
+      <section className="section">
+        <div className="prose">
+          <h2>The game</h2>
+          <p>
+            Everyone starts with <strong>$1,000</strong> in fake money. Bet on our own
+            matchups all season. Whoever has the most money at the end wins{' '}
+            <strong>$200</strong> in real money.
+          </p>
+
+          <h2>When bets lock</h2>
+          <p>
+            Every market closes at <strong>midnight Arizona time on the morning of the
+            game</strong>. Markets lock separately — a bet involving a Thursday player
+            closes Thursday, while a Sunday-only matchup stays open through Saturday night.
+          </p>
+          <p>
+            Once a market locks, everyone&apos;s bets on it become public. Before that,
+            nobody can see anyone else&apos;s picks. No copying, no tailing.
+          </p>
+
+          <h2>Limits</h2>
+          <ul>
+            <li>Minimum bet <strong>$10</strong>, maximum <strong>$250</strong></li>
+            <li>One bet per market — no taking both sides</li>
+            <li>No editing or cancelling once placed</li>
+          </ul>
+
+          <h2>What you can bet</h2>
+          <ul>
+            <li><strong>Head to head</strong> — who wins the matchup</li>
+            <li><strong>Spread</strong> — does the favourite win by more than the line</li>
+            <li><strong>Team total</strong> — over or under a team&apos;s projected score</li>
+            <li><strong>Player props</strong> — over or under one starter&apos;s points</li>
+          </ul>
+          <p>
+            Lines come from Sleeper&apos;s own weekly projections. Nobody sets them by hand.
+          </p>
+
+          <h2>Going broke</h2>
+          <p>
+            If you run out, a <strong>$20 buy-in</strong> gets you back to $1,000. The $20
+            goes straight into the prize pool, so the pot grows every time someone busts.
+            Ask Chris to set it up.
+          </p>
+
+          <h2>Settlement</h2>
+          <p>
+            Bets settle from Sleeper&apos;s final scores once the week is over. A tie
+            refunds your stake. So does a <strong>void</strong> — a prop on a player who
+            never started, for instance, where there was no way to win.
+          </p>
+          <p>
+            Totals and spreads use half-point lines, so they can never push. Landing
+            exactly on a whole-number line counts as <strong>under</strong>.
+          </p>
+
+          <h2>Odds</h2>
+          <p>
+            Standard American odds. <strong>-150</strong> means risk $150 to win $100;{' '}
+            <strong>+200</strong> means risk $100 to win $200. The house takes a small cut
+            on every line, so betting both sides of everything loses slowly.
+          </p>
+        </div>
+      </section>
+    </main>
+  );
+}

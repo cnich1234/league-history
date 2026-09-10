@@ -33,6 +33,20 @@ export async function GET(request) {
     const season = Number(state.season);
     const week = Number(state.week);
 
+    // Backstop for locking, which normally happens on the live poll. If nobody
+    // opened the app all weekend, markets would still be 'open' here -- and
+    // settlement below only touches markets, not the betting window, so a stale
+    // 'open' would keep last week's bets hidden from The Floor.
+    const { lockDueMarkets } = await import('@/lib/book');
+    const { liveMatchups, finishedRostersIn } = await import('@/lib/live');
+    try {
+      const prior = await liveMatchups(season, Math.max(1, week - 1));
+      const locked = await lockDueMarkets(finishedRostersIn(prior));
+      if (locked.length) log.push(`locked ${locked.length} market(s)`);
+    } catch (e) {
+      log.push(`lock skipped: ${e.message}`);
+    }
+
     // Settle everything before the current week that is still open. Catches up
     // automatically if a run was missed rather than leaving bets pending.
     const { settleWeek } = await import('@/lib/cron');

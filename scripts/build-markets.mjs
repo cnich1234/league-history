@@ -182,6 +182,10 @@ for (const pair of Object.values(byMatchup)) {
     subtitle: `Does ${favourite.team} win by more than ${absSpread}?`,
     meta: {
       homeRoster: a.roster_id, awayRoster: b.roster_id,
+      // homeSlug is what live pricing compares against to work out which side
+      // is the favourite. Without it the comparison is always false and every
+      // spread prices the away team as the favourite.
+      homeSlug: home.slug, awaySlug: away.slug,
       favouriteSlug: favourite.slug, underdogSlug: underdog.slug, spread: absSpread,
     },
     locksAt: matchupLock,

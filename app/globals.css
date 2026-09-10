@@ -1945,3 +1945,26 @@ tbody tr:last-child td {
     transition: none;
   }
 }
+
+.livebar-odds {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 7px;
+}
+
+.livebar-odd {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--teal);
+  font-variant-numeric: tabular-nums;
+}
+
+.livebar-oddlabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}

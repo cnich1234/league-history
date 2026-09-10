@@ -8,6 +8,8 @@ import { useLiveMatchup } from './LiveProvider';
  * Reads from the shared LiveProvider rather than polling itself -- five cards
  * each fetching independently was five identical requests per user per tick.
  */
+const fmt = (o) => (o > 0 ? `+${o}` : String(o));
+
 export default function LiveProbability({ homeRoster, awayRoster }) {
   const state = useLiveMatchup(homeRoster, awayRoster);
   if (!state || !state.started) return null;
@@ -28,6 +30,14 @@ export default function LiveProbability({ homeRoster, awayRoster }) {
       <div className="livebar-track">
         <div className="livebar-fill" style={{ width: `${home}%` }} />
       </div>
+      {state.odds && (
+        <div className="livebar-odds">
+          <span className="livebar-odd">{fmt(state.odds.home)}</span>
+          <span className="livebar-oddlabel">live price</span>
+          <span className="livebar-odd">{fmt(state.odds.away)}</span>
+        </div>
+      )}
+
       <div className="livebar-meta">
         {state.home.scored} – {state.away.scored} · {Math.round(state.remainingShare * 100)}% left
         to play

@@ -149,11 +149,12 @@ export default async function BookPage({ searchParams }) {
       <section className="section">
         <div className="section-head">
           <h2>The floor</h2>
-          <span className="dim">{locked.length} market(s) locked</span>
+          <span className="dim">everyone&apos;s closed bets</span>
         </div>
         {others.length === 0 ? (
           <div className="empty">
-            Everyone&apos;s bets appear here once a market locks. Nothing locked yet.
+            Everyone&apos;s bets show up here once their market closes and nobody can act on
+            them. Nothing has closed yet.
           </div>
         ) : (
           <div className="rows">

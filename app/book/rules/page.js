@@ -33,8 +33,14 @@ export default function RulesPage() {
             players.
           </p>
           <p>
-            Once a market locks, everyone&apos;s bets on it become public. Before that,
-            nobody can see anyone else&apos;s picks. No copying, no tailing.
+            Once a market <strong>closes</strong>, everyone&apos;s bets on it become public —
+            that is the Floor at the bottom of the board. Before that nobody sees anyone
+            else&apos;s picks. No copying, no tailing.
+          </p>
+          <p>
+            A live market counts as closed only when it actually stops taking bets, not
+            when its posted lock passes — otherwise you could see what someone took and
+            still bet against it.
           </p>
 
           <h2>Limits</h2>

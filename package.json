@@ -35,7 +35,8 @@
     "fit:sd": "node scripts/fit-sd.mjs",
     "test:prorate": "node scripts/prorate.test.mjs",
     "test:stakecap": "node --env-file=.env.local scripts/stakecap.test.mjs",
-    "test:spread": "node --env-file=.env.local scripts/spread.test.mjs"
+    "test:spread": "node --env-file=.env.local scripts/spread.test.mjs",
+    "test:floor": "node --env-file=.env.local scripts/floor.test.mjs"
   },
   "dependencies": {
     "@neon/config": "^1.3.2",

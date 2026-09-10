@@ -16,21 +16,21 @@ export default function RulesPage() {
 
           <h2>When bets lock</h2>
           <p>
-            Every market closes at <strong>midnight Arizona time on the morning of the
-            game</strong> — so a Sunday bet closes Saturday night, and a Thursday bet
-            closes Wednesday night.
+            <strong>Only player props close on the clock</strong>, and only when that
+            player&apos;s own game kicks off. Bet a Monday night receiver on Sunday evening
+            and it is still open.
           </p>
           <p>
-            A market closes as soon as <strong>any</strong> player it depends on takes the
-            field. For a player prop that is just that player&apos;s game. For a matchup or
-            a spread it is twenty starters, and one of them is usually in the Thursday
-            game — so <strong>most matchups and spreads close Wednesday night</strong>.
-            That is on purpose: once someone has already scored, betting the matchup
-            is not really betting.
+            Everything else — matchups, spreads, team totals — <strong>never closes on
+            time at all</strong>. Once the games start, the price moves with the score
+            instead. A matchup with one Thursday starter stays bettable all weekend; it
+            just gets more expensive to back the side that is winning.
           </p>
           <p>
-            Team totals and props usually stay open longer, since they depend on fewer
-            players.
+            Those markets close when the result is no longer in doubt — at{' '}
+            <strong>90%</strong> — or when the games are simply over. That is the whole
+            point of live betting: nothing gets shut early just because the calendar
+            says so.
           </p>
           <p>
             Once a market <strong>closes</strong>, everyone&apos;s bets on it become public —
@@ -111,10 +111,10 @@ export default function RulesPage() {
             — a $50 parlay returns close to $348.
           </p>
           <p>
-            A parlay locks when its <strong>earliest</strong> leg does — unless that leg is
-            a live market, in which case it stays available at the live price like any
-            other bet. Player props still lock, so a prop leg does have to be in before
-            that player&apos;s game.
+            A parlay is available as long as every leg is. Live legs stay open and get
+            priced live, exactly like a straight bet. A <strong>prop</strong> leg is the
+            one that can shut the slip, since props close at their player&apos;s kickoff —
+            so get prop legs in before that game starts.
           </p>
           <p>
             A parlay is capped by its tightest leg: if one leg is close to decided, the

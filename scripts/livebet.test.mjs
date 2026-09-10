@@ -39,12 +39,14 @@ const rejects = async (label, fn, fragment) => {
 
 const A = 'chris-nicholson';
 
-async function makeMarket({ live, locked }) {
+// `status` is separate from `locked` on purpose: a past locks_at no longer
+// closes anything by itself, so a test that wants a shut market must say so.
+async function makeMarket({ live, locked, status = 'open' }) {
   const [m] = await sql`
-    insert into markets (season, week, kind, title, locks_at, live, meta)
+    insert into markets (season, week, kind, title, locks_at, live, status, meta)
     values (${TEST_SEASON}, 1, 'h2h', ${'LIVE TEST ' + Math.random()},
             ${locked ? new Date(Date.now() - 3600e3) : new Date(Date.now() + 86400e3)},
-            ${live},
+            ${live}, ${status},
             ${JSON.stringify({ homeRoster: 1, awayRoster: 2, homeSlug: 'a', awaySlug: 'b' })}::jsonb)
     returning id`;
   await sql`
@@ -73,12 +75,17 @@ try {
   check('an unlocked live market uses the posted price', bet.odds, -150);
 
   console.log('\na non-live market still locks');
-  const shut = await makeMarket({ live: false, locked: true });
+  const shut = await makeMarket({ live: false, locked: true, status: 'locked' });
   await rejects(
-    'past its lock and not live',
+    'a locked non-live market refuses bets',
     () => placeBet({ slug: A, marketId: shut, optionKey: 'home', stakeCents: 2000 }),
-    'has locked',
+    'closed',
   );
+  // And the other half of the rule: past its posted time is NOT enough. A prop
+  // whose game has not kicked off must still take bets.
+  const notYet = await makeMarket({ live: false, locked: true });
+  const okBet = await placeBet({ slug: A, marketId: notYet, optionKey: 'home', stakeCents: 2000 });
+  check('past its lock but still open is bettable', okBet.odds, -150);
 
   console.log('\na live market past its lock');
   const live = await makeMarket({ live: true, locked: true });
@@ -147,7 +154,7 @@ try {
   // accept a suspension -- what must not happen is the flat 'has locked'.
   check(
     'a live leg is not rejected as locked',
-    parlayErr == null || !/has locked/i.test(parlayErr),
+    parlayErr == null || !/has locked|is closed\.$/i.test(parlayErr),
     true,
   );
   // Guard against this passing for the wrong reason: a ReferenceError also

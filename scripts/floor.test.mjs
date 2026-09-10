@@ -70,7 +70,10 @@ try {
   check('a live market past its lock still hides them', (await seen()).includes(liveMarket), false);
 
   console.log('\nrevealed once nobody can act');
-  const doneMarket = await makeMarket({ live: false, locked: true });
+  // "Closed" now means status, not a past locks_at: a prop's posted time is
+  // midnight on the morning of the game, so revealing on that alone published a
+  // bet while the game was still hours away.
+  const doneMarket = await makeMarket({ live: false, locked: true, status: 'locked' });
   // Direct insert again: placeBet rightly refuses a locked market, and the
   // point here is what the Floor reveals afterwards.
   await sql`

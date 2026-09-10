@@ -46,8 +46,8 @@ const balanceOf = async (slug) =>
 async function makeMarket({ locked = false } = {}) {
   const locksAt = locked ? new Date(Date.now() - 3600e3) : new Date(Date.now() + 86400e3);
   const [m] = await sql`
-    insert into markets (season, week, kind, title, locks_at, meta)
-    values (${TEST_SEASON}, 1, 'h2h', ${'TEST ' + Math.random()}, ${locksAt}, '{"test":true}'::jsonb)
+    insert into markets (season, week, kind, title, locks_at, status, meta)
+    values (${TEST_SEASON}, 1, 'h2h', ${'TEST ' + Math.random()}, ${locksAt}, ${locked ? 'locked' : 'open'}, '{"test":true}'::jsonb)
     returning id`;
   await sql`
     insert into market_options (market_id, option_key, label, odds)
@@ -121,7 +121,7 @@ try {
   await rejects(
     'cannot bet a locked market',
     () => placeBet({ slug: A, marketId: mLocked, optionKey: 'home', stakeCents: 5000 }),
-    'locked',
+    'closed',
   );
 
   console.log('\nhidden until lock');
@@ -139,7 +139,10 @@ try {
     true,
   );
 
-  await sql`update markets set locks_at = now() - interval '1 minute' where id = ${m2}`;
+  // Locking is a status change, not a past timestamp. A prop's locks_at is
+  // midnight on the morning of the game, so treating that as "closed" published
+  // bets on games that had not started.
+  await sql`update markets set status = 'locked' where id = ${m2}`;
   // Read back through the same path the app uses, after the write has landed.
   const shown = await visibleBets(TEST_SEASON, 1);
   check(

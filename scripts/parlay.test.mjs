@@ -45,8 +45,8 @@ const balanceOf = async (slug) =>
 async function makeMarket({ locked = false, odds = -110 } = {}) {
   const locksAt = locked ? new Date(Date.now() - 3600e3) : new Date(Date.now() + 86400e3);
   const [m] = await sql`
-    insert into markets (season, week, kind, title, locks_at, meta)
-    values (${TEST_SEASON}, 1, 'h2h', ${'PARLAY TEST ' + Math.random()}, ${locksAt}, '{}'::jsonb)
+    insert into markets (season, week, kind, title, locks_at, status, meta)
+    values (${TEST_SEASON}, 1, 'h2h', ${'PARLAY TEST ' + Math.random()}, ${locksAt}, ${locked ? 'locked' : 'open'}, '{}'::jsonb)
     returning id`;
   await sql`
     insert into market_options (market_id, option_key, label, odds)
@@ -135,7 +135,7 @@ try {
           { marketId: mLocked, optionKey: 'home' },
         ],
       }),
-    'locked',
+    'closed',
   );
   await rejects(
     'rejects an option that does not exist',

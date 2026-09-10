@@ -6,10 +6,13 @@
  * things were riding on a status that never changed: the betting guard in
  * placeBet/placeParlay, and The Floor's rule for revealing other people's bets.
  *
- * The distinction that matters: a plain market shuts at its posted time, but a
- * live market is designed to trade past that time and shuts only when its game
- * is over. Locking live markets on locks_at would close them exactly when they
- * become interesting.
+ * Since live betting there is only one clock-based lock left: a player prop, at
+ * its own player's kickoff. h2h, spread and team total are all live -- they keep
+ * trading, repriced from the game state, until the result is no longer in doubt.
+ * shouldSuspend decides that, not a timestamp.
+ *
+ * So locks_at is not a deadline for a live market at all, only the moment
+ * pricing switches from the posted line to the live model.
  */
 import { neon } from '@neondatabase/serverless';
 import { lockDueMarkets, visibleBets, getOpenMarkets } from '../lib/book.js';
@@ -63,19 +66,24 @@ async function cleanup() {
 await cleanup();
 
 try {
-  console.log('\na plain market locks on its posted time');
+  console.log('\nnothing locks without kickoff or final information');
+  // Not knowing is never a reason to close a market. An open market is still
+  // governed by shouldSuspend at pricing time, so nothing can be bet at a
+  // decided price either way.
   const plainDue = await makeMarket({ live: false, locked: true });
   const plainFuture = await makeMarket({ live: false, locked: false });
-  await lockDueMarkets([]);
-  check('past its lock', await statusOf(plainDue), 'locked');
-  check('still to come', await statusOf(plainFuture), 'open');
+  await lockDueMarkets([], []);
+  check('a prop past its posted time stays open', await statusOf(plainDue), 'open');
+  check('and one still to come stays open', await statusOf(plainFuture), 'open');
 
   console.log('\na live market does NOT lock on its posted time');
-  // The whole point of a live market. Locking it here would have closed every
-  // in-play market the moment kickoff passed.
+  // The whole point of a live market. Closing it here would shut every in-play
+  // market the moment kickoff passed -- and a matchup with one Thursday starter
+  // would go dark all weekend while most of both lineups had yet to play.
   const liveDue = await makeMarket({ live: true, locked: true });
-  await lockDueMarkets([]);
-  check('stays open with no game finished', await statusOf(liveDue), 'open');
+  await lockDueMarkets([], ['NE', 'SEA', 'SF', 'LAR']);
+  check('stays open past its lock', await statusOf(liveDue), 'open');
+  check('and kickoff does not touch it', await statusOf(liveDue), 'open');
 
   console.log('\na live market locks when its game is over');
   await lockDueMarkets([HOME]);
@@ -98,7 +106,7 @@ try {
   console.log('\nrepeat runs are safe');
   const before = await sql`
     select id, status from markets where season = ${TEST_SEASON} order by id`;
-  const again = await lockDueMarkets([HOME, AWAY]);
+  const again = await lockDueMarkets([HOME, AWAY], ['NE', 'SEA', 'SF', 'LAR']);
   check('nothing left to lock', again.length, 0);
   const after = await sql`
     select id, status from markets where season = ${TEST_SEASON} order by id`;
@@ -110,8 +118,7 @@ try {
   const liveOpen = await makeMarket({ live: true, locked: true });
   const openIds = (await getOpenMarkets(TEST_SEASON, 1)).map((m) => Number(m.id));
   check('a live market past its lock is on the board', openIds.includes(liveOpen), true);
-  check('a plain locked market is not', openIds.includes(plainDue), false);
-  check('a future market is', openIds.includes(plainFuture), true);
+  check('an unlocked prop is', openIds.includes(plainFuture), true);
 
   console.log('\nThe Floor reveals a live bet only once locked');
   const [bettor] = await sql`select slug from bettors limit 1`;
@@ -149,20 +156,28 @@ try {
   await lockDueMarkets([], new Set(['NE', 'SEA', 'SF', 'LAR']));
   check('its game has kicked off', await statusOf(prop), 'locked');
 
-  console.log('\nan unknown kickoff set falls back to the posted time');
+  console.log('\nan unknown kickoff never closes a prop');
+  // This used to fall back to locks_at, which would have reintroduced the exact
+  // premature lock the kickoff check exists to prevent -- a Sleeper outage would
+  // have shut every Thursday-stamped prop for games days away.
   const prop2 = await makeMarket({
     live: false,
     locked: true,
     kind: 'prop',
     meta: { playerId: '9', playerName: 'Other QB', nflTeam: 'KC', rosterId: HOME, line: 20.5 },
   });
-  await lockDueMarkets([], null);
-  check('null means we could not tell, so use locks_at', await statusOf(prop2), 'locked');
+  await lockDueMarkets([], []);
+  check('no kickoff data means no lock', await statusOf(prop2), 'open');
 
-  console.log('\na market with no nflTeam still locks on its posted time');
-  const noTeam = await makeMarket({ live: false, locked: true });
-  await lockDueMarkets([], new Set());
-  check('nothing to check kickoff against', await statusOf(noTeam), 'locked');
+  console.log('\na prop with no nflTeam is left alone');
+  const noTeam = await makeMarket({
+    live: false,
+    locked: true,
+    kind: 'prop',
+    meta: { playerId: '7', playerName: 'No Team', rosterId: HOME, line: 12.5 },
+  });
+  await lockDueMarkets([], ['NE', 'SEA', 'SF', 'LAR']);
+  check('nothing to check kickoff against, so not guessed at', await statusOf(noTeam), 'open');
 
   console.log('\nfinishedRostersIn reads live state');
   check(

@@ -23,15 +23,21 @@ const money = (n) =>
  * on the server, because this component is trivially editable in dev tools.
  */
 /**
- * "Closes Sat night" -- markets lock at midnight on the morning of the game,
- * which is the night before in everyone's head. Saying "Sunday" would be read
- * as Sunday evening, about twenty hours too late.
+ * What to promise about closing time.
+ *
+ * This used to say "Closes Wed night", derived from locks_at minus a day. That
+ * was never a real deadline: a prop closes at its player's kickoff, and a live
+ * market does not close on the clock at all -- it reprices until the result is
+ * decided. Naming a night that nothing actually happens on is worse than saying
+ * the real rule.
  */
-function lockLabel(locksAt) {
-  const lock = new Date(locksAt);
-  const eve = new Date(lock);
-  eve.setUTCDate(eve.getUTCDate() - 1);
-  return `Closes ${eve.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' })} night`;
+function lockLabel(market) {
+  if (market.live) return 'Open · prices move live';
+  const day = new Date(market.locks_at).toLocaleDateString('en-US', {
+    weekday: 'short',
+    timeZone: 'UTC',
+  });
+  return `Closes at ${day} kickoff`;
 }
 
 export default function BetSlip({ market, existingBet, disabled, bankrollCents, livePrices }) {
@@ -48,8 +54,12 @@ export default function BetSlip({ market, existingBet, disabled, bankrollCents, 
 
   // A live market keeps taking bets after its posted lock, at a price that
   // moves with the game. It only truly closes when the model suspends it.
+  //
+  // `locked` is the server's status, never the clock. A prop's locks_at is
+  // midnight on the morning of the game, so greying out on that showed a bet as
+  // closed while its game was still hours away.
   const pastLock = market.locks_at != null && new Date(market.locks_at) <= new Date();
-  const locked = pastLock && !market.live;
+  const locked = market.status != null && market.status !== 'open';
   const liveNow = pastLock && market.live && livePrices != null;
   const liveShut = pastLock && market.live && livePrices == null;
   const shut = disabled || locked || liveShut;
@@ -138,7 +148,7 @@ export default function BetSlip({ market, existingBet, disabled, bankrollCents, 
                 : 'LIVE · price moves'
               : locked || liveShut
                 ? 'Closed'
-                : lockLabel(market.locks_at)}
+                : lockLabel(market)}
           </span>
         )}
       </div>

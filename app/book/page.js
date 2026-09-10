@@ -59,8 +59,11 @@ export default async function BookPage({ searchParams }) {
   // Locked matchups stay on the board, greyed out. Dropping them made three of
   // five games disappear on a Wednesday and read as "markets are missing"
   // rather than "these already closed".
-  const games = groupByMatchup(open);
-  const lockedGames = groupByMatchup(locked);
+  // Pass the full market list as the second argument: pairings must come from
+  // every h2h in the week, or a matchup that has already locked takes its
+  // still-open props down with it.
+  const games = groupByMatchup(open, markets);
+  const lockedGames = groupByMatchup(locked, markets);
 
   // Other people's bets, only from markets that have already locked.
   const others = publicBets.filter((b) => b.bettor !== slug);

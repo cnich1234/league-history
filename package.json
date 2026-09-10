@@ -28,7 +28,8 @@
     "test:settle": "node --env-file=.env.local scripts/settle.test.mjs",
     "test:resolve": "node scripts/resolve.test.mjs",
     "test:parlay": "node --env-file=.env.local scripts/parlay.test.mjs",
-    "reset:book": "node --env-file=.env.local scripts/reset-book.mjs"
+    "reset:book": "node --env-file=.env.local scripts/reset-book.mjs",
+    "test:grouping": "node scripts/grouping.test.mjs"
   },
   "dependencies": {
     "@neon/config": "^1.3.2",

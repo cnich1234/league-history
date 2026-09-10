@@ -1149,6 +1149,298 @@ tbody tr:last-child td {
   cursor: pointer;
 }
 
+/* ---------- Store and boosts ---------- */
+
+.points-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, rgba(255, 197, 61, 0.12), transparent);
+  border: 1px solid rgba(255, 197, 61, 0.25);
+}
+
+.points-amount {
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: var(--gold);
+  font-variant-numeric: tabular-nums;
+}
+
+.shop-grid {
+  display: grid;
+  gap: 10px;
+}
+
+@media (min-width: 620px) {
+  .shop-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.shop-item {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.shop-head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.shop-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.shop-name {
+  font-size: 15.5px;
+  font-weight: 800;
+  flex: 1;
+  min-width: 0;
+}
+
+.shop-cost {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--gold);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Priced out: the number goes quiet rather than red, since it is not an error. */
+.shop-cost-short {
+  color: var(--text-dim);
+}
+
+.shop-blurb {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+
+.shop-detail {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-dim);
+}
+
+.shop-foot {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.shop-buy {
+  margin-left: auto;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: none;
+  background: var(--teal-ghost);
+  color: var(--teal);
+  font-size: 13px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.shop-buy:disabled {
+  background: var(--surface-hover);
+  color: var(--text-dim);
+  cursor: default;
+}
+
+.boost-list {
+  display: grid;
+  gap: 9px;
+}
+
+.boost-card {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 13px 14px;
+  background: var(--surface);
+  border-radius: var(--radius);
+}
+
+.boost-icon {
+  font-size: 22px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.boost-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.boost-name {
+  font-weight: 700;
+  font-size: 14.5px;
+}
+
+.boost-use {
+  flex-shrink: 0;
+  padding: 8px 15px;
+  border-radius: 999px;
+  border: none;
+  background: var(--teal-ghost);
+  color: var(--teal);
+  font-size: 13px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* ---------- Target picker ---------- */
+
+.picker-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(8, 12, 20, 0.75);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+}
+
+@media (min-width: 620px) {
+  .picker-backdrop {
+    align-items: center;
+    padding: 20px;
+  }
+}
+
+.picker {
+  width: 100%;
+  max-width: 460px;
+  max-height: 82vh;
+  overflow-y: auto;
+  background: var(--surface-raised);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  padding: 18px 16px calc(18px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+@media (min-width: 620px) {
+  .picker {
+    border-radius: var(--radius-lg);
+    padding-bottom: 18px;
+  }
+}
+
+.picker-head {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.picker-icon {
+  font-size: 26px;
+  line-height: 1;
+}
+
+.picker-title {
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.picker-note {
+  font-size: 12.5px;
+  color: var(--text-dim);
+}
+
+.picker-list {
+  display: grid;
+  gap: 7px;
+}
+
+.picker-item {
+  display: flex;
+  text-align: left;
+  padding: 11px 13px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--surface);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.picker-item-on {
+  border-color: var(--teal);
+  background: var(--teal-ghost);
+}
+
+.picker-item:disabled {
+  opacity: 0.42;
+  cursor: default;
+}
+
+.picker-item-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.picker-item-title {
+  font-weight: 700;
+}
+
+.picker-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.picker-cancel,
+.picker-go {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.picker-cancel {
+  background: var(--surface-hover);
+  color: var(--text-muted);
+}
+
+.picker-go {
+  background: var(--teal);
+  color: #06251f;
+}
+
+.picker-go:disabled {
+  background: var(--surface-hover);
+  color: var(--text-dim);
+  cursor: default;
+}
+
 /* Week navigation. Plain links, so each week is a shareable URL. */
 .week-switch {
   display: flex;

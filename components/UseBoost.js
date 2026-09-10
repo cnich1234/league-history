@@ -1,0 +1,158 @@
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+
+const money = (cents) => `$${(Number(cents) / 100).toFixed(2)}`;
+const odds = (n) => (n > 0 ? `+${n}` : String(n));
+
+/**
+ * Uses one boost, picking a target first when it needs one.
+ *
+ * Some boosts need a choice and some do not, so the flow branches on what the
+ * server says rather than on a hardcoded list here: the picker asks
+ * /api/shop/targets what is legal right now, and shows exactly that. Ineligible
+ * targets are still listed, greyed, with the reason -- "already has Insurance"
+ * is more useful than an item silently missing from a list.
+ *
+ * Using a boost is irreversible, so the chosen target is confirmed before it
+ * fires. Buying is not confirmed; using is.
+ */
+export default function UseBoost({ boost, label }) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [targets, setTargets] = useState(null);
+  const [chosen, setChosen] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
+
+  async function openPicker() {
+    setOpen(true);
+    setError(null);
+    setChosen(null);
+    setTargets(null);
+    try {
+      const res = await fetch(`/api/shop/targets?kind=${encodeURIComponent(boost.kind)}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Could not load targets.');
+      setTargets(data);
+    } catch (err) {
+      setError(err.message);
+      setTargets({ targets: [] });
+    }
+  }
+
+  async function use() {
+    if (!chosen) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const body = { action: 'use', boostId: boost.id };
+      if (targets.target === 'market') body.marketId = chosen.id;
+      else body.betId = chosen.id;
+
+      const res = await fetch('/api/shop', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Could not use that.');
+      setOpen(false);
+      router.refresh();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (!open) {
+    return (
+      <button className="boost-use" type="button" onClick={openPicker}>
+        {label ?? 'Use'}
+      </button>
+    );
+  }
+
+  const list = targets?.targets ?? [];
+  const usable = list.filter((t) => t.eligible);
+
+  return (
+    <div className="picker-backdrop" role="dialog" aria-modal="true">
+      <div className="picker">
+        <div className="picker-head">
+          <span className="picker-icon" aria-hidden="true">
+            {boost.icon}
+          </span>
+          <div>
+            <div className="picker-title">{boost.name}</div>
+            <div className="dim">{boost.blurb}</div>
+          </div>
+        </div>
+
+        {targets == null && <div className="empty">Loading…</div>}
+
+        {targets != null && list.length === 0 && (
+          <div className="empty">{error ?? 'Nothing to use this on right now.'}</div>
+        )}
+
+        {list.length > 0 && (
+          <>
+            {usable.length === 0 && (
+              <div className="picker-note">
+                Nothing is eligible right now — here is why.
+              </div>
+            )}
+            <div className="picker-list">
+              {list.map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  className={`picker-item ${chosen?.id === t.id ? 'picker-item-on' : ''}`}
+                  disabled={!t.eligible}
+                  onClick={() => setChosen(t)}
+                >
+                  <span className="picker-item-main">
+                    <span className="picker-item-title">{t.title}</span>
+                    <span className="dim">
+                      {t.subtitle}
+                      {t.stakeCents != null && (
+                        <>
+                          {t.subtitle ? ' · ' : ''}
+                          {money(t.stakeCents)} at {odds(t.odds)}
+                        </>
+                      )}
+                      {!t.eligible && t.why && (
+                        <>
+                          {t.subtitle || t.stakeCents != null ? ' · ' : ''}
+                          {t.why}
+                        </>
+                      )}
+                    </span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+
+        {error && list.length > 0 && <div className="form-error">{error}</div>}
+
+        <div className="picker-actions">
+          <button
+            className="picker-cancel"
+            type="button"
+            onClick={() => setOpen(false)}
+            disabled={busy}
+          >
+            Cancel
+          </button>
+          <button className="picker-go" type="button" onClick={use} disabled={busy || !chosen}>
+            {busy ? 'Working…' : chosen ? `Use on ${chosen.title}` : 'Pick one'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

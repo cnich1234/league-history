@@ -7,7 +7,7 @@
  * the survivor rather than a whole refund.
  */
 import { neon } from '@neondatabase/serverless';
-import { placeParlay, settleMarket, getBankrolls } from '../lib/book.js';
+import { placeParlay, settleMarket, getBankrolls, getMyBets, settledBets } from '../lib/book.js';
 import { payoutCents, parlayOdds } from '../lib/odds.js';
 
 const sql = neon(process.env.DATABASE_URL);
@@ -94,6 +94,15 @@ try {
   check('stake debited once', before - (await balanceOf(A)), 5000);
   const [{ n }] = await sql`select count(*)::int as n from parlay_legs where bet_id = ${parlay.id}`;
   check('legs stored', n, 3);
+
+  console.log('\nparlays appear wherever bets are listed');
+  // This join has been wrong three separate times: getMyBets, settledBets and
+  // settledSummary all inner-joined markets and market_options, which a parlay
+  // has neither of, so every parlay silently vanished from the UI.
+  const mine = await getMyBets(A);
+  const found = mine.find((b) => String(b.id) === String(parlay.id));
+  check('a pending parlay is in my bets', Boolean(found), true);
+  check('and reports its leg count', found?.leg_count, 3);
 
   console.log('\nrules');
   await rejects(

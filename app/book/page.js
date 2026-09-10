@@ -6,6 +6,7 @@ import {
   visibleBets,
   getPrizePool,
   groupByMatchup,
+  parlayLegsFor,
 } from '@/lib/book';
 import { formatMoney, formatOdds } from '@/lib/odds';
 import Login from '@/components/Login';
@@ -49,7 +50,12 @@ export default async function BookPage({ searchParams }) {
     isCommissioner(),
   ]);
 
-  const myByMarket = Object.fromEntries(myBets.map((b) => [String(b.market_id), b]));
+  // Parlays have no market_id, so they cannot key this map -- and including
+  // them would collide on the "null" key and mark unrelated markets as placed.
+  const myByMarket = Object.fromEntries(
+    myBets.filter((b) => !b.is_parlay).map((b) => [String(b.market_id), b]),
+  );
+  const myLegs = await parlayLegsFor(myBets.filter((b) => b.is_parlay).map((b) => b.id));
   const now = Date.now();
 
   const open = markets.filter((m) => new Date(m.locks_at).getTime() > now);
@@ -123,9 +129,14 @@ export default async function BookPage({ searchParams }) {
             {myBets.slice(0, 12).map((b) => (
               <div key={b.id} className="row">
                 <span className="row-main">
-                  <span className="row-name">{b.title}</span>
+                  <span className="row-name">
+                    {b.is_parlay ? `${b.leg_count}-leg parlay` : b.title}
+                  </span>
                   <span className="dim">
-                    {b.option_label} · {formatMoney(b.stake_cents)} at {formatOdds(b.odds)}
+                    {b.is_parlay
+                      ? (myLegs[b.id] ?? []).map((l) => l.option_label).join(' + ')
+                      : b.option_label}{' '}
+                    · {formatMoney(b.stake_cents)} at {formatOdds(b.odds)}
                   </span>
                 </span>
                 <span className={`row-value ${statusClass(b.status)}`}>{statusLabel(b)}</span>

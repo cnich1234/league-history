@@ -28,10 +28,20 @@ export default function RulesPage() {
 
           <h2>Blowout lines</h2>
           <p>
-            Alternate spreads at <strong>-20.5, -30.5 and -40.5</strong> for long money.
-            The prices come from the same model as everything else, so a genuinely
-            lopsided matchup pays less than an even one — a 40-point win in a coin-flip
-            game is worth around <strong>+460</strong>.
+            <strong>Does either team win by more than 20.5?</strong> (and 30.5). One
+            market per matchup with both managers as options — back whoever you think
+            is getting run off the field.
+          </p>
+          <p>
+            <strong>A close game loses both sides.</strong> That is the catch, and it is
+            why both can pay plus money: a game inside the line is the most likely
+            result by far — roughly 40% of the time at 20.5, and 55% at 30.5 — and it
+            pays nothing to anyone.
+          </p>
+          <p>
+            Prices come from the same model as everything else, so a lopsided matchup
+            pays less. A heavy favourite to win by 20+ might be <strong>-110</strong>,
+            while the underdog doing it is <strong>+542</strong>.
           </p>
 
           <h2>Special bets</h2>

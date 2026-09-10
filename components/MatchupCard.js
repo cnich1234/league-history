@@ -90,7 +90,10 @@ export default function MatchupCard({
                 ...m,
                 id: String(m.id),
                 title: shortTitle(m, kind),
-                subtitle: kind === 'h2h' || kind === 'spread' ? null : m.subtitle,
+                subtitle:
+                  kind === 'h2h' || (kind === 'spread' && !m.meta?.blowout)
+                    ? null
+                    : m.subtitle,
               }))}
               myByMarket={myByMarket}
               bankrollCents={bankrollCents}
@@ -126,6 +129,12 @@ function groupPropsByTeam(props) {
  */
 function shortTitle(market, kind) {
   if (kind === 'h2h') return 'Who wins';
+  // A blowout asks its own question and both sides are backable. The stored
+  // title carries the team names so it is unique across a week, but the card
+  // already names them, so show the question instead.
+  if (kind === 'spread' && market.meta?.blowout) {
+    return `Either team by ${market.meta.spread}+?`;
+  }
   if (kind === 'spread') return market.subtitle ?? market.title;
   // "Deebo my Lemons WRs -5.5 vs Mike R WRs" is too long for a phone once the
   // card already names both teams. The option labels carry the detail.

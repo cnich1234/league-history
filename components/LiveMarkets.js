@@ -55,6 +55,13 @@ function pricesFor(market, state) {
   }
 
   if (market.kind === 'spread') {
+    // A blowout market is a three-outcome field keyed by roster id, not a
+    // two-sided cover/nocover, so this model does not describe it: it has no
+    // favouriteSlug, and the cover/nocover keys returned below match none of
+    // its options. Left unpriced, which suspends it once games start rather
+    // than quoting a number that means something else.
+    if (market.meta?.blowout) return null;
+
     // Priced from the same scored/remaining figures the server uses, so the
     // number on screen matches what placement will compute. The server still
     // prices the bet itself -- this is display only.

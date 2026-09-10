@@ -267,15 +267,45 @@ The standard deviation is scaled: `(LEAGUE_SD / 3) × √players`. `LEAGUE_SD` i
 fitted to a whole nine-man lineup, so applying it to a single TE would price
 every battle as a coin flip.
 
-**Blowout lines** are ordinary `spread` markets at -20.5, -30.5 and -40.5,
-flagged `meta.alternate` for display. No migration and no resolver change — only
-the line and the price differ. They are priced off the model rather than picked
-by hand, so a lopsided matchup does not hand out +320 on something likely; a line
-at or below the main spread is skipped, as is anything under 4%.
+**Blowout lines** ask "does _either_ team win by more than the line", with one
+option per manager, at 20.5 and 30.5. They are `spread` markets flagged
+`meta.blowout`, and the option key is a roster id.
 
-Neither is live-priced yet. `livePrice` returns null for an unknown kind, so a
-showdown suspends rather than mispricing itself once games start — the safe
-default, and the reason adding a kind did not require touching the live model.
+They have **three outcomes, not two**: the third is a close game, where both
+backable sides lose. That is what lets both be plus money — "neither" is the
+likeliest result (37–56% depending on the line) and pays nothing.
+
+Which is why `twoWayOdds` is wrong for them. It splits a margin across two
+outcomes summing to 1; these two sum to well under it, and pricing them as a pair
+quotes both far too short. `fieldOdds` prices the whole field including the
+outcome nobody can back.
+
+`'nobody'` needs no special handling in `settleMarket`: it is not a refund
+keyword and no bet holds it as an option key, so everyone loses, which is correct.
+
+Neither blowouts nor battles are live-priced — see below.
+
+### What trades live
+
+`createMarket` sets `markets.live` from the kind. It did not always: the flag was
+set once by migrations 008 and 009 for the markets that existed then, and
+`buildWeek` never set it — so **every week built afterwards came out entirely
+non-live**, and week 2's matchups would have shut at kickoff instead of
+repricing. Silent, because a non-live market looks perfectly normal until the
+games start.
+
+| Kind                       | Live   |
+| -------------------------- | ------ |
+| h2h, spread, total         | yes    |
+| prop, special, showdown    | no     |
+| spread with `meta.blowout` | **no** |
+
+A blowout is the exception among spreads. `livePrice` and the client's
+`pricesFor` both return null for one, because the live spread model does not
+describe a three-outcome field — it has no `favouriteSlug`, and the
+`cover`/`nocover` keys it returns match none of the market's options. Left
+unpriced it suspends once games start, rather than quoting a number that means
+something else entirely.
 
 ---
 

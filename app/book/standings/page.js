@@ -87,12 +87,11 @@ export default async function StandingsPage() {
                 </span>
                 <span className="sh-money">
                   <span className="row-value">{formatMoney(b.balance_cents)}</span>
-                  {swing !== 0 && (
-                    <span className={`row-swing ${swing < 0 ? 'neg' : 'pos'}`}>
-                      {swing > 0 ? '+' : '−'}
-                      {formatMoney(Math.abs(swing))}
-                    </span>
-                  )}
+                  {/* Always rendered, empty at exactly $1,000, so every row is
+                      the same height. */}
+                  <span className={`row-swing ${swing < 0 ? 'neg' : 'pos'}`}>
+                    {swing === 0 ? '' : `${swing > 0 ? '+' : '−'}${formatMoney(Math.abs(swing))}`}
+                  </span>
                 </span>
               </summary>
 

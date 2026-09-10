@@ -1430,6 +1430,9 @@ tbody tr:last-child td {
   font-size: 11px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+  /* Reserve the line on every row so a manager sitting exactly at $1,000 does
+     not produce a shorter box than everyone else. */
+  min-height: 14px;
 }
 
 /* ---- Standings table ---- */
@@ -1439,13 +1442,16 @@ tbody tr:last-child td {
 .standings-head,
 .standing-row {
   display: grid;
-  grid-template-columns: 22px 1fr auto auto;
+  /* Fixed record and bankroll columns keep the header aligned with every row;
+     `auto` let them drift as content changed. */
+  grid-template-columns: 22px 1fr 52px 104px;
   align-items: center;
   gap: 10px;
 }
 
 .standings-head {
   padding: 0 12px 6px;
+  min-height: 0;
   font-size: 10.5px;
   font-weight: 800;
   letter-spacing: 0.6px;
@@ -1458,16 +1464,23 @@ tbody tr:last-child td {
   border-radius: 10px;
   margin-bottom: 5px;
   overflow: hidden;
+  /* Reserved on every row, coloured only on the user's own. A border applied
+     to just one row made it 2px taller and shifted its columns by 1px. */
+  border: 1px solid transparent;
 }
 
 .standing-me {
-  border: 1px solid rgba(18, 214, 172, 0.3);
+  border-color: rgba(18, 214, 172, 0.3);
 }
 
 .standing-row {
   padding: 11px 12px;
   cursor: pointer;
   list-style: none;
+  /* Every row is the height of a two-line one. Rows differed by 14px depending
+     on whether the manager had a swing figure under their bankroll, which made
+     the list look ragged. */
+  min-height: 54px;
 }
 
 .standing-row::-webkit-details-marker {
@@ -1488,8 +1501,11 @@ tbody tr:last-child td {
 
 .sh-name {
   min-width: 0;
+  /* One line only. "Chris · 2 pending" wrapped to two lines and made that row
+     6px taller than the rest. */
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .standing-name {
@@ -1504,14 +1520,22 @@ tbody tr:last-child td {
   font-variant-numeric: tabular-nums;
   color: var(--text-muted);
   white-space: nowrap;
+  /* Fixed width and centred so the column reads as a column rather than
+     drifting with each record's width. */
+  width: 52px;
+  text-align: center;
 }
 
 .sh-money {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+  justify-content: center;
   gap: 1px;
   white-space: nowrap;
+  /* Matches value + swing, so the money column is the same height whether or
+     not there is a swing to show. */
+  min-height: 34px;
 }
 
 .standing-body {

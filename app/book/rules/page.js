@@ -105,8 +105,14 @@ export default function RulesPage() {
             — a $50 parlay returns close to $348.
           </p>
           <p>
-            A parlay locks when its <strong>earliest</strong> leg does. Put a Thursday
-            player in your slip and the whole thing has to be built by Wednesday night.
+            A parlay locks when its <strong>earliest</strong> leg does — unless that leg is
+            a live market, in which case it stays available at the live price like any
+            other bet. Player props still lock, so a prop leg does have to be in before
+            that player&apos;s game.
+          </p>
+          <p>
+            A parlay is capped by its tightest leg: if one leg is close to decided, the
+            whole slip takes that leg&apos;s smaller maximum.
           </p>
           <p>
             If a leg is voided — a prop on someone who never played — that leg drops out

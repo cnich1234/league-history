@@ -7,7 +7,7 @@
  * what I was shown" and used only to reject a stale fill.
  */
 import { neon } from '@neondatabase/serverless';
-import { placeBet, getBankrolls } from '../lib/book.js';
+import { placeBet, placeParlay, getBankrolls } from '../lib/book.js';
 
 const sql = neon(process.env.DATABASE_URL);
 const TEST_SEASON = 9996;
@@ -123,6 +123,37 @@ try {
     // Either the guard fires or the market is suspended; both are refusals.
     '',
   );
+
+  console.log('\nparlays can use live legs');
+  // placeParlay rejected anything past locks_at with no exception for live
+  // markets, so a parlay whose legs were plainly bettable on the board came
+  // back as "A market in this parlay has locked."
+  const p1 = await makeMarket({ live: true, locked: true });
+  const p2 = await makeMarket({ live: true, locked: true });
+  let parlayErr = null;
+  try {
+    await placeParlay({
+      slug: A,
+      stakeCents: 2000,
+      legs: [
+        { marketId: p1, optionKey: 'home' },
+        { marketId: p2, optionKey: 'home' },
+      ],
+    });
+  } catch (e) {
+    parlayErr = e.message;
+  }
+  // These synthetic markets point at a real matchup that may be suspended, so
+  // accept a suspension -- what must not happen is the flat 'has locked'.
+  check(
+    'a live leg is not rejected as locked',
+    parlayErr == null || !/has locked/i.test(parlayErr),
+    true,
+  );
+  // Guard against this passing for the wrong reason: a ReferenceError also
+  // fails the "has locked" test, and did once.
+  check('and the rejection, if any, is a real one', !/is not defined/i.test(parlayErr ?? ''), true);
+  if (parlayErr) console.log(`       (${parlayErr})`);
 
   console.log('\nledger integrity');
   const mismatched = await sql`

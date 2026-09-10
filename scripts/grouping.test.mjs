@@ -1,10 +1,15 @@
 /**
- * groupByMatchup must never lose a market.
+ * groupByMatchup must never lose a market, and must never file one under the
+ * wrong day.
  *
- * It did: pairings were built from the open h2h markets only, so once a
- * matchup locked, every still-open prop belonging to it had no game to attach
- * to and was silently dropped. Five of ten Week 1 props vanished from the board
- * that way, with no error anywhere.
+ * Two bugs live here. Pairings were built from the open h2h markets only, so
+ * once a matchup locked, every still-open prop belonging to it was silently
+ * dropped -- five of ten Week 1 props vanished from the board. Then, once they
+ * came back, a card was placed by its earliest market, so a Sunday prop showed
+ * under a Thursday heading because it shared a game with a Thursday spread.
+ *
+ * A card is therefore one (matchup, lock day) pair, holding only the bets that
+ * actually close on that day.
  */
 import { groupByMatchup } from '../lib/book.js';
 
@@ -56,24 +61,39 @@ check(
   partial.reduce((n, g) => n + g.marketCount, 0),
   open.length,
 );
+const lateCard = partial.find((g) => g.key.startsWith('1-2@'));
+check('the locked matchup still appears, holding its open props', lateCard?.marketCount, 2);
+check('and shows no h2h, because that one locked', lateCard?.markets.h2h.length, 0);
+
+console.log('\nsplit by lock day');
+// Matchup 1-2 has markets on both days; it must produce two separate cards.
+const split = groupByMatchup(all, all).filter((g) => g.key.startsWith('1-2@'));
+check('one card per lock day', split.length, 2);
+check('earliest card first', split[0].locksAt, EARLY);
+check('early card holds only early markets', split[0].marketCount, 3);
+check('late card holds only late markets', split[1].marketCount, 2);
 check(
-  'the locked matchup still appears, holding its open props',
-  partial.find((g) => g.key === '1-2')?.marketCount,
-  2,
+  'no market appears on both days',
+  split[0].markets.prop.length + split[1].markets.h2h.length,
+  0,
 );
-check('and shows no h2h, because that one locked', partial.find((g) => g.key === '1-2')?.markets.h2h.length, 0);
+check('both cards keep the matchup title', split[0].title === split[1].title, true);
 
 console.log('\nempty groups are dropped');
 const onlyOne = groupByMatchup([all[6]], all);
 check('a game with nothing open is not rendered', onlyOne.length, 1);
-check('and it is the right one', onlyOne[0].key, '3-4');
+check('and it is the right one', onlyOne[0].key.startsWith('3-4@'), true);
 
 console.log('\nordering and shape');
-check('sorted by earliest remaining lock', everything.map((g) => g.key), ['1-2', '3-4']);
+check(
+  'sorted by lock day',
+  everything.map((g) => g.locksAt),
+  [EARLY, LATE, LATE],
+);
 check(
   'a locked matchup sorts by what is left in it',
-  partial.map((g) => g.key),
-  ['1-2', '3-4'],
+  partial.map((g) => g.locksAt),
+  [LATE, LATE],
 );
 
 console.log('\norphans');

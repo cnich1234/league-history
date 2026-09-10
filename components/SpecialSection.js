@@ -14,7 +14,13 @@ import BetSlip from './BetSlip';
  * meant four taps to see four markets, and hid the prices behind headings that
  * all looked alike.
  */
-export default function SpecialSection({ markets, myByMarket, bankrollCents, defaultOpen }) {
+export default function SpecialSection({
+  markets,
+  myByMarket,
+  bankrollCents,
+  defaultOpen,
+  readOnly,
+}) {
   if (!markets?.length) return null;
 
   const open = markets.filter((m) => m.status === 'open').length;
@@ -46,6 +52,7 @@ export default function SpecialSection({ markets, myByMarket, bankrollCents, def
               market={m}
               existingBet={myByMarket[String(m.id)]}
               bankrollCents={bankrollCents}
+              disabled={readOnly}
             />
           ))}
         </div>

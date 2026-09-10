@@ -20,7 +20,14 @@ const LIVE_MARGIN = 0.09;
  * it just receives `livePrices` or does not. Only h2h and spread ever get one;
  * everything else renders exactly as before.
  */
-export default function LiveMarkets({ homeRoster, awayRoster, markets, myByMarket, bankrollCents }) {
+export default function LiveMarkets({
+  homeRoster,
+  awayRoster,
+  markets,
+  myByMarket,
+  bankrollCents,
+  readOnly,
+}) {
   const state = useLiveMatchup(homeRoster, awayRoster);
 
   return markets.map((m) => (
@@ -30,6 +37,7 @@ export default function LiveMarkets({ homeRoster, awayRoster, markets, myByMarke
       existingBet={myByMarket[String(m.id)] ?? null}
       bankrollCents={bankrollCents}
       livePrices={pricesFor(m, state)}
+      disabled={readOnly}
     />
   ));
 }

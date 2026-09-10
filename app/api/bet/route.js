@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { currentBettor } from '@/lib/auth';
+import { currentManager } from '@/lib/auth';
 import { placeBet } from '@/lib/book';
 
 export const dynamic = 'force-dynamic';
@@ -13,8 +13,13 @@ export const dynamic = 'force-dynamic';
  * someone would try.
  */
 export async function POST(request) {
-  const slug = await currentBettor();
-  if (!slug) return NextResponse.json({ error: 'Not signed in.' }, { status: 401 });
+  // currentManager, not currentBettor: a guest is signed in but owns no
+  // bankroll, so letting one through would try to debit a bettor row that does
+  // not exist. Refused here rather than only hidden in the UI.
+  const slug = await currentManager();
+  if (!slug) {
+    return NextResponse.json({ error: 'Guests cannot place bets.' }, { status: 403 });
+  }
 
   const { marketId, optionKey, stakeDollars, expectedOdds } = await request.json().catch(() => ({}));
 

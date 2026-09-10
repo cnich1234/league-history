@@ -1,4 +1,5 @@
-import { currentBettor, listBettors, isCommissioner } from '@/lib/auth';
+import { redirect } from 'next/navigation';
+import { currentBettor, listBettors, isCommissioner, isGuestSlug } from '@/lib/auth';
 import {
   getBettor,
   getMarketsForWeek,
@@ -23,6 +24,14 @@ export const dynamic = 'force-dynamic';
 
 const SEASON = Number(process.env.BOOK_SEASON ?? 2026);
 
+/** Drops the session and returns to the picker. A guest's only way back. */
+async function signOut() {
+  'use server';
+  const { clearSession } = await import('@/lib/auth');
+  await clearSession();
+  redirect('/book');
+}
+
 export default async function BookPage({ searchParams }) {
   const params = await searchParams;
   const week = Number(params?.week ?? process.env.BOOK_WEEK ?? 1);
@@ -45,10 +54,15 @@ export default async function BookPage({ searchParams }) {
     );
   }
 
+  // A guest is signed in but is not a bettor: no bankroll row, no bets of its
+  // own. Skipping those two queries is not an optimisation, it is the point --
+  // there is nothing for them to return.
+  const guest = isGuestSlug(slug);
+
   const [me, markets, myBets, publicBets, commissioner, weeks] = await Promise.all([
-    getBettor(slug),
+    guest ? null : getBettor(slug),
     getMarketsForWeek(SEASON, week),
-    getMyBets(slug),
+    guest ? [] : getMyBets(slug),
     visibleBets(SEASON, week),
     isCommissioner(),
     weeksWithMarkets(SEASON),
@@ -90,18 +104,36 @@ export default async function BookPage({ searchParams }) {
 
       <WeekSwitcher weeks={weeks} current={week} />
 
-      <section className="section">
-        <div className="bankroll-card">
-          <div>
-            <div className="dim">{me.display_name}</div>
-            <div className="bankroll-amount">{formatMoney(me.balance_cents)}</div>
+      {guest ? (
+        <section className="section">
+          <div className="guest-card">
+            <div>
+              <div className="guest-title">Watching as a guest</div>
+              <div className="dim">
+                Read-only. Prices, standings and results — but no betting.
+              </div>
+            </div>
+            <form action={signOut}>
+              <button className="guest-switch" type="submit">
+                Sign in
+              </button>
+            </form>
           </div>
-          <div className="bankroll-record">
-            <span className="pos">{me.wins}W</span> · <span className="neg">{me.losses}L</span>
-            {me.pending > 0 && <> · {me.pending} pending</>}
+        </section>
+      ) : (
+        <section className="section">
+          <div className="bankroll-card">
+            <div>
+              <div className="dim">{me.display_name}</div>
+              <div className="bankroll-amount">{formatMoney(me.balance_cents)}</div>
+            </div>
+            <div className="bankroll-record">
+              <span className="pos">{me.wins}W</span> · <span className="neg">{me.losses}L</span>
+              {me.pending > 0 && <> · {me.pending} pending</>}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {!anyOpen && games.length > 0 && (
         <section className="section">
@@ -116,21 +148,23 @@ export default async function BookPage({ searchParams }) {
           <SpecialSection
             markets={specials}
             myByMarket={myByMarket}
-            bankrollCents={Number(me.balance_cents)}
+            bankrollCents={guest ? 0 : Number(me.balance_cents)}
             // Open when there is nothing else on the board, so the page is not
             // a single collapsed heading; closed when the week's games are
             // there to lead with.
             defaultOpen={games.length === 0}
+            readOnly={guest}
           />
           {games.length > 0 && (
             <BoardSection
               games={games}
               myByMarket={myByMarket}
-              bankrollCents={Number(me.balance_cents)}
+              bankrollCents={guest ? 0 : Number(me.balance_cents)}
               week={week}
+              readOnly={guest}
             />
           )}
-          <ParlaySlip bankrollCents={Number(me.balance_cents)} />
+          {!guest && <ParlaySlip bankrollCents={Number(me.balance_cents)} />}
         </SlipProvider>
       ) : (
         <section className="section">
@@ -140,7 +174,7 @@ export default async function BookPage({ searchParams }) {
         </section>
       )}
 
-      {myBets.length > 0 && (
+      {!guest && myBets.length > 0 && (
         <section className="section">
           <div className="section-head">
             <h2>My bets</h2>

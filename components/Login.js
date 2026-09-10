@@ -2,6 +2,10 @@
 
 import { useState } from 'react';
 
+// Kept in step with lib/auth.js. A client component cannot import from a module
+// that pulls in node:crypto, so the constant is repeated rather than shared.
+const GUEST_SLUG = '__guest__';
+
 /**
  * Sign in, or claim your account if this is the first time.
  *
@@ -17,6 +21,7 @@ export default function Login({ bettors }) {
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
 
+  const guest = slug === GUEST_SLUG;
   const selected = bettors.find((b) => b.slug === slug);
   const isNew = selected && !selected.has_password;
   const mismatch = isNew && confirm.length > 0 && password !== confirm;
@@ -52,7 +57,15 @@ export default function Login({ bettors }) {
             {b.has_password ? '' : ' — not set up yet'}
           </option>
         ))}
+        <option value={GUEST_SLUG}>Guest — just looking</option>
       </select>
+
+      {guest && (
+        <p className="claim-note">
+          Read-only. You will see the board, the odds, the standings and everyone&apos;s
+          settled bets — but you cannot place one.
+        </p>
+      )}
 
       {isNew && (
         <p className="claim-note">
@@ -61,18 +74,20 @@ export default function Login({ bettors }) {
         </p>
       )}
 
-      <input
-        className="field"
-        type="password"
-        placeholder={isNew ? 'Choose a password' : 'Your password'}
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        autoComplete={isNew ? 'new-password' : 'current-password'}
-        minLength={6}
-        required
-      />
+      {!guest && (
+        <input
+          className="field"
+          type="password"
+          placeholder={isNew ? 'Choose a password' : 'Your password'}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          autoComplete={isNew ? 'new-password' : 'current-password'}
+          minLength={6}
+          required
+        />
+      )}
 
-      {isNew && (
+      {isNew && !guest && (
         <input
           className="field"
           type="password"
@@ -88,7 +103,7 @@ export default function Login({ bettors }) {
       {error && <div className="form-error">{error}</div>}
 
       <button className="btn-primary" type="submit" disabled={busy || !slug || mismatch}>
-        {busy ? 'Working…' : isNew ? 'Claim my account' : 'Sign in'}
+        {busy ? 'Working…' : guest ? 'Have a look' : isNew ? 'Claim my account' : 'Sign in'}
       </button>
 
       <p className="dim" style={{ fontSize: 12, marginTop: 4 }}>

@@ -22,7 +22,14 @@ const KIND_ORDER = ['h2h', 'spread', 'total', 'prop'];
  * Native <details> again: collapses before hydration, works without JS, and
  * keyboard and screen-reader behaviour come for free.
  */
-export default function MatchupCard({ game, myByMarket, bankrollCents, defaultOpen, week }) {
+export default function MatchupCard({
+  game,
+  myByMarket,
+  bankrollCents,
+  defaultOpen,
+  week,
+  readOnly,
+}) {
   const all = KIND_ORDER.flatMap((k) => game.markets[k] ?? []);
   const placed = all.filter((m) => myByMarket[String(m.id)]).length;
 
@@ -66,6 +73,7 @@ export default function MatchupCard({ game, myByMarket, bankrollCents, defaultOp
                       market={{ ...m, id: String(m.id), title: m.title, subtitle: m.subtitle }}
                       existingBet={myByMarket[String(m.id)] ?? null}
                       bankrollCents={bankrollCents}
+                      disabled={readOnly}
                     />
                   ))}
                 </details>
@@ -85,6 +93,7 @@ export default function MatchupCard({ game, myByMarket, bankrollCents, defaultOp
               }))}
               myByMarket={myByMarket}
               bankrollCents={bankrollCents}
+              readOnly={readOnly}
             />
           </div>
           ),

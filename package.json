@@ -39,7 +39,8 @@
     "test:floor": "node --env-file=.env.local scripts/floor.test.mjs",
     "test:lock": "node --env-file=.env.local scripts/lock.test.mjs",
     "test:special": "node scripts/special.test.mjs",
-    "test:kickoff": "node scripts/kickoff.test.mjs"
+    "test:kickoff": "node scripts/kickoff.test.mjs",
+    "test:guest": "node --env-file=.env.local scripts/guest.test.mjs"
   },
   "dependencies": {
     "@neon/config": "^1.3.2",

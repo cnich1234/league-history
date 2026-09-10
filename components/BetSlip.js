@@ -62,6 +62,9 @@ export default function BetSlip({ market, existingBet, disabled, bankrollCents, 
   const locked = market.status != null && market.status !== 'open';
   const liveNow = pastLock && market.live && livePrices != null;
   const liveShut = pastLock && market.live && livePrices == null;
+  // `disabled` is what a guest gets: the prices are worth reading, but a tap
+  // that ends in "Guests cannot place bets" is a worse answer than a control
+  // that never invited the tap.
   const shut = disabled || locked || liveShut;
   const stakeNum = Number(stake);
   // A live market caps lower as it approaches being decided. Display only --

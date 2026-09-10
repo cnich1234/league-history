@@ -289,6 +289,40 @@ Holds the same 4.5% as any other pregame market.
 
 ---
 
+## The read-only guest
+
+A "Guest — just looking" option in the sign-in dropdown, no password. It sees
+the board, live prices, standings and settled results; it cannot bet.
+
+The design decision worth keeping: **a guest is not a row in `bettors`.** Its
+slug is a reserved sentinel (`__guest__`) that no manager can be given. A guest
+with a real slug would flow into `placeBet`, `getMyBets` and the bankroll view as
+though it were a manager — able to own bets and hold money. Outside the table,
+every query that joins on a bettor simply finds nothing, which is the right
+answer rather than a special case someone has to remember.
+
+`currentBettor()` answers "is someone signed in". `currentManager()` answers "is
+someone signed in who can own things" — it returns null for a guest, and it is
+what the write routes use. Reaching for the wrong one is how a guest would end
+up debiting a bankroll that does not exist.
+
+Read-only is enforced in three places, deepest first:
+
+1. `placeBet` / `placeParlay` reject the guest slug at the data layer, so a
+   direct POST fails too.
+2. `/api/bet` and `/api/parlay` return 403 via `currentManager()`.
+3. The UI passes `readOnly` down to every `BetSlip`, so the controls never
+   invite a tap that would fail.
+
+`isCommissioner()` short-circuits on a guest without touching the database, so
+the Admin tab and its endpoints are closed as well.
+
+Identity lives in `lib/identity.js` rather than `lib/auth.js`: auth imports
+`next/headers` for cookie access, which will not resolve outside a Next request,
+so the guest rules could not otherwise be tested with plain `node`.
+
+---
+
 ## Hiding bets — The Floor
 
 Nobody sees anyone else's picks until nobody can act on them. That is the whole

@@ -1116,6 +1116,39 @@ tbody tr:last-child td {
   margin-bottom: 12px;
 }
 
+/* Guest banner -- deliberately not the bankroll card. A guest has no money,
+   and showing a $0 balance would read as "you are broke" rather than "you are
+   not playing". */
+.guest-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+}
+
+.guest-title {
+  font-size: 15px;
+  font-weight: 800;
+  margin-bottom: 2px;
+}
+
+.guest-switch {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: none;
+  background: var(--teal-ghost);
+  color: var(--teal);
+  font-size: 13px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+}
+
 /* Week navigation. Plain links, so each week is a shareable URL. */
 .week-switch {
   display: flex;

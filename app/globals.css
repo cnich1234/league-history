@@ -1595,3 +1595,23 @@ tbody tr:last-child td {
   color: var(--text-dim);
   white-space: nowrap;
 }
+
+/* Shown in place of the stake row once a market is in the parlay slip, so the
+   single-bet path is gone rather than sitting next to it. */
+.in-slip-note {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 8px;
+  padding: 9px 11px;
+  border-radius: 9px;
+  border: 1px solid var(--teal-dim);
+  background: var(--teal-ghost);
+  font-size: 12px;
+  color: var(--teal);
+}
+
+.in-slip-note strong {
+  font-weight: 800;
+}

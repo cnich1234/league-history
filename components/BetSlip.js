@@ -35,6 +35,9 @@ export default function BetSlip({ market, existingBet, disabled, bankrollCents }
   const [reviewing, setReviewing] = useState(false);
 
   const stakeNum = Number(stake);
+  // A market already in the parlay slip cannot also be bet straight -- offering
+  // both is what let someone pay for a single and a parlay leg on one tap each.
+  const inSlip = slip.has(market.id);
   const valid =
     Number.isFinite(stakeNum) &&
     stakeNum >= MIN &&
@@ -154,7 +157,22 @@ export default function BetSlip({ market, existingBet, disabled, bankrollCents }
         </div>
       )}
 
-      {selected && !disabled && !reviewing && (
+      {selected && !disabled && !reviewing && inSlip && (
+        <div className="in-slip-note">
+          <span>
+            In your parlay slip. <strong>Place it from the slip at the bottom.</strong>
+          </span>
+          <button
+            className="btn-ghost"
+            type="button"
+            onClick={() => slip.remove(market.id)}
+          >
+            Remove
+          </button>
+        </div>
+      )}
+
+      {selected && !disabled && !reviewing && !inSlip && (
         <div className="stake-row">
           <div className="stake-input">
             <span className="stake-prefix">$</span>
@@ -190,9 +208,7 @@ export default function BetSlip({ market, existingBet, disabled, bankrollCents }
             Review
           </button>
           <button
-            className={`btn-parlay ${
-              slip.selected(market.id, selected.option_key) ? 'btn-parlay-on' : ''
-            }`}
+            className="btn-parlay"
             type="button"
             onClick={() =>
               slip.toggle({
@@ -204,7 +220,7 @@ export default function BetSlip({ market, existingBet, disabled, bankrollCents }
               })
             }
           >
-            {slip.selected(market.id, selected.option_key) ? '✓ Parlay' : '+ Parlay'}
+            + Parlay
           </button>
         </div>
       )}

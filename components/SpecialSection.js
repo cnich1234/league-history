@@ -9,57 +9,47 @@ import BetSlip from './BetSlip';
  * They are team bets. Backing a manager means backing whoever he started at
  * that position -- if your roster's RB tops the league, that option wins.
  *
- * One collapsible card per market, matching the matchup cards exactly. Each
- * holds ten options rather than two, so four of them expanded at once is a
- * ninety-row wall between the bankroll and the games.
+ * ONE collapsible for the whole section, the same shell a matchup card uses.
+ * The markets inside are a plain list: collapsing each of them individually
+ * meant four taps to see four markets, and hid the prices behind headings that
+ * all looked alike.
  */
-export default function SpecialSection({ markets, myByMarket, bankrollCents }) {
+export default function SpecialSection({ markets, myByMarket, bankrollCents, defaultOpen }) {
   if (!markets?.length) return null;
 
   const open = markets.filter((m) => m.status === 'open').length;
+  const placed = markets.filter((m) => myByMarket[String(m.id)]).length;
 
   return (
     <section className="section">
-      <div className="section-head">
-        <h2>Special bets</h2>
-        <span className="dim">
-          {open > 0 ? `${open} open · league-wide` : 'league-wide'}
-        </span>
-      </div>
+      <details className="matchup" open={defaultOpen}>
+        <summary className="matchup-head">
+          <span className="matchup-main">
+            <span className="matchup-title">Special bets</span>
+            <span className="matchup-meta">
+              {open} of {markets.length} open · league-wide
+              {placed > 0 && <span className="matchup-placed"> · {placed} placed</span>}
+            </span>
+          </span>
+          <span className="matchup-chevron" aria-hidden="true" />
+        </summary>
 
-      <p className="note" style={{ padding: '0 2px 10px' }}>
-        Best in the whole league this week. These are team bets — pick the manager,
-        and whoever he started counts.
-      </p>
+        <div className="matchup-body">
+          <p className="note" style={{ padding: '0 2px 10px' }}>
+            Best in the whole league this week. These are team bets — pick the manager,
+            and whoever he started counts.
+          </p>
 
-      {markets.map((m) => {
-        const placed = Boolean(myByMarket[String(m.id)]);
-        return (
-          // Closed by default, unlike the first matchup card: these are a
-          // sideshow to the week's games, not the main board.
-          <details className="matchup" key={m.id}>
-            <summary className="matchup-head">
-              <span className="matchup-main">
-                <span className="matchup-title">{m.title}</span>
-                <span className="matchup-meta">
-                  {m.status === 'open' ? `${m.options.length} to pick from` : 'closed'}
-                  {placed && <span className="matchup-placed"> · bet placed</span>}
-                </span>
-              </span>
-              <span className="matchup-chevron" aria-hidden="true" />
-            </summary>
-
-            <div className="matchup-body">
-              <BetSlip
-                market={m}
-                existingBet={myByMarket[String(m.id)]}
-                bankrollCents={bankrollCents}
-                hideTitle
-              />
-            </div>
-          </details>
-        );
-      })}
+          {markets.map((m) => (
+            <BetSlip
+              key={m.id}
+              market={m}
+              existingBet={myByMarket[String(m.id)]}
+              bankrollCents={bankrollCents}
+            />
+          ))}
+        </div>
+      </details>
     </section>
   );
 }

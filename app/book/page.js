@@ -117,6 +117,10 @@ export default async function BookPage({ searchParams }) {
             markets={specials}
             myByMarket={myByMarket}
             bankrollCents={Number(me.balance_cents)}
+            // Open when there is nothing else on the board, so the page is not
+            // a single collapsed heading; closed when the week's games are
+            // there to lead with.
+            defaultOpen={games.length === 0}
           />
           {games.length > 0 && (
             <BoardSection

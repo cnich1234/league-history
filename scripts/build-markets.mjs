@@ -213,8 +213,9 @@ for (const pair of Object.values(byMatchup)) {
   }
 }
 
-// 4. Player props on the highest-projected starters, so the names are ones
-//    people actually recognise. Two per matchup keeps the board readable.
+// 4. A player prop for every skill starter, so anyone can bet anyone on their
+//    roster. Kickers and defences are skipped -- their scoring is near enough a
+//    coin flip that the line carries no information.
 const propCandidates = [];
 for (const m of matchups) {
   const team = teamOf(m.roster_id);
@@ -236,7 +237,7 @@ for (const m of matchups) {
 }
 
 propCandidates.sort((x, y) => y.projection - x.projection);
-for (const prop of propCandidates.slice(0, 10)) {
+for (const prop of propCandidates) {
   // Half-point line so a prop can never push.
   const line = Math.round(prop.projection * 2) / 2 + 0.5;
   await createMarket({
@@ -257,4 +258,3 @@ for (const prop of propCandidates.slice(0, 10)) {
 }
 
 console.log(`\nWeek ${week}: ${created} market(s) created, ${skipped} already existed.`);
-console.log(`Locks at ${locksAt.toISOString()}`);

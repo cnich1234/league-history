@@ -1615,3 +1615,64 @@ tbody tr:last-child td {
 .in-slip-note strong {
   font-weight: 800;
 }
+
+/* A team's props inside a matchup card. Eight per roster means sixteen in a
+   card, so each team collapses separately. */
+.prop-team {
+  margin-bottom: 6px;
+}
+
+.prop-team-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 11px;
+  border-radius: 9px;
+  background: var(--surface);
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.prop-team-head::-webkit-details-marker {
+  display: none;
+}
+
+.prop-team-head:focus-visible {
+  outline: 2px solid var(--teal-dim);
+  outline-offset: 2px;
+}
+
+.prop-team-name {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.prop-team-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text-dim);
+  flex-shrink: 0;
+}
+
+.prop-team[open] > .prop-team-head {
+  background: transparent;
+}
+
+.prop-team[open] .prop-team-name {
+  color: var(--text);
+}
+
+.prop-team[open] .kind-chevron {
+  transform: rotate(-135deg);
+  margin-top: 2px;
+}

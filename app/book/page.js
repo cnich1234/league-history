@@ -7,6 +7,7 @@ import {
   getPrizePool,
   groupByMatchup,
   parlayLegsFor,
+  weeksWithMarkets,
 } from '@/lib/book';
 import { formatMoney, formatOdds } from '@/lib/odds';
 import Login from '@/components/Login';
@@ -14,6 +15,7 @@ import BoardSection from '@/components/BoardSection';
 import { SlipProvider } from '@/components/SlipProvider';
 import ParlaySlip from '@/components/ParlaySlip';
 import SpecialSection from '@/components/SpecialSection';
+import WeekSwitcher from '@/components/WeekSwitcher';
 
 export const metadata = { title: 'The Book' };
 // Reads a session cookie and live odds, so this page can never be prerendered.
@@ -43,12 +45,13 @@ export default async function BookPage({ searchParams }) {
     );
   }
 
-  const [me, markets, myBets, publicBets, commissioner] = await Promise.all([
+  const [me, markets, myBets, publicBets, commissioner, weeks] = await Promise.all([
     getBettor(slug),
     getMarketsForWeek(SEASON, week),
     getMyBets(slug),
     visibleBets(SEASON, week),
     isCommissioner(),
+    weeksWithMarkets(SEASON),
   ]);
 
   // Parlays have no market_id, so they cannot key this map -- and including
@@ -84,6 +87,8 @@ export default async function BookPage({ searchParams }) {
         Week {week} · pot {formatMoney(pool.totalCents)}
         {pool.buyinsOutstanding > 0 && ` (+${formatMoney(pool.outstandingCents)} owed)`}
       </p>
+
+      <WeekSwitcher weeks={weeks} current={week} />
 
       <section className="section">
         <div className="bankroll-card">

@@ -13,6 +13,7 @@ import Login from '@/components/Login';
 import BoardSection from '@/components/BoardSection';
 import { SlipProvider } from '@/components/SlipProvider';
 import ParlaySlip from '@/components/ParlaySlip';
+import SpecialSection from '@/components/SpecialSection';
 
 export const metadata = { title: 'The Book' };
 // Reads a session cookie and live odds, so this page can never be prerendered.
@@ -70,6 +71,9 @@ export default async function BookPage({ searchParams }) {
   // every h2h in the week, or a matchup that has already locked takes its
   // still-open props down with it.
   const games = groupByMatchup(markets, markets);
+  // League-wide markets belong to no matchup, so groupByMatchup drops them --
+  // they get their own section above the board.
+  const specials = markets.filter((m) => m.kind === 'special');
 
   // Other people's bets, only from markets that have already locked.
   const others = publicBets.filter((b) => b.bettor !== slug);
@@ -102,14 +106,21 @@ export default async function BookPage({ searchParams }) {
         </section>
       )}
 
-      {games.length > 0 ? (
+      {games.length > 0 || specials.length > 0 ? (
         <SlipProvider>
-          <BoardSection
-            games={games}
+          <SpecialSection
+            markets={specials}
             myByMarket={myByMarket}
             bankrollCents={Number(me.balance_cents)}
-            week={week}
           />
+          {games.length > 0 && (
+            <BoardSection
+              games={games}
+              myByMarket={myByMarket}
+              bankrollCents={Number(me.balance_cents)}
+              week={week}
+            />
+          )}
           <ParlaySlip bankrollCents={Number(me.balance_cents)} />
         </SlipProvider>
       ) : (

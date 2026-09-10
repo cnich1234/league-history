@@ -1116,13 +1116,22 @@ tbody tr:last-child td {
   margin-bottom: 12px;
 }
 
+/* League-wide markets. Ten options rather than two, so they get more room to
+   breathe than a market tucked inside a matchup card. */
+.special-list > * + * {
+  margin-top: 10px;
+}
+
 .matchup-kind-label {
-  font-size: 10.5px;
+  font-size: 13px;
   font-weight: 800;
-  letter-spacing: 0.6px;
+  letter-spacing: 0.8px;
   text-transform: uppercase;
-  color: var(--text-dim);
-  margin: 0 0 6px 4px;
+  /* Was --text-dim at 10.5px, which read as a caption rather than a heading --
+     these separate four different kinds of bet and need to be findable when
+     scrolling a card with twenty markets in it. */
+  color: var(--text);
+  margin: 0 0 8px 4px;
 }
 
 /* Inside a matchup the market card is already on a panel, so drop its own

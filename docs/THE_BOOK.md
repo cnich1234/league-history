@@ -30,12 +30,13 @@ query that never selects them cannot.
 
 This is the part that has been wrong the most, so it is worth stating plainly.
 
-| Market kind   | `live`  | Closes when                                |
-| ------------- | ------- | ------------------------------------------ |
-| Player prop   | `false` | That player's NFL game **kicks off**       |
-| Matchup (h2h) | `true`  | One side reaches **90%**, or the games end |
-| Spread        | `true`  | Same                                       |
-| Team total    | `true`  | Same, on that team's own progress          |
+| Market kind   | `live`  | Closes when                                              |
+| ------------- | ------- | -------------------------------------------------------- |
+| Player prop   | `false` | That player's NFL game **kicks off**                     |
+| Matchup (h2h) | `true`  | One side reaches **90%**, or the games end               |
+| Spread        | `true`  | Same                                                     |
+| Team total    | `true`  | Same, on that team's own progress                        |
+| Special       | `false` | The week's **first kickoff** -- every lineup is involved |
 
 **Only props close on the clock.** Everything else never closes on time at all —
 once games start the price moves with the score instead. A matchup with one
@@ -237,6 +238,47 @@ has the app open — a Monday night game ending at 11:30pm — markets stay `ope
 until someone opens it or the Tuesday cron runs. Nothing can be bet at a decided
 price meanwhile, because `shouldSuspend` still governs every quote; the only
 effect is that those bets stay off The Floor a little longer.
+
+---
+
+## Special bets
+
+Four league-wide markets a week: highest scoring team, and the best starting RB,
+WR and TE in the league.
+
+They are structurally unlike everything else — **one market for the whole league
+with one option per manager**, belonging to no matchup. The option key is a
+roster id, so settling is just "whose roster owns the winner." They get their own
+section above the board because there is no game card to file them under.
+
+They are **team bets**: you back a manager, and whoever he started counts.
+
+Three rules that matter:
+
+- **Only starters count.** A 40-point RB on someone's bench earned his manager
+  nothing and must not win him the bet either.
+- **Ties push.** Two managers can genuinely share a high score; picking one
+  arbitrarily would take money off someone who was not wrong. One manager
+  starting two tied players is _not_ a tie — there is still one winner.
+- **They lock at the week's first kickoff**, not the last. Every lineup is
+  involved, so the earliest game decides it.
+
+### Pricing a field
+
+`twoWayOdds` cannot price these — it splits a margin across exactly two sides. A
+ten-way book has to sum to `1 + margin` with each price its own share, which is
+what `fieldOdds` does. Weights come from projections (whole lineup for the team
+market, best starter at that position otherwise), normalised, with the margin
+added proportionally and every outcome floored at 1%.
+
+Holds the same 4.5% as any other pregame market.
+
+> A roster with **no starter** at that position is left out of the field entirely
+> rather than priced as a longshot it cannot possibly win.
+
+> `lockDueMarkets` needed its own branch for these. They carry no `nflTeam`, and
+> `meta->>'nflTeam' = any(...)` against NULL is never true — so without it a
+> special market would never have locked at all.
 
 ---
 

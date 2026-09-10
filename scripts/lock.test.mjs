@@ -179,6 +179,20 @@ try {
   await lockDueMarkets([], ['NE', 'SEA', 'SF', 'LAR']);
   check('nothing to check kickoff against, so not guessed at', await statusOf(noTeam), 'open');
 
+  console.log('\na league-wide special locks at the first kickoff');
+  // It carries no nflTeam, so the prop rule's `= any()` is NULL for it and it
+  // would have stayed bettable all season.
+  const special = await makeMarket({
+    live: false,
+    locked: true,
+    kind: 'special',
+    meta: { special: 'position', position: 'RB' },
+  });
+  await lockDueMarkets([], []);
+  check('nothing kicked off yet', await statusOf(special), 'open');
+  await lockDueMarkets([], ['NE', 'SEA']);
+  check('the week has started', await statusOf(special), 'locked');
+
   console.log('\nfinishedRostersIn reads live state');
   check(
     'both sides final',

@@ -14,6 +14,24 @@ export default function RulesPage() {
             <strong>$200</strong> in real money.
           </p>
 
+          <h2>Special bets</h2>
+          <p>
+            Four league-wide markets each week: <strong>highest scoring team</strong>,
+            and the best starting <strong>RB</strong>, <strong>WR</strong> and{' '}
+            <strong>TE</strong> in the whole league.
+          </p>
+          <p>
+            These are <strong>team bets</strong>. You pick a manager, not a player — if
+            your guy&apos;s starting RB tops the league that week, that bet wins. Only
+            starters count; a monster game on someone&apos;s bench does not count for
+            anyone.
+          </p>
+          <p>
+            They involve every lineup in the league, so they lock at the{' '}
+            <strong>first kickoff of the week</strong>. A tie pushes and everyone gets
+            their money back.
+          </p>
+
           <h2>When bets lock</h2>
           <p>
             <strong>Only player props close on the clock</strong>, and only when that

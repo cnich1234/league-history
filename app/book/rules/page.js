@@ -1,18 +1,9 @@
-import { isCommissioner } from '@/lib/auth';
-import BookTabs from '@/components/BookTabs';
-
 export const metadata = { title: 'House Rules' };
-export const dynamic = 'force-dynamic';
 
-export default async function RulesPage() {
-  const commissioner = await isCommissioner();
+export default function RulesPage() {
   return (
-    <main className="page">
-      <header className="page-head">
-        <h1>House Rules</h1>
-      </header>
-
-      <BookTabs commissioner={commissioner} />
+    <>
+      <p className="page-sub">How this works.</p>
 
       <section className="section">
         <div className="prose">
@@ -107,6 +98,6 @@ export default async function RulesPage() {
           </p>
         </div>
       </section>
-    </main>
+    </>
   );
 }

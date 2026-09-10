@@ -11,7 +11,6 @@ import {
 import { formatMoney, formatOdds } from '@/lib/odds';
 import Login from '@/components/Login';
 import BoardSection from '@/components/BoardSection';
-import BookTabs from '@/components/BookTabs';
 import { SlipProvider } from '@/components/SlipProvider';
 import ParlaySlip from '@/components/ParlaySlip';
 
@@ -35,15 +34,12 @@ export default async function BookPage({ searchParams }) {
     // The login list needs claim status, which the bankroll view does not carry.
     const roster = await listBettors();
     return (
-      <main className="page">
-        <header className="page-head">
-          <h1>The Book</h1>
-          <p className="dim">Play-money sportsbook. Most money at the end wins $200.</p>
-        </header>
-        <section className="section">
-          <Login bettors={roster} />
-        </section>
-      </main>
+      <section className="section">
+        <p className="dim" style={{ marginTop: -6, marginBottom: 14 }}>
+          Play-money sportsbook. Most money at the end wins $200.
+        </p>
+        <Login bettors={roster} />
+      </section>
     );
   }
 
@@ -72,16 +68,11 @@ export default async function BookPage({ searchParams }) {
   const others = publicBets.filter((b) => b.bettor !== slug);
 
   return (
-    <main className="page">
-      <header className="page-head">
-        <h1>The Book</h1>
-        <p className="dim">
-          Week {week} · pot {formatMoney(pool.totalCents)}
-          {pool.buyinsOutstanding > 0 && ` (+${formatMoney(pool.outstandingCents)} owed)`}
-        </p>
-      </header>
-
-      <BookTabs commissioner={commissioner} />
+    <>
+      <p className="page-sub">
+        Week {week} · pot {formatMoney(pool.totalCents)}
+        {pool.buyinsOutstanding > 0 && ` (+${formatMoney(pool.outstandingCents)} owed)`}
+      </p>
 
       <section className="section">
         <div className="bankroll-card">
@@ -216,7 +207,7 @@ export default async function BookPage({ searchParams }) {
         </div>
       </section>
 
-    </main>
+    </>
   );
 }
 

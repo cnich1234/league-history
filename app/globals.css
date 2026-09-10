@@ -1333,3 +1333,11 @@ tbody tr:last-child td {
 .matchup-locked .matchup-head {
   cursor: default;
 }
+
+/* Per-page subtitle under the shared Book title. Sits where each page's own
+   <p className="dim"> used to, without the heading that made the tabs jump. */
+.page-sub {
+  margin: -10px 0 16px;
+  font-size: 13px;
+  color: var(--text-muted);
+}

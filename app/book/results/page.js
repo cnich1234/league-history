@@ -1,7 +1,6 @@
 import { currentBettor, isCommissioner } from '@/lib/auth';
 import { settledBets, settledSummary } from '@/lib/book';
 import { formatMoney, formatOdds } from '@/lib/odds';
-import BookTabs from '@/components/BookTabs';
 
 export const metadata = { title: 'Results' };
 export const dynamic = 'force-dynamic';
@@ -12,14 +11,9 @@ export default async function ResultsPage() {
   const slug = await currentBettor();
   if (!slug) {
     return (
-      <main className="page">
-        <header className="page-head">
-          <h1>Results</h1>
-        </header>
-        <section className="section">
-          <div className="empty">Sign in on the board to see results.</div>
-        </section>
-      </main>
+      <section className="section">
+        <div className="empty">Sign in on the board to see results.</div>
+      </section>
     );
   }
 
@@ -37,13 +31,8 @@ export default async function ResultsPage() {
     .sort((a, b) => b - a);
 
   return (
-    <main className="page">
-      <header className="page-head">
-        <h1>Results</h1>
-        <p className="dim">Every settled bet in the league.</p>
-      </header>
-
-      <BookTabs commissioner={commissioner} />
+    <>
+      <p className="page-sub">Every settled bet in the league.</p>
 
       {summary.length > 0 && (
         <section className="section">
@@ -101,7 +90,7 @@ export default async function ResultsPage() {
           </section>
         ))
       )}
-    </main>
+    </>
   );
 }
 

@@ -1,8 +1,6 @@
-import Link from 'next/link';
 import { isCommissioner, listBettors } from '@/lib/auth';
 import { getBankrolls, getBuyins, getPrizePool } from '@/lib/book';
 import AdminPanel from '@/components/AdminPanel';
-import BookTabs from '@/components/BookTabs';
 
 export const metadata = { title: 'Commissioner' };
 export const dynamic = 'force-dynamic';
@@ -12,15 +10,9 @@ const SEASON = Number(process.env.BOOK_SEASON ?? 2026);
 export default async function AdminPage() {
   if (!(await isCommissioner())) {
     return (
-      <main className="page">
-        <Link href="/book" className="back">‹ The Book</Link>
-        <header className="page-head">
-          <h1>Commissioner</h1>
-        </header>
-        <section className="section">
-          <div className="empty">Not your table.</div>
-        </section>
-      </main>
+      <section className="section">
+        <div className="empty">Not your table.</div>
+      </section>
     );
   }
 
@@ -36,19 +28,14 @@ export default async function AdminPage() {
   const merged = bankrolls.map((b) => ({ ...b, has_password: Boolean(claimed[b.slug]) }));
 
   return (
-    <main className="page">
-      <Link href="/book" className="back">‹ The Book</Link>
-      <header className="page-head">
-        <h1>Commissioner</h1>
-        <p className="dim">Password resets, re-ups, and the pot.</p>
-      </header>
-      <BookTabs commissioner />
+    <>
+      <p className="page-sub">Password resets, re-ups, and the pot.</p>
       <AdminPanel
         bettors={merged}
         buyins={buyins.map((b) => ({ ...b, id: String(b.id) }))}
         season={SEASON}
         pool={pool}
       />
-    </main>
+    </>
   );
 }

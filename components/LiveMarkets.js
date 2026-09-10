@@ -2,7 +2,7 @@
 
 import BetSlip from './BetSlip';
 import { useLiveMatchup } from './LiveProvider';
-import { liveSpreadProbability, probabilityToOdds } from '@/lib/odds';
+import { liveSpreadProbability, liveTotalProbability, probabilityToOdds } from '@/lib/odds';
 
 // Mirrors LIVE_MARGIN in lib/live.js; importing it would pull the server-only
 // Sleeper client into the browser bundle.
@@ -53,6 +53,15 @@ function pricesFor(market, state) {
     return {
       cover: probabilityToOdds(Math.min(0.97, pCover + LIVE_MARGIN / 2)),
       nocover: probabilityToOdds(Math.min(0.97, 1 - pCover + LIVE_MARGIN / 2)),
+    };
+  }
+
+  if (market.kind === 'total') {
+    const side = market.meta.rosterId === state.homeRoster ? state.home : state.away;
+    const pOver = liveTotalProbability(side, market.meta.line);
+    return {
+      over: probabilityToOdds(Math.min(0.97, pOver + LIVE_MARGIN / 2)),
+      under: probabilityToOdds(Math.min(0.97, 1 - pOver + LIVE_MARGIN / 2)),
     };
   }
 

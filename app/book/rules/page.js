@@ -77,9 +77,18 @@ export default function RulesPage() {
             again.
           </p>
           <p>
-            Live prices carry a bigger house cut than pregame, same as real sportsbooks.
-            Team totals and player props do not go live; they close before that player&apos;s
-            game as usual.
+            <strong>Team totals go live too.</strong> A total depends on one lineup, so it
+            closes on that team&apos;s own progress — their side can be decided while their
+            opponent still has players to play.
+          </p>
+          <p>
+            Player props stay pregame. A single player&apos;s line is the easiest thing on
+            the board to pick off once their game is underway.
+          </p>
+          <p>
+            Live prices carry a bigger house cut than pregame — about 9% against 4.5% —
+            same as real sportsbooks. That gap is the price of betting on something already
+            half-decided.
           </p>
 
           <h2>Parlays</h2>

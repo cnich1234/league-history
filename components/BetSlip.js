@@ -40,7 +40,16 @@ function lockLabel(market) {
   return `Closes at ${day} kickoff`;
 }
 
-export default function BetSlip({ market, existingBet, disabled, bankrollCents, livePrices }) {
+export default function BetSlip({
+  market,
+  existingBet,
+  disabled,
+  bankrollCents,
+  livePrices,
+  // The special-bet cards put the market title in their own collapsible head,
+  // so repeating it here would show it twice.
+  hideTitle = false,
+}) {
   const slip = useSlip();
   const [selected, setSelected] = useState(null);
   const [stake, setStake] = useState('25');
@@ -115,7 +124,7 @@ export default function BetSlip({ market, existingBet, disabled, bankrollCents, 
     return (
       <div className="market market-placed">
         <div className="market-head">
-          <span className="market-title">{market.title}</span>
+          {!hideTitle && <span className="market-title">{market.title}</span>}
           <span className="pill pill-on">Bet placed</span>
         </div>
         <div className="dim">
@@ -130,7 +139,7 @@ export default function BetSlip({ market, existingBet, disabled, bankrollCents, 
   return (
     <div className={`market ${locked ? 'market-locked' : ''}`}>
       <div className="market-head">
-        <span className="market-title">{market.title}</span>
+        {!hideTitle && <span className="market-title">{market.title}</span>}
         {market.subtitle && <span className="dim">{market.subtitle}</span>}
         {market.locks_at && (
           <span

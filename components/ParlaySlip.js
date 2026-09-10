@@ -37,6 +37,9 @@ export default function ParlaySlip({ bankrollCents }) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
+  // Same reasoning as a straight bet: a parlay cannot be cancelled, and the
+  // stakes are higher because it is several legs at once.
+  const [reviewing, setReviewing] = useState(false);
 
   if (legs.length === 0) return null;
 
@@ -53,7 +56,7 @@ export default function ParlaySlip({ bankrollCents }) {
     stakeNum * 100 <= bankrollCents;
 
   async function place() {
-    if (!valid) return;
+    if (!valid || !reviewing) return;
     setBusy(true);
     setError(null);
     try {
@@ -67,6 +70,7 @@ export default function ParlaySlip({ bankrollCents }) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Could not place parlay.');
+      setReviewing(false);
       clear();
       window.location.reload();
     } catch (e) {
@@ -137,17 +141,56 @@ export default function ParlaySlip({ bankrollCents }) {
                   </span>
                 )}
               </div>
-              <button className="btn-primary btn-sm" onClick={place} disabled={!valid || busy}>
-                {busy ? '…' : 'Place'}
+              <button
+                className="btn-primary btn-sm"
+                onClick={() => setReviewing(true)}
+                disabled={!valid}
+              >
+                Review
               </button>
+            </div>
+          )}
+
+          {reviewing && (
+            <div className="confirm">
+              <div className="confirm-head">Confirm your parlay</div>
+              <dl className="confirm-rows">
+                <div>
+                  <dt>Legs</dt>
+                  <dd>{legs.length}, all must win</dd>
+                </div>
+                <div>
+                  <dt>Odds</dt>
+                  <dd>{fmtOdds(odds)}</dd>
+                </div>
+                <div>
+                  <dt>Stake</dt>
+                  <dd>{money(stakeNum)}</dd>
+                </div>
+                <div className="confirm-total">
+                  <dt>Returns if it wins</dt>
+                  <dd>{money(payout(stakeNum, odds))}</dd>
+                </div>
+              </dl>
+              <p className="confirm-warning">Bets cannot be changed or cancelled.</p>
+              <div className="confirm-actions">
+                <button className="btn-ghost" type="button" onClick={() => setReviewing(false)}>
+                  Back
+                </button>
+                <button className="btn-primary btn-sm" onClick={place} disabled={busy}>
+                  {busy ? 'Placing…' : 'Confirm parlay'}
+                </button>
+              </div>
             </div>
           )}
 
           {error && <div className="form-error">{error}</div>}
 
-          <button className="slip-clear" onClick={clear} type="button">
-            Clear slip
-          </button>
+          {!reviewing && (
+            <button className="slip-clear" onClick={clear} type="button">
+              Clear slip
+            </button>
+          )}
         </div>
       )}
     </div>

@@ -29,6 +29,10 @@ export default function BetSlip({ market, existingBet, disabled, bankrollCents }
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
   const [placed, setPlaced] = useState(existingBet ?? null);
+  // Bets cannot be cancelled, so an accidental tap is permanent. Review is a
+  // separate step with the confirm button in a different place, so muscle
+  // memory from tapping "Review" cannot carry through to confirming.
+  const [reviewing, setReviewing] = useState(false);
 
   const stakeNum = Number(stake);
   const valid =
@@ -38,7 +42,7 @@ export default function BetSlip({ market, existingBet, disabled, bankrollCents }
     stakeNum * 100 <= bankrollCents;
 
   async function place() {
-    if (!selected || !valid) return;
+    if (!selected || !valid || !reviewing) return;
     setBusy(true);
     setError(null);
     try {
@@ -59,6 +63,7 @@ export default function BetSlip({ market, existingBet, disabled, bankrollCents }
         odds: selected.odds,
       });
       setSelected(null);
+      setReviewing(false);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -99,7 +104,11 @@ export default function BetSlip({ market, existingBet, disabled, bankrollCents }
                 ? 'option-on'
                 : ''
             }`}
-            onClick={() => setSelected(selected?.option_key === o.option_key ? null : o)}
+            onClick={() => {
+              setReviewing(false);
+              setError(null);
+              setSelected(selected?.option_key === o.option_key ? null : o);
+            }}
             disabled={disabled}
           >
             <span className="option-label">{o.label}</span>
@@ -108,7 +117,44 @@ export default function BetSlip({ market, existingBet, disabled, bankrollCents }
         ))}
       </div>
 
-      {selected && !disabled && (
+      {selected && !disabled && reviewing && (
+        <div className="confirm">
+          <div className="confirm-head">Confirm your bet</div>
+          <dl className="confirm-rows">
+            <div>
+              <dt>Pick</dt>
+              <dd>{selected.label}</dd>
+            </div>
+            <div>
+              <dt>Market</dt>
+              <dd>{market.title}</dd>
+            </div>
+            <div>
+              <dt>Odds</dt>
+              <dd>{selected.odds > 0 ? `+${selected.odds}` : selected.odds}</dd>
+            </div>
+            <div>
+              <dt>Stake</dt>
+              <dd>{money(stakeNum)}</dd>
+            </div>
+            <div className="confirm-total">
+              <dt>Returns if it wins</dt>
+              <dd>{money(payout(stakeNum, selected.odds))}</dd>
+            </div>
+          </dl>
+          <p className="confirm-warning">Bets cannot be changed or cancelled.</p>
+          <div className="confirm-actions">
+            <button className="btn-ghost" type="button" onClick={() => setReviewing(false)}>
+              Back
+            </button>
+            <button className="btn-primary btn-sm" onClick={place} disabled={busy}>
+              {busy ? 'Placing…' : 'Confirm bet'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {selected && !disabled && !reviewing && (
         <div className="stake-row">
           <div className="stake-input">
             <span className="stake-prefix">$</span>
@@ -136,8 +182,12 @@ export default function BetSlip({ market, existingBet, disabled, bankrollCents }
               </span>
             )}
           </div>
-          <button className="btn-primary btn-sm" onClick={place} disabled={!valid || busy}>
-            {busy ? '…' : 'Place'}
+          <button
+            className="btn-primary btn-sm"
+            onClick={() => setReviewing(true)}
+            disabled={!valid}
+          >
+            Review
           </button>
           <button
             className={`btn-parlay ${

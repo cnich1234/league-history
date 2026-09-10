@@ -1,6 +1,5 @@
 import { currentBettor, listBettors, isCommissioner } from '@/lib/auth';
 import {
-  getBankrolls,
   getBettor,
   getMarketsForWeek,
   getMyBets,
@@ -24,9 +23,8 @@ export default async function BookPage({ searchParams }) {
   const params = await searchParams;
   const week = Number(params?.week ?? process.env.BOOK_WEEK ?? 1);
 
-  const [slug, bankrolls, pool] = await Promise.all([
+  const [slug, pool] = await Promise.all([
     currentBettor(),
-    getBankrolls(),
     getPrizePool(SEASON, 20000),
   ]);
 
@@ -186,26 +184,6 @@ export default async function BookPage({ searchParams }) {
         )}
       </section>
 
-      <section className="section">
-        <div className="section-head">
-          <h2>Standings</h2>
-        </div>
-        <div className="rows">
-          {bankrolls.map((b, i) => (
-            <div key={b.slug} className={`row ${b.slug === slug ? 'row-me' : ''}`}>
-              <span className="rank">{i + 1}</span>
-              <span className="row-main">
-                <span className="row-name">{b.display_name}</span>
-                <span className="dim">
-                  {b.wins}-{b.losses}
-                  {b.pending > 0 && ` · ${b.pending} pending`}
-                </span>
-              </span>
-              <span className="row-value">{formatMoney(b.balance_cents)}</span>
-            </div>
-          ))}
-        </div>
-      </section>
 
     </>
   );

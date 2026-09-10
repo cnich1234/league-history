@@ -14,6 +14,26 @@ export default function RulesPage() {
             <strong>$200</strong> in real money.
           </p>
 
+          <h2>Position battles</h2>
+          <p>
+            Your starters at one position against your opponent&apos;s, with a handicap —
+            <strong>your WRs vs his WRs +5.5</strong>. QB, RB, WR and TE for every
+            matchup.
+          </p>
+          <p>
+            Only <strong>starters</strong> count, so a monster game on your bench does
+            nothing. If either side started nobody at that position the bet is voided and
+            you get your money back — there was never a bet to win.
+          </p>
+
+          <h2>Blowout lines</h2>
+          <p>
+            Alternate spreads at <strong>-20.5, -30.5 and -40.5</strong> for long money.
+            The prices come from the same model as everything else, so a genuinely
+            lopsided matchup pays less than an even one — a 40-point win in a coin-flip
+            game is worth around <strong>+460</strong>.
+          </p>
+
           <h2>Special bets</h2>
           <p>
             Four league-wide markets each week: <strong>highest scoring team</strong>,

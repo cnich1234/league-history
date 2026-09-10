@@ -248,6 +248,37 @@ effect is that those bets stay off The Floor a little longer.
 
 ---
 
+## Position battles and blowout lines
+
+**Position battles** (`kind: 'showdown'`) are a spread scoped to a position
+group: one manager's starting QBs/RBs/WRs/TEs against the other's, with a
+handicap. Structurally a spread — cover/nocover, half-point line, same normal
+model — but it needs its own kind so the resolver knows which players to compare.
+
+Two rules carry the money:
+
+- **Only starters count.** A 30-point WR on the bench scored his manager nothing
+  and must not decide the bet.
+- **A side that started nobody voids**, rather than losing. There was never a bet
+  to win. Note that scoring _zero_ is different from not starting anyone, and the
+  resolver distinguishes them.
+
+The standard deviation is scaled: `(LEAGUE_SD / 3) × √players`. `LEAGUE_SD` is
+fitted to a whole nine-man lineup, so applying it to a single TE would price
+every battle as a coin flip.
+
+**Blowout lines** are ordinary `spread` markets at -20.5, -30.5 and -40.5,
+flagged `meta.alternate` for display. No migration and no resolver change — only
+the line and the price differ. They are priced off the model rather than picked
+by hand, so a lopsided matchup does not hand out +320 on something likely; a line
+at or below the main spread is skipped, as is anything under 4%.
+
+Neither is live-priced yet. `livePrice` returns null for an unknown kind, so a
+showdown suspends rather than mispricing itself once games start — the safe
+default, and the reason adding a kind did not require touching the live model.
+
+---
+
 ## Special bets
 
 Four league-wide markets a week: highest scoring team, and the best starting RB,

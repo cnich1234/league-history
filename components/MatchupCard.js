@@ -6,10 +6,11 @@ import LiveMarkets from './LiveMarkets';
 const KIND_LABEL = {
   h2h: 'Winner',
   spread: 'Spread',
+  showdown: 'Position battles',
   total: 'Team totals',
   prop: 'Player props',
 };
-const KIND_ORDER = ['h2h', 'spread', 'total', 'prop'];
+const KIND_ORDER = ['h2h', 'spread', 'showdown', 'total', 'prop'];
 
 /**
  * One matchup, with every bet available on it behind a tap.
@@ -126,6 +127,9 @@ function groupPropsByTeam(props) {
 function shortTitle(market, kind) {
   if (kind === 'h2h') return 'Who wins';
   if (kind === 'spread') return market.subtitle ?? market.title;
+  // "Deebo my Lemons WRs -5.5 vs Mike R WRs" is too long for a phone once the
+  // card already names both teams. The option labels carry the detail.
+  if (kind === 'showdown') return `${market.meta?.position ?? ''} battle`.trim();
   return market.title;
 }
 

@@ -1,5 +1,6 @@
 import BetSlip from './BetSlip';
 import MatchupButton from './MatchupButton';
+import LiveProbability from './LiveProbability';
 
 const KIND_LABEL = {
   h2h: 'Winner',
@@ -38,6 +39,12 @@ export default function MatchupCard({ game, myByMarket, bankrollCents, defaultOp
       </summary>
 
       <div className="matchup-body">
+        <LiveProbability
+          homeRoster={game.homeRoster}
+          awayRoster={game.awayRoster}
+          week={week}
+        />
+
         <MatchupButton home={game.homeRoster} away={game.awayRoster} week={week} />
 
         {KIND_ORDER.filter((k) => game.markets[k]?.length).map((kind) =>

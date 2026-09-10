@@ -39,11 +39,7 @@ export default function MatchupCard({ game, myByMarket, bankrollCents, defaultOp
       </summary>
 
       <div className="matchup-body">
-        <LiveProbability
-          homeRoster={game.homeRoster}
-          awayRoster={game.awayRoster}
-          week={week}
-        />
+        <LiveProbability homeRoster={game.homeRoster} awayRoster={game.awayRoster} />
 
         <MatchupButton home={game.homeRoster} away={game.awayRoster} week={week} />
 

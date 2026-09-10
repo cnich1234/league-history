@@ -1,4 +1,5 @@
 import MatchupCard from './MatchupCard';
+import { LiveProvider } from './LiveProvider';
 
 /**
  * The week's board: one card per matchup, every bet on that game inside it.
@@ -10,6 +11,7 @@ import MatchupCard from './MatchupCard';
  */
 export default function BoardSection({ games, myByMarket, bankrollCents, week }) {
   return (
+    <LiveProvider week={week}>
     <section className="section">
       <div className="section-head">
         <h2>Week {week}</h2>
@@ -31,5 +33,6 @@ export default function BoardSection({ games, myByMarket, bankrollCents, week })
         />
       ))}
     </section>
+    </LiveProvider>
   );
 }

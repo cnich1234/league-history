@@ -4,9 +4,6 @@ import { liveMatchups } from '@/lib/live';
 
 export const dynamic = 'force-dynamic';
 
-// Cached briefly so ten people polling every 30s do not become ten Sleeper
-// requests every 30s. Stale-while-revalidate keeps a response instant while a
-// fresh one is fetched behind it.
 export const revalidate = 0;
 
 export async function GET(request) {
@@ -22,7 +19,13 @@ export async function GET(request) {
   try {
     const state = await liveMatchups(season, week);
     return NextResponse.json(state, {
-      headers: { 'Cache-Control': 's-maxage=20, stale-while-revalidate=40' },
+      headers: {
+        // Ten clients polling at 15s collapse into roughly four Sleeper
+        // fetches a minute rather than forty. stale-while-revalidate means a
+        // client never waits on the refresh -- it gets the last value
+        // instantly while a new one is fetched behind it.
+        'Cache-Control': 's-maxage=10, stale-while-revalidate=20',
+      },
     });
   } catch (e) {
     return NextResponse.json({ error: e.message }, { status: 500 });

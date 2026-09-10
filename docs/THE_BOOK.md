@@ -148,6 +148,13 @@ nearly over rather than as a fifth quarter of expected production.
 Coarse, but far better than the binary it replaced — which counted any player
 with points on the board as finished.
 
+> **Do not trust `has1st_quarter_started`.** Sleeper had it set to `true` on
+> SF@LAR while the game was `pre_game`, with an empty quarter and kickoff eight
+> hours away. Only `status`, `has_started` and `is_in_progress` say whether a
+> game has begun; the quarter flags say how far along a game that _has_ begun
+> is. Believing the flag locked six props early and put a bet on The Floor
+> before a ball was thrown.
+
 ### When a market suspends
 
 `shouldSuspend(probability, remainingShare)` — two triggers, either closes it:

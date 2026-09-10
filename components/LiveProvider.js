@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 
 const LiveContext = createContext(null);
-const POLL_MS = 15_000;
+const POLL_MS = 30_000;
 
 /**
  * One poll for the whole board, shared by every matchup card.
@@ -14,9 +14,15 @@ const POLL_MS = 15_000;
  * season -- and overage there pauses the project for 30 days rather than
  * sending a bill. One shared fetch cuts it by 5x.
  *
- * The interval is not limited by our own work: a full recompute measures about
- * 60ms, nearly all of it Sleeper latency with the four calls issued in
- * parallel. It is bounded by how often Sleeper itself updates.
+ * 30s, matched to the data rather than to our own speed. The recompute takes
+ * about 60ms, but Sleeper's matchups endpoint sits behind a Cloudflare cache
+ * with `s-maxage=60` -- verified from the response headers -- so the numbers
+ * are up to a minute old no matter how often we ask. Polling at 15s returned
+ * byte-identical responses roughly four times in a row.
+ *
+ * Sleeper is not a push API despite claims to the contrary: their own web app
+ * opens no WebSocket and no EventSource, and their docs say nothing about
+ * update frequency at all.
  */
 export function LiveProvider({ week, children }) {
   const [state, setState] = useState(null);

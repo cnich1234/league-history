@@ -20,11 +20,11 @@ export async function GET(request) {
     const state = await liveMatchups(season, week);
     return NextResponse.json(state, {
       headers: {
-        // Ten clients polling at 15s collapse into roughly four Sleeper
-        // fetches a minute rather than forty. stale-while-revalidate means a
-        // client never waits on the refresh -- it gets the last value
-        // instantly while a new one is fetched behind it.
-        'Cache-Control': 's-maxage=10, stale-while-revalidate=20',
+        // Matched to Sleeper's own 60s cache TTL: fetching more often than
+        // that returns identical bytes. stale-while-revalidate means a client
+        // never waits on the refresh -- it gets the last value instantly while
+        // a new one is fetched behind it.
+        'Cache-Control': 's-maxage=25, stale-while-revalidate=60',
       },
     });
   } catch (e) {

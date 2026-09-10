@@ -22,6 +22,18 @@ const money = (n) =>
  * that matters -- limits, bankroll, duplicate bets, lock time -- is re-checked
  * on the server, because this component is trivially editable in dev tools.
  */
+/**
+ * "Closes Sat night" -- markets lock at midnight on the morning of the game,
+ * which is the night before in everyone's head. Saying "Sunday" would be read
+ * as Sunday evening, about twenty hours too late.
+ */
+function lockLabel(locksAt) {
+  const lock = new Date(locksAt);
+  const eve = new Date(lock);
+  eve.setUTCDate(eve.getUTCDate() - 1);
+  return `Closes ${eve.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' })} night`;
+}
+
 export default function BetSlip({ market, existingBet, disabled, bankrollCents }) {
   const slip = useSlip();
   const [selected, setSelected] = useState(null);
@@ -34,6 +46,8 @@ export default function BetSlip({ market, existingBet, disabled, bankrollCents }
   // memory from tapping "Review" cannot carry through to confirming.
   const [reviewing, setReviewing] = useState(false);
 
+  const locked = market.locks_at != null && new Date(market.locks_at) <= new Date();
+  const shut = disabled || locked;
   const stakeNum = Number(stake);
   // A market already in the parlay slip cannot also be bet straight -- offering
   // both is what let someone pay for a single and a parlay leg on one tap each.
@@ -91,10 +105,15 @@ export default function BetSlip({ market, existingBet, disabled, bankrollCents }
   }
 
   return (
-    <div className="market">
+    <div className={`market ${locked ? 'market-locked' : ''}`}>
       <div className="market-head">
         <span className="market-title">{market.title}</span>
         {market.subtitle && <span className="dim">{market.subtitle}</span>}
+        {market.locks_at && (
+          <span className={locked ? 'market-lock market-lock-shut' : 'market-lock'}>
+            {locked ? 'Closed' : lockLabel(market.locks_at)}
+          </span>
+        )}
       </div>
 
       <div className="options">
@@ -112,7 +131,7 @@ export default function BetSlip({ market, existingBet, disabled, bankrollCents }
               setError(null);
               setSelected(selected?.option_key === o.option_key ? null : o);
             }}
-            disabled={disabled}
+            disabled={shut}
           >
             <span className="option-label">{o.label}</span>
             <span className="option-odds">{o.odds > 0 ? `+${o.odds}` : o.odds}</span>
@@ -120,7 +139,7 @@ export default function BetSlip({ market, existingBet, disabled, bankrollCents }
         ))}
       </div>
 
-      {selected && !disabled && reviewing && (
+      {selected && !shut && reviewing && (
         <div className="confirm">
           <div className="confirm-head">Confirm your bet</div>
           <dl className="confirm-rows">
@@ -157,7 +176,7 @@ export default function BetSlip({ market, existingBet, disabled, bankrollCents }
         </div>
       )}
 
-      {selected && !disabled && !reviewing && inSlip && (
+      {selected && !shut && !reviewing && inSlip && (
         <div className="in-slip-note">
           <span>
             In your parlay slip. <strong>Place it from the slip at the bottom.</strong>
@@ -172,7 +191,7 @@ export default function BetSlip({ market, existingBet, disabled, bankrollCents }
         </div>
       )}
 
-      {selected && !disabled && !reviewing && !inSlip && (
+      {selected && !shut && !reviewing && !inSlip && (
         <div className="stake-row">
           <div className="stake-input">
             <span className="stake-prefix">$</span>

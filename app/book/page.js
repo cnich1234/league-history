@@ -54,6 +54,7 @@ export default async function BookPage({ searchParams }) {
 
   const open = markets.filter((m) => new Date(m.locks_at).getTime() > now);
   const locked = markets.filter((m) => new Date(m.locks_at).getTime() <= now);
+  const anyOpen = open.length > 0;
   // Matchup drilldown: pick the game, then how to bet it.
   //
   // Locked matchups stay on the board, greyed out. Dropping them made three of
@@ -62,8 +63,7 @@ export default async function BookPage({ searchParams }) {
   // Pass the full market list as the second argument: pairings must come from
   // every h2h in the week, or a matchup that has already locked takes its
   // still-open props down with it.
-  const games = groupByMatchup(open, markets);
-  const lockedGames = groupByMatchup(locked, markets);
+  const games = groupByMatchup(markets, markets);
 
   // Other people's bets, only from markets that have already locked.
   const others = publicBets.filter((b) => b.bettor !== slug);
@@ -88,10 +88,10 @@ export default async function BookPage({ searchParams }) {
         </div>
       </section>
 
-      {games.length === 0 && lockedGames.length > 0 && (
+      {!anyOpen && games.length > 0 && (
         <section className="section">
           <div className="empty">
-            Every market for week {week} has locked. New markets appear Tuesday.
+            Every market for week {week} has closed. New markets appear Tuesday.
           </div>
         </section>
       )}
@@ -132,31 +132,6 @@ export default async function BookPage({ searchParams }) {
               </div>
             ))}
           </div>
-        </section>
-      )}
-
-      {lockedGames.length > 0 && (
-        <section className="section">
-          <div className="section-head">
-            <h2>Locked</h2>
-            <span className="dim">{lockedGames.length} game(s) closed</span>
-          </div>
-          {lockedGames.map((g) => (
-            <div className="matchup matchup-locked" key={g.key}>
-              <div className="matchup-head">
-                <span className="matchup-main">
-                  <span className="matchup-title">{g.title}</span>
-                  <span className="matchup-meta">
-                    {g.marketCount} bets · closed{' '}
-                    {new Date(g.locksAt).toLocaleDateString('en-US', {
-                      weekday: 'short',
-                      timeZone: 'UTC',
-                    })}
-                  </span>
-                </span>
-              </div>
-            </div>
-          ))}
         </section>
       )}
 

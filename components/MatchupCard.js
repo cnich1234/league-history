@@ -30,10 +30,8 @@ export default function MatchupCard({ game, myByMarket, bankrollCents, defaultOp
         <span className="matchup-main">
           <span className="matchup-title">{game.title}</span>
           <span className="matchup-meta">
-            {all.length} bet{all.length === 1 ? '' : 's'}
+            {game.openCount} of {all.length} open
             {placed > 0 && <span className="matchup-placed"> · {placed} placed</span>}
-            {' · '}
-            {lockLabel(game.locksAt)}
           </span>
         </span>
         <span className="matchup-chevron" aria-hidden="true" />
@@ -119,15 +117,3 @@ function shortTitle(market, kind) {
   return market.title;
 }
 
-/**
- * "closes Sat night" -- markets lock at midnight on the morning of the game,
- * which is the night before in everyone's head. Saying "Sunday" here would be
- * read as Sunday evening, roughly twenty hours too late.
- */
-function lockLabel(locksAt) {
-  const lock = new Date(locksAt);
-  const eve = new Date(lock);
-  eve.setUTCDate(eve.getUTCDate() - 1);
-  const day = eve.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' });
-  return `closes ${day} night`;
-}

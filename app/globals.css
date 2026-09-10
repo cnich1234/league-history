@@ -1858,3 +1858,26 @@ tbody tr:last-child td {
   color: var(--text-muted);
   font-weight: 700;
 }
+
+/* Each bet says when it closes, in red, because misreading it costs money. */
+.market-lock {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  color: var(--negative);
+}
+
+.market-lock-shut {
+  color: var(--text-dim);
+  font-weight: 700;
+}
+
+/* A closed market stays on the board, dimmed, rather than vanishing -- a bet
+   that disappears reads as missing rather than finished. */
+.market-locked {
+  opacity: 0.45;
+}
+
+.market-locked .option {
+  cursor: default;
+}

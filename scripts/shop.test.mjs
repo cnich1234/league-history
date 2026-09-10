@@ -21,6 +21,8 @@ import {
   useBoostOnMarket,
   boostsForBets,
   marketPenalty,
+  consumeOddsBoost,
+  hasArmedOddsBoost,
 } from '../lib/shop.js';
 import { WEEKLY_ALLOWANCE, byKind } from '../lib/boosts.js';
 
@@ -220,6 +222,38 @@ try {
     'cannot poison a market whose prices are fixed',
     () => useBoostOnMarket({ slug: A, boostId: Number(poison2.id), marketId: shutMarket }),
     'closed',
+  );
+
+  console.log('\nthe odds boost is consumed once, atomically');
+  {
+    await grantTrophyPoints(TEST_SEASON, 3, { [A]: 30 });
+    const ob = await buyBoost({ slug: A, season: TEST_SEASON, kind: 'odds-boost' });
+    check('armed', await hasArmedOddsBoost(A, TEST_SEASON), true);
+
+    // Two placements racing for one boost: exactly one may win it. Without the
+    // `used_at is null` guard on the update, both would claim the same boost
+    // and one of them would get a free price.
+    const [a, b] = await Promise.all([
+      consumeOddsBoost({ slug: A, season: TEST_SEASON, odds: 200 }),
+      consumeOddsBoost({ slug: A, season: TEST_SEASON, odds: 200 }),
+    ]);
+    const winners = [a, b].filter(Boolean);
+    check('exactly one placement gets it', winners.length, 1);
+    check('and it improved the price', winners[0].odds, 300);
+    check('nothing is armed afterwards', await hasArmedOddsBoost(A, TEST_SEASON), false);
+
+    const spent = await sql`select used_at from boosts where id = ${Number(ob.id)}`;
+    check('the boost is marked used', Boolean(spent[0].used_at), true);
+
+    check('and a later placement gets nothing',
+      await consumeOddsBoost({ slug: A, season: TEST_SEASON, odds: 200 }), null);
+  }
+
+  console.log('\ncoming-soon boosts cannot be bought');
+  await rejects(
+    'refused at the data layer, not just greyed in the shop',
+    () => buyBoost({ slug: A, season: TEST_SEASON, kind: 'steal' }),
+    'not available yet',
   );
 
   console.log('\nledger integrity');

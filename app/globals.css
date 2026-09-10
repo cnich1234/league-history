@@ -1260,6 +1260,21 @@ tbody tr:last-child td {
   cursor: default;
 }
 
+/* Not yet buyable. Dimmed rather than hidden: the league should be able to see
+   what is coming and argue about it before it lands. */
+.shop-item-soon {
+  opacity: 0.55;
+}
+
+.shop-soon {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
 .boost-list {
   display: grid;
   gap: 9px;

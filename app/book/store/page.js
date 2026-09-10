@@ -59,7 +59,7 @@ export default async function StorePage() {
           {BOOSTS.map((b) => {
             const owned = ownedByKind[b.kind] ?? 0;
             return (
-              <div key={b.kind} className="shop-item">
+              <div key={b.kind} className={`shop-item ${b.comingSoon ? 'shop-item-soon' : ''}`}>
                 <div className="shop-head">
                   <span className="shop-icon" aria-hidden="true">
                     {b.icon}
@@ -75,7 +75,11 @@ export default async function StorePage() {
                   {owned > 0 && <span className="pill teal">{owned} in stock</span>}
                   {b.attack && <span className="pill">attack</span>}
                   {b.defensive && <span className="pill">defence</span>}
-                  {!guest && <BuyButton kind={b.kind} cost={b.cost} points={points} />}
+                  {b.comingSoon ? (
+                    <span className="shop-soon">Coming soon</span>
+                  ) : (
+                    !guest && <BuyButton kind={b.kind} cost={b.cost} points={points} />
+                  )}
                 </div>
               </div>
             );

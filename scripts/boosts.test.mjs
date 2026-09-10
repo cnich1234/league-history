@@ -9,7 +9,16 @@
  *   - a refund is NOT a win. Boosts multiply a winning payout; taking 20% off
  *     a pushed stake would be taking money nobody lost.
  */
-import { applyBoosts, byKind, BOOSTS, canAttach, FAMILY, WEEKLY_ALLOWANCE } from '../lib/boosts.js';
+import {
+  applyBoosts,
+  boostOdds,
+  byKind,
+  BOOSTS,
+  canAttach,
+  FAMILY,
+  WEEKLY_ALLOWANCE,
+} from '../lib/boosts.js';
+import { payoutCents } from '../lib/odds.js';
 
 let failed = 0;
 const check = (label, actual, expected) => {
@@ -138,6 +147,56 @@ console.log('\nattack and defence are labelled');
   // families must not blur.
   check('poison changes a price', byKind['market-poison'].family, FAMILY.PRICE);
   check('skim changes a payout', byKind['payout-cut'].family, FAMILY.PAYOUT);
+}
+
+console.log('\nBetter Price boosts the PROFIT, not the payout');
+{
+  // The distinction that matters when explaining these to the league: an odds
+  // boost is weaker than a payout boost of the same size, because the stake
+  // comes back either way and only the profit is multiplied.
+  check('+200 becomes +300', boostOdds(200), 300);
+  check('even money becomes +150', boostOdds(100), 150);
+  check('a favourite improves too', boostOdds(-110), 136);
+  check('a heavy favourite stays negative', boostOdds(-300), -200);
+  check('a longshot goes much longer', boostOdds(542), 813);
+
+  // $100 at +200: plain wins $300, odds-boosted wins $400, payout-boosted $450.
+  const stake = 10000;
+  const plain = payoutCents(stake, 200);
+  const viaOdds = payoutCents(stake, boostOdds(200));
+  const viaPayout = applyBoosts(plain, ['boost-50']);
+  check('odds boost pays less than a payout boost', viaOdds < viaPayout, true);
+  check('but more than nothing', viaOdds > plain, true);
+  check('the gap is widest on favourites',
+    payoutCents(25000, boostOdds(-300)) < applyBoosts(payoutCents(25000, -300), ['boost-50']),
+    true);
+}
+
+console.log('\nBig Week stacks with Half Again');
+{
+  // Deliberate: Big Week is declared blind before the games, Half Again is
+  // placed on a known winner. Someone who did both earned 2.25x.
+  check('week boost alone', applyBoosts(20000, ['boost-week']), 30000);
+  check('both together compound', applyBoosts(20000, ['boost-50', 'boost-week']), 45000);
+  check('and a skim still bites the result',
+    applyBoosts(20000, ['boost-50', 'boost-week', 'payout-cut']), 36000);
+  check('unless shielded',
+    applyBoosts(20000, ['boost-50', 'boost-week', 'payout-cut', 'insurance']), 45000);
+}
+
+console.log('\ncoming-soon boosts are marked, not sellable');
+{
+  const soon = BOOSTS.filter((b) => b.comingSoon);
+  check('three are placeholders', soon.length, 3);
+  check('all of them are attacks', soon.every((b) => b.attack), true);
+  // They all target a specific bet or bettor, which is exactly why they wait:
+  // naming a target would reveal a position.
+  check(
+    'and all need to know whose bet they hit',
+    soon.every((b) => b.target === 'bet' || b.target === 'bettor'),
+    true,
+  );
+  check('the buyable ones are not marked', BOOSTS.filter((b) => !b.comingSoon).length, 7);
 }
 
 console.log(failed ? `\n${failed} check(s) FAILED\n` : '\nall checks passed\n');

@@ -1,4 +1,5 @@
 import BetSlip from './BetSlip';
+import MatchupButton from './MatchupButton';
 
 const KIND_LABEL = {
   h2h: 'Winner',
@@ -19,7 +20,7 @@ const KIND_ORDER = ['h2h', 'spread', 'total', 'prop'];
  * Native <details> again: collapses before hydration, works without JS, and
  * keyboard and screen-reader behaviour come for free.
  */
-export default function MatchupCard({ game, myByMarket, bankrollCents, defaultOpen }) {
+export default function MatchupCard({ game, myByMarket, bankrollCents, defaultOpen, week }) {
   const all = KIND_ORDER.flatMap((k) => game.markets[k] ?? []);
   const placed = all.filter((m) => myByMarket[String(m.id)]).length;
 
@@ -39,6 +40,8 @@ export default function MatchupCard({ game, myByMarket, bankrollCents, defaultOp
       </summary>
 
       <div className="matchup-body">
+        <MatchupButton home={game.homeRoster} away={game.awayRoster} week={week} />
+
         {KIND_ORDER.filter((k) => game.markets[k]?.length).map((kind) =>
           // Props are per-team and there are eight per roster, so a flat list of
           // sixteen buries the one name you came to bet. Each team's props

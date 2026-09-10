@@ -1676,3 +1676,185 @@ tbody tr:last-child td {
   transform: rotate(-135deg);
   margin-top: 2px;
 }
+
+/* ---- Matchup lineup modal ---- */
+
+.view-matchup {
+  display: block;
+  width: 100%;
+  margin: 0 0 12px;
+  padding: 9px;
+  border-radius: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(0, 0, 0, 0.72);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.modal {
+  width: 100%;
+  max-width: 900px;
+  max-height: 88vh;
+  overflow-y: auto;
+  background: var(--bg);
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-bottom: 0;
+  padding: 14px 14px calc(20px + env(safe-area-inset-bottom, 0px));
+}
+
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.modal-title {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.modal-close {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 0;
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 21px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.mm-teams {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.mm-team {
+  text-align: center;
+  min-width: 0;
+}
+
+.mm-team-name {
+  font-size: 12.5px;
+  font-weight: 750;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.mm-team-score {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--teal);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.mm-team-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+}
+
+.mm-vs {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+
+.mm-rows {
+  padding-top: 6px;
+}
+
+.mm-row {
+  display: grid;
+  grid-template-columns: 1fr 42px 1fr;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.mm-slot {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  color: var(--text-dim);
+  text-align: center;
+  background: var(--surface);
+  border-radius: 5px;
+  padding: 3px 0;
+}
+
+.mm-player {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.mm-left {
+  align-items: flex-start;
+  text-align: left;
+}
+
+.mm-right {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.mm-name {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.mm-injury {
+  color: var(--negative);
+  font-weight: 800;
+}
+
+.mm-meta {
+  font-size: 10.5px;
+  color: var(--text-dim);
+}
+
+.mm-points {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--teal);
+  font-variant-numeric: tabular-nums;
+}
+
+/* A projection rather than a real score, so the two are not confused. */
+.mm-proj {
+  color: var(--text-muted);
+  font-weight: 700;
+}

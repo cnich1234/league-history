@@ -102,6 +102,7 @@ export default async function BookPage({ searchParams }) {
             games={games}
             myByMarket={myByMarket}
             bankrollCents={Number(me.balance_cents)}
+            week={week}
           />
           <ParlaySlip bankrollCents={Number(me.balance_cents)} />
         </SlipProvider>

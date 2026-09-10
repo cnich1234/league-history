@@ -15,7 +15,7 @@ import MatchupCard from './MatchupCard';
  * players has already scored is not a bet -- but it surprises people, so the
  * earliest group says why.
  */
-export default function BoardSection({ games, myByMarket, bankrollCents }) {
+export default function BoardSection({ games, myByMarket, bankrollCents, week }) {
   const byDay = {};
   for (const g of games) {
     const key = new Date(g.locksAt).toISOString().slice(0, 10);
@@ -51,6 +51,7 @@ export default function BoardSection({ games, myByMarket, bankrollCents }) {
             game={g}
             myByMarket={myByMarket}
             bankrollCents={bankrollCents}
+            week={week}
             // Open the first card so the page never looks like a list of empty
             // headers; the rest stay closed so a phone shows all five games.
             defaultOpen={isEarliest && j === 0}

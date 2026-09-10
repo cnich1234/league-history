@@ -2,7 +2,12 @@
 
 import BetSlip from './BetSlip';
 import { useLiveMatchup } from './LiveProvider';
-import { liveSpreadProbability, liveTotalProbability, probabilityToOdds } from '@/lib/odds';
+import {
+  liveSpreadProbability,
+  liveTotalProbability,
+  probabilityToOdds,
+  maxLiveStake,
+} from '@/lib/odds';
 
 // Mirrors LIVE_MARGIN in lib/live.js; importing it would pull the server-only
 // Sleeper client into the browser bundle.
@@ -38,7 +43,7 @@ function pricesFor(market, state) {
   if (!market.live || !state || !state.started || state.suspended || !state.odds) return null;
 
   if (market.kind === 'h2h') {
-    return { home: state.odds.home, away: state.odds.away };
+    return { home: state.odds.home, away: state.odds.away, maxStakeCents: state.maxStakeCents };
   }
 
   if (market.kind === 'spread') {
@@ -53,6 +58,7 @@ function pricesFor(market, state) {
     return {
       cover: probabilityToOdds(Math.min(0.97, pCover + LIVE_MARGIN / 2)),
       nocover: probabilityToOdds(Math.min(0.97, 1 - pCover + LIVE_MARGIN / 2)),
+      maxStakeCents: maxLiveStake(pCover),
     };
   }
 
@@ -62,6 +68,7 @@ function pricesFor(market, state) {
     return {
       over: probabilityToOdds(Math.min(0.97, pOver + LIVE_MARGIN / 2)),
       under: probabilityToOdds(Math.min(0.97, 1 - pOver + LIVE_MARGIN / 2)),
+      maxStakeCents: maxLiveStake(pOver),
     };
   }
 

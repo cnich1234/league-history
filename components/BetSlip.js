@@ -54,13 +54,17 @@ export default function BetSlip({ market, existingBet, disabled, bankrollCents, 
   const liveShut = pastLock && market.live && livePrices == null;
   const shut = disabled || locked || liveShut;
   const stakeNum = Number(stake);
+  // A live market caps lower as it approaches being decided. Display only --
+  // the server recomputes and enforces it, since this component is editable.
+  const cap = liveNow && livePrices?.maxStakeCents != null ? livePrices.maxStakeCents / 100 : MAX;
+  const capped = cap < MAX;
   // A market already in the parlay slip cannot also be bet straight -- offering
   // both is what let someone pay for a single and a parlay leg on one tap each.
   const inSlip = slip.has(market.id);
   const valid =
     Number.isFinite(stakeNum) &&
     stakeNum >= MIN &&
-    stakeNum <= MAX &&
+    stakeNum <= cap &&
     stakeNum * 100 <= bankrollCents;
 
   async function place() {
@@ -129,7 +133,9 @@ export default function BetSlip({ market, existingBet, disabled, bankrollCents, 
             }
           >
             {liveNow
-              ? 'LIVE · price moves'
+              ? capped
+                ? `LIVE · max $${cap}`
+                : 'LIVE · price moves'
               : locked || liveShut
                 ? 'Closed'
                 : lockLabel(market.locks_at)}
@@ -226,7 +232,7 @@ export default function BetSlip({ market, existingBet, disabled, bankrollCents, 
               type="number"
               inputMode="decimal"
               min={MIN}
-              max={MAX}
+              max={cap}
               step="5"
               value={stake}
               onChange={(e) => setStake(e.target.value)}
@@ -240,9 +246,11 @@ export default function BetSlip({ market, existingBet, disabled, bankrollCents, 
               </>
             ) : stakeNum * 100 > bankrollCents ? (
               <span className="neg">More than your bankroll</span>
+            ) : capped && stakeNum > cap ? (
+              <span className="neg">Max ${cap} — this one is close to decided</span>
             ) : (
               <span className="neg">
-                ${MIN}–${MAX}
+                ${MIN}–${cap}
               </span>
             )}
           </div>

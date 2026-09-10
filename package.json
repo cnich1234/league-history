@@ -33,7 +33,8 @@
     "test:live": "node scripts/live.test.mjs",
     "test:livebet": "node --env-file=.env.local scripts/livebet.test.mjs",
     "fit:sd": "node scripts/fit-sd.mjs",
-    "test:prorate": "node scripts/prorate.test.mjs"
+    "test:prorate": "node scripts/prorate.test.mjs",
+    "test:stakecap": "node --env-file=.env.local scripts/stakecap.test.mjs"
   },
   "dependencies": {
     "@neon/config": "^1.3.2",

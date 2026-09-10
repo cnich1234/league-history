@@ -86,6 +86,13 @@ export default function RulesPage() {
             the board to pick off once their game is underway.
           </p>
           <p>
+            <strong>The maximum shrinks as a matchup gets decided.</strong> Full $250 while
+            it is a real contest, then less as one side pulls clear — around $170 at 80%,
+            $90 at 85%, down to the $10 minimum right before it closes at 90%. A $250 bet
+            on a coin flip and a $250 bet on something already decided are not the same
+            wager.
+          </p>
+          <p>
             Live prices carry a bigger house cut than pregame — about 9% against 4.5% —
             same as real sportsbooks. That gap is the price of betting on something already
             half-decided.

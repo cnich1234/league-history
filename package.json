@@ -41,7 +41,9 @@
     "test:special": "node scripts/special.test.mjs",
     "test:kickoff": "node scripts/kickoff.test.mjs",
     "test:guest": "node --env-file=.env.local scripts/guest.test.mjs",
-    "test:showdown": "node scripts/showdown.test.mjs"
+    "test:showdown": "node scripts/showdown.test.mjs",
+    "test:boosts": "node scripts/boosts.test.mjs",
+    "test:shop": "node --env-file=.env.local scripts/shop.test.mjs"
   },
   "dependencies": {
     "@neon/config": "^1.3.2",

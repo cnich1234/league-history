@@ -139,27 +139,24 @@ export default function BetSlip({ market, existingBet, disabled, bankrollCents }
           <button className="btn-primary btn-sm" onClick={place} disabled={!valid || busy}>
             {busy ? '…' : 'Place'}
           </button>
+          <button
+            className={`btn-parlay ${
+              slip.selected(market.id, selected.option_key) ? 'btn-parlay-on' : ''
+            }`}
+            type="button"
+            onClick={() =>
+              slip.toggle({
+                marketId: market.id,
+                optionKey: selected.option_key,
+                odds: selected.odds,
+                label: selected.label,
+                marketTitle: market.title,
+              })
+            }
+          >
+            {slip.selected(market.id, selected.option_key) ? '✓ Parlay' : '+ Parlay'}
+          </button>
         </div>
-      )}
-
-      {selected && !disabled && (
-        <button
-          className={`parlay-add ${slip.selected(market.id, selected.option_key) ? 'parlay-add-on' : ''}`}
-          type="button"
-          onClick={() =>
-            slip.toggle({
-              marketId: market.id,
-              optionKey: selected.option_key,
-              odds: selected.odds,
-              label: selected.label,
-              marketTitle: market.title,
-            })
-          }
-        >
-          {slip.selected(market.id, selected.option_key)
-            ? '✓ In parlay slip'
-            : '+ Add to parlay instead'}
-        </button>
       )}
 
       {error && <div className="form-error">{error}</div>}

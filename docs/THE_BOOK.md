@@ -1,0 +1,384 @@
+# The Book — how it works
+
+A play-money sportsbook bolted onto the league history app. Ten managers, $1,000
+each, most money at the end of the season wins $200. Run out and you can re-up
+for $20, which goes into the pot.
+
+This document covers how the thing actually works, with emphasis on live betting
+— the part with the most moving pieces and the part that has broken the most
+often.
+
+---
+
+## The one rule that explains most of the design
+
+**The server prices every bet.** The number on your screen is treated as "here
+is what I was shown," never as "here is what I should be charged." It is used
+for exactly one thing: rejecting a fill if the price moved while you were
+tapping.
+
+A client that could name its own odds could name any odds. Everything else
+follows from not allowing that.
+
+The same discipline applies to the hiding rule. It lives in the SQL query, not
+in the UI — a component that forgets to filter leaks everyone's picks, but a
+query that never selects them cannot.
+
+---
+
+## When markets close
+
+This is the part that has been wrong the most, so it is worth stating plainly.
+
+| Market kind   | `live`  | Closes when                                |
+| ------------- | ------- | ------------------------------------------ |
+| Player prop   | `false` | That player's NFL game **kicks off**       |
+| Matchup (h2h) | `true`  | One side reaches **90%**, or the games end |
+| Spread        | `true`  | Same                                       |
+| Team total    | `true`  | Same, on that team's own progress          |
+
+**Only props close on the clock.** Everything else never closes on time at all —
+once games start the price moves with the score instead. A matchup with one
+Thursday starter stays bettable all weekend; it just gets more expensive to back
+the side that is winning.
+
+### `locks_at` is not a deadline
+
+Every market carries a `locks_at` timestamp, and it is easy to misread. It is
+**midnight Arizona time on the morning of the game** — which for a Thursday or
+Sunday night kickoff is some eighteen hours before anything happens.
+
+For a live market it marks only the moment pricing switches from the posted line
+to the live model. For a prop it is a lower bound, not the close.
+
+Anything that treats `locks_at <= now()` as "finished" is a bug. That single
+mistake caused four separate incidents:
+
+- parlays refusing live legs as "locked"
+- team totals suspending because their state lookup keyed on the wrong field
+- the board hiding the most active markets
+- **a bet going public on The Floor while its game had not kicked off**
+
+The rule now is uniform: **`status` is the only closing test.** Status is set by
+`lockDueMarkets()` from facts Sleeper reports — kickoff for props, game-final for
+live markets — never inferred from a timestamp.
+
+### Who sets the status
+
+`lockDueMarkets(finishedRosters, kickedOffTeams)` in `lib/book.js`. Both
+arguments default to empty, and **empty means "nothing has happened yet," so
+nothing locks.** Not knowing is never a reason to close a market — an open
+market is still governed by `shouldSuspend` at pricing time, so nothing can be
+bet at a decided price either way.
+
+It runs on the live poll (below), with the weekly cron as a backstop.
+
+---
+
+## Live betting
+
+### Where the numbers come from
+
+Sleeper, on three endpoints — two of them undocumented:
+
+```
+api.sleeper.app/v1/league/{id}/matchups/{week}     starters + points so far
+api.sleeper.com/projections/nfl/{season}/{week}    pts_ppr per player
+api.sleeper.com/scores/nfl/regular/{season}/{week} per-game quarter flags
+```
+
+Sleeper is **not** a push API, despite claims to the contrary. Their own web app
+opens no WebSocket and no EventSource. It is polling or nothing.
+
+### The model
+
+Stern (1994), the standard for in-play sports pricing. The outcome is Brownian
+motion: variance is additive over time, so the standard deviation of what is
+_left_ scales with the square root of how much is left.
+
+```
+remaining SD = LEAGUE_SD × √(remaining projection / total projection)
+```
+
+Points already scored carry **no variance at all** — they shift the centre of the
+distribution and nothing else.
+
+The unit of "time" is projected points still to be played, not a game clock,
+because a fantasy matchup has no clock. It has twenty players spread across five
+days. A 30-point lead on Thursday night means almost nothing (95% of the scoring
+is still to come); the same lead on Sunday evening is decisive.
+
+### `LEAGUE_SD = 28`
+
+Fitted to this league, not guessed. 28.0 from **725 regular-season games across
+2016–2025**, measured as `sd(margin) / √2` — the margin is what the model prices,
+and it cancels league-wide weekly effects that lift both scores at once.
+
+It was a guess of 25 before. Season by season the figure ranges 22–31 with no
+trend, so there is no case for weighting recent years. Re-fit any time:
+
+```bash
+node scripts/fit-sd.mjs
+```
+
+The normal assumption holds up: 28.6% of games are decided by a full margin-SD or
+more, against the 31.7% a normal distribution predicts.
+
+### Players mid-game
+
+A player who is two thirds through their game has a third of their projection
+still to come, and only that third carries variance. Quarter granularity is what
+Sleeper exposes — there is no game clock in the payload — so `fractionRemaining`
+steps:
+
+| Game state     | Remaining |
+| -------------- | --------- |
+| Not kicked off | 1.0       |
+| 1st quarter    | 1.0       |
+| 2nd quarter    | 0.75      |
+| 3rd quarter    | 0.5       |
+| 4th quarter    | 0.25      |
+| Overtime       | 0.1       |
+| Final          | 0         |
+
+Overtime is bonus scoring on top of a finished four quarters, so it is treated as
+nearly over rather than as a fifth quarter of expected production.
+
+Coarse, but far better than the binary it replaced — which counted any player
+with points on the board as finished.
+
+### When a market suspends
+
+`shouldSuspend(probability, remainingShare)` — two triggers, either closes it:
+
+- one side reaches **90%**
+- less than **10%** of projected scoring is left
+
+Books close on probability, not on a clock. No sportsbook publishes a time
+threshold; they all close when one side becomes near-certain, because at 97/3
+anyone with a few seconds of information advantage captures nearly the whole 3%
+at no risk.
+
+> **Implementation note.** It compares the leading side —
+> `Math.max(p, 1 - p) >= threshold` — rather than testing both ends. The obvious
+> `probability <= 1 - threshold` fails on floating point: `1 - 0.9` is
+> `0.09999999999999998`, so an exact 10% stayed open.
+
+### Stake limits taper
+
+A $250 bet on a coin flip and a $250 bet on something 88% decided are very
+different animals. Real books handle this with discretionary limits that shrink
+as certainty rises — none publishes a formula, so this is a deliberate choice
+rather than an industry rule.
+
+| Certainty | Max stake |
+| --------- | --------- |
+| 50%       | $250      |
+| 75%       | $250      |
+| 85%       | $125      |
+| 90%       | closed    |
+
+Full limit while it is a genuine contest, then a straight-line taper from 75% to
+the 90% threshold, floored at the $10 minimum so a market that is still open is
+always still bettable.
+
+A parlay is capped by its **tightest** leg.
+
+### The vig
+
+|         | Margin |
+| ------- | ------ |
+| Pregame | 4.5%   |
+| In-play | 9%     |
+
+Industry hold roughly doubles in-play (4–6% becomes 7–12%) for a mechanical
+reason: as the remaining standard deviation shrinks, a fixed percentage margin is
+a smaller and smaller absolute cushion, while a bettor's timing advantage does not
+shrink at all.
+
+Both sides get half the margin added, and nothing is ever quoted past 97%.
+
+`LIVE_MARGIN` is exported from `lib/live.js` and used by **both** the board and
+the placement path. It was briefly duplicated — the board quoted 4.5% while
+placement computed 9% — which made the staleness guard fire on every single live
+bet.
+
+### Polling
+
+**30 seconds**, matched to the data rather than to our own speed.
+
+The recompute takes about 60ms, but Sleeper's matchups endpoint sits behind a
+Cloudflare cache with `s-maxage=60` (verified from the response headers), so the
+numbers are up to a minute old no matter how often we ask. Polling at 15s
+returned byte-identical responses roughly four times in a row.
+
+`LiveProvider` runs **one poll for the whole board**, shared by every matchup
+card via context. Each card polling for itself meant five identical requests per
+user per tick — at 15s with ten people that is 200 requests a minute, roughly
+half of Vercel Hobby's million monthly invocations across a season. Overage there
+**pauses the project for 30 days** rather than sending a bill.
+
+A backgrounded tab stops polling entirely. Browsers throttle timers there anyway,
+but stopping outright avoids a burst of catch-up requests when the tab returns.
+
+### Locking rides on the poll
+
+`/api/live` closes what is over, using the state it just fetched. This is
+deliberate: a live market has to shut within minutes of its game ending, and
+**Vercel Hobby only allows daily crons.** The route already runs every 30s with
+exactly the data the decision needs.
+
+A lock failure never fails the response — the board matters more than the
+bookkeeping, and the next tick retries.
+
+The 25s edge cache bounds how long a finished market stays open, since locking
+happens on a cache miss. With ten people watching, misses are constant. If nobody
+has the app open — a Monday night game ending at 11:30pm — markets stay `open`
+until someone opens it or the Tuesday cron runs. Nothing can be bet at a decided
+price meanwhile, because `shouldSuspend` still governs every quote; the only
+effect is that those bets stay off The Floor a little longer.
+
+---
+
+## Hiding bets — The Floor
+
+Nobody sees anyone else's picks until nobody can act on them. That is the whole
+"no copying, no tailing" rule, and it rests on a single query:
+
+```sql
+-- lib/book.js :: visibleBets
+where m.season = $1 and m.week = $2
+  and m.status <> 'open'
+```
+
+One condition for every kind of market, because "open" is exactly the thing that
+decides whether anyone can still act.
+
+It was briefly `m.live = false or m.status <> 'open'`, which _looks_ like it
+handles both cases but lets every prop through on its posted time alone — and a
+prop's posted time is midnight on the morning of the game. That is how a $25
+Stafford bet went public while the game was still hours away.
+
+**Failure mode if locking ever stops:** markets stay `open` and these bets stay
+hidden. Hiding too much is the safe direction.
+
+---
+
+## Parlays
+
+2–6 legs, each on a different market. Every leg must win.
+
+Odds multiply in **decimal** space, not American. Two -110 legs are not -220,
+they are roughly **+264**, because you are re-staking the first leg's return on
+the second.
+
+- A live leg is priced live, exactly like a straight bet.
+- A **prop** leg is the one that can shut a slip, since props close at kickoff.
+- A voided leg **drops out** and the rest are re-priced — a two-leg slip with one
+  dead leg becomes a straight bet on the survivor, not a whole refund.
+- The slip is capped by its tightest leg's limit.
+
+Straight bets and parlay legs are **mutually exclusive** on the same market. They
+did not used to be: "Review" and "+ Parlay" sat side by side and read as
+sequential steps, so someone placed two singles _and_ a parlay and got charged
+$100 for what he thought was a $25 slip. Refunded, and the paths were made
+exclusive.
+
+---
+
+## Money
+
+An **append-only ledger**. Bankroll is a derived view, never a stored number, so
+a balance can always be explained by summing its own rows. Several tests assert
+exactly that invariant, because it is the one that would catch a settlement or
+payout bug.
+
+Stakes are debited at placement. Payouts land at settlement.
+
+Re-ups are recorded in two places on purpose: the $20 is real money owed to the
+prize pool, the $1,000 bankroll credit is play money in the ledger. Someone who
+has re-upped four times has spent $80.
+
+---
+
+## Layout
+
+```
+lib/
+  odds.js      all betting math — probabilities, prices, limits, parlays
+  live.js      Sleeper state, live pricing, kickoff + final detection
+  book.js      data access; every rule that matters is enforced here
+  settle.js    resolving a market from final scores
+  cron.js      building a week's board, settling a week
+  schedule.js  lock times from the NFL schedule
+
+app/api/
+  live/        30s poll: live state + opportunistic locking
+  bet/         place a straight bet
+  parlay/      place a parlay
+  cron/        weekly upkeep (Tuesday 09:00 UTC)
+
+components/
+  LiveProvider.js   one shared poll, context-distributed
+  BetSlip.js        one market, with review-then-confirm
+  ParlaySlip.js     the slip
+  MatchupCard.js    one card per game, every bet on it inside
+```
+
+### Database
+
+Neon Postgres, 9 migrations in `db/`. The ones that matter:
+
+|       |                                                                                              |
+| ----- | -------------------------------------------------------------------------------------------- |
+| `002` | bankroll view fan-out — joined ledger _and_ bets, multiplying balances by bet count          |
+| `005` | individual passwords (scrypt + per-user salt), so league mates cannot read each other's bets |
+| `007` | parlays — `market_id` and `option_key` become nullable                                       |
+| `008` | `markets.live`                                                                               |
+
+`008` also creates a `live_quotes` table that nothing reads or writes — prices are
+computed on demand rather than stored. It is harmless but dead.
+
+---
+
+## Tests
+
+Sixteen suites, run individually:
+
+```bash
+npm run test:lock      # what closes, and when — the rule above
+npm run test:live      # the live model
+npm run test:livebet   # server-side live pricing
+npm run test:floor     # the hiding rule
+npm run test:odds      # probabilities, parlay math, stake taper
+npm run test:parlay    # parlay settlement
+npm run test:book      # placement rules end to end
+```
+
+Ones against the real database use a **sentinel season** (9995–9999) and clean up
+in a `finally`, so a failing assertion can never leave a real bankroll wrong.
+
+> Two suites once passed for the wrong reason: a `ReferenceError` satisfied a
+> "not rejected as locked" assertion, and a stale `$1000` bankroll assertion held
+> only until real bets existed. Both are now guarded explicitly. A test that
+> cannot fail is not a test.
+
+---
+
+## The shape of the bugs
+
+Live betting broke five separate things, and every one had the same shape:
+**code that assumed "past its lock" means "finished."**
+
+1. `placeParlay` rejecting live legs as locked
+2. `stateForMarket` keying totals on a missing field — `"undefined-undefined"`
+3. the board and placement computing different margins
+4. The Floor revealing live bets while they were still bettable
+5. The Floor revealing **prop** bets before their game kicked off
+
+There was also a sixth, of a different kind: `lockDueMarkets()` was **dead code**
+for the whole season. Nothing called it, so no market had ever left `status =
+'open'` — and two separate mechanisms were quietly leaning on a status that never
+changed.
+
+If another one turns up, that is the shape it will take.

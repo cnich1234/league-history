@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { currentBettor } from '@/lib/auth';
-import { liveMatchups, finishedRostersIn } from '@/lib/live';
+import { liveMatchups, finishedRostersIn, kickedOffTeams } from '@/lib/live';
 import { lockDueMarkets } from '@/lib/book';
 
 export const dynamic = 'force-dynamic';
@@ -31,7 +31,7 @@ export async function GET(request) {
     // Failing to lock must never fail the response -- the board matters more
     // than the bookkeeping, and the next poll retries in 30 seconds.
     try {
-      await lockDueMarkets(finishedRostersIn(state));
+      await lockDueMarkets(finishedRostersIn(state), await kickedOffTeams(season, week));
     } catch {
       // Retried on the next tick.
     }

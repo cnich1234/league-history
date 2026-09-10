@@ -133,6 +133,37 @@ try {
     true,
   );
 
+  console.log('\na prop does not lock until its player kicks off');
+  // locks_at is midnight Arizona on the morning of the game. For a Thursday
+  // night kickoff that is ~18 hours early, and locking on it alone closed a
+  // prop for a game that had not started -- then put the bet on The Floor
+  // while everyone else could still see the game coming.
+  const prop = await makeMarket({
+    live: false,
+    locked: true,
+    kind: 'prop',
+    meta: { playerId: '421', playerName: 'Test QB', nflTeam: 'LAR', rosterId: HOME, line: 17.5 },
+  });
+  await lockDueMarkets([], new Set(['NE', 'SEA']));
+  check('its game has not kicked off', await statusOf(prop), 'open');
+  await lockDueMarkets([], new Set(['NE', 'SEA', 'SF', 'LAR']));
+  check('its game has kicked off', await statusOf(prop), 'locked');
+
+  console.log('\nan unknown kickoff set falls back to the posted time');
+  const prop2 = await makeMarket({
+    live: false,
+    locked: true,
+    kind: 'prop',
+    meta: { playerId: '9', playerName: 'Other QB', nflTeam: 'KC', rosterId: HOME, line: 20.5 },
+  });
+  await lockDueMarkets([], null);
+  check('null means we could not tell, so use locks_at', await statusOf(prop2), 'locked');
+
+  console.log('\na market with no nflTeam still locks on its posted time');
+  const noTeam = await makeMarket({ live: false, locked: true });
+  await lockDueMarkets([], new Set());
+  check('nothing to check kickoff against', await statusOf(noTeam), 'locked');
+
   console.log('\nfinishedRostersIn reads live state');
   check(
     'both sides final',

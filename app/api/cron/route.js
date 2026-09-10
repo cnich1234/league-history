@@ -38,10 +38,14 @@ export async function GET(request) {
     // settlement below only touches markets, not the betting window, so a stale
     // 'open' would keep last week's bets hidden from The Floor.
     const { lockDueMarkets } = await import('@/lib/book');
-    const { liveMatchups, finishedRostersIn } = await import('@/lib/live');
+    const { liveMatchups, finishedRostersIn, kickedOffTeams } = await import('@/lib/live');
     try {
-      const prior = await liveMatchups(season, Math.max(1, week - 1));
-      const locked = await lockDueMarkets(finishedRostersIn(prior));
+      const priorWeek = Math.max(1, week - 1);
+      const prior = await liveMatchups(season, priorWeek);
+      const locked = await lockDueMarkets(
+        finishedRostersIn(prior),
+        await kickedOffTeams(season, priorWeek),
+      );
       if (locked.length) log.push(`locked ${locked.length} market(s)`);
     } catch (e) {
       log.push(`lock skipped: ${e.message}`);

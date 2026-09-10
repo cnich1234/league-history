@@ -31,7 +31,8 @@
     "reset:book": "node --env-file=.env.local scripts/reset-book.mjs",
     "test:grouping": "node scripts/grouping.test.mjs",
     "test:live": "node scripts/live.test.mjs",
-    "test:livebet": "node --env-file=.env.local scripts/livebet.test.mjs"
+    "test:livebet": "node --env-file=.env.local scripts/livebet.test.mjs",
+    "fit:sd": "node scripts/fit-sd.mjs"
   },
   "dependencies": {
     "@neon/config": "^1.3.2",

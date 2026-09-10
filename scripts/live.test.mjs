@@ -8,7 +8,13 @@
  * nearly meaningless and on Sunday evening is decisive. Getting that backwards
  * would hand out free money.
  */
-import { liveProbability, liveSpreadProbability, shouldSuspend } from '../lib/odds.js';
+import {
+  liveProbability,
+  liveSpreadProbability,
+  shouldSuspend,
+  h2hProbability,
+  LEAGUE_SD,
+} from '../lib/odds.js';
 
 let failed = 0;
 const check = (label, actual, expected) => {
@@ -30,11 +36,14 @@ const near = (label, actual, expected, tol = 0.02) => {
 
 console.log('\nbefore anything is played');
 near('even projections is a coin flip', liveProbability({ scored: 0, remaining: 130 }, { scored: 0, remaining: 130 }), 0.5);
+// Same inputs through both paths must agree: with nothing scored, the live
+// model reduces to the pre-game one.
 check(
   'matches the pre-game model when nothing has scored',
   Math.abs(
-    liveProbability({ scored: 0, remaining: 140 }, { scored: 0, remaining: 120 }) - 0.7141,
-  ) < 0.01,
+    liveProbability({ scored: 0, remaining: 140 }, { scored: 0, remaining: 120 }) -
+      h2hProbability(140, 120),
+  ) < 1e-9,
   true,
 );
 

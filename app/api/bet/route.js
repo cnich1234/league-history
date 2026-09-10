@@ -16,7 +16,7 @@ export async function POST(request) {
   const slug = await currentBettor();
   if (!slug) return NextResponse.json({ error: 'Not signed in.' }, { status: 401 });
 
-  const { marketId, optionKey, stakeDollars } = await request.json().catch(() => ({}));
+  const { marketId, optionKey, stakeDollars, expectedOdds } = await request.json().catch(() => ({}));
 
   const dollars = Number(stakeDollars);
   if (!Number.isFinite(dollars)) {
@@ -27,7 +27,13 @@ export async function POST(request) {
   const stakeCents = Math.round(dollars * 100);
 
   try {
-    const bet = await placeBet({ slug, marketId: Number(marketId), optionKey, stakeCents });
+    const bet = await placeBet({
+      slug,
+      marketId: Number(marketId),
+      optionKey,
+      stakeCents,
+      expectedOdds: expectedOdds == null ? null : Number(expectedOdds),
+    });
     return NextResponse.json({ ok: true, betId: String(bet.id) });
   } catch (e) {
     // These are all user-facing rule violations, not server faults.

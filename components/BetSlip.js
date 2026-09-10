@@ -34,7 +34,7 @@ function lockLabel(locksAt) {
   return `Closes ${eve.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' })} night`;
 }
 
-export default function BetSlip({ market, existingBet, disabled, bankrollCents }) {
+export default function BetSlip({ market, existingBet, disabled, bankrollCents, livePrices }) {
   const slip = useSlip();
   const [selected, setSelected] = useState(null);
   const [stake, setStake] = useState('25');
@@ -46,8 +46,13 @@ export default function BetSlip({ market, existingBet, disabled, bankrollCents }
   // memory from tapping "Review" cannot carry through to confirming.
   const [reviewing, setReviewing] = useState(false);
 
-  const locked = market.locks_at != null && new Date(market.locks_at) <= new Date();
-  const shut = disabled || locked;
+  // A live market keeps taking bets after its posted lock, at a price that
+  // moves with the game. It only truly closes when the model suspends it.
+  const pastLock = market.locks_at != null && new Date(market.locks_at) <= new Date();
+  const locked = pastLock && !market.live;
+  const liveNow = pastLock && market.live && livePrices != null;
+  const liveShut = pastLock && market.live && livePrices == null;
+  const shut = disabled || locked || liveShut;
   const stakeNum = Number(stake);
   // A market already in the parlay slip cannot also be bet straight -- offering
   // both is what let someone pay for a single and a parlay leg on one tap each.
@@ -70,6 +75,10 @@ export default function BetSlip({ market, existingBet, disabled, bankrollCents }
           marketId: market.id,
           optionKey: selected.option_key,
           stakeDollars: stakeNum,
+          // What was on screen. The server prices the bet itself and refuses
+          // if this has drifted, so a scoring play mid-tap cannot fill at a
+          // number that no longer exists.
+          expectedOdds: selected.odds,
         }),
       });
       const data = await res.json();
@@ -110,14 +119,31 @@ export default function BetSlip({ market, existingBet, disabled, bankrollCents }
         <span className="market-title">{market.title}</span>
         {market.subtitle && <span className="dim">{market.subtitle}</span>}
         {market.locks_at && (
-          <span className={locked ? 'market-lock market-lock-shut' : 'market-lock'}>
-            {locked ? 'Closed' : lockLabel(market.locks_at)}
+          <span
+            className={
+              liveNow
+                ? 'market-lock market-lock-live'
+                : locked || liveShut
+                  ? 'market-lock market-lock-shut'
+                  : 'market-lock'
+            }
+          >
+            {liveNow
+              ? 'LIVE · price moves'
+              : locked || liveShut
+                ? 'Closed'
+                : lockLabel(market.locks_at)}
           </span>
         )}
       </div>
 
       <div className="options">
-        {market.options.map((o) => (
+        {market.options.map((raw) => {
+          const o =
+            liveNow && livePrices?.[raw.option_key] != null
+              ? { ...raw, odds: livePrices[raw.option_key] }
+              : raw;
+          return (
           <button
             key={o.option_key}
             type="button"
@@ -136,7 +162,8 @@ export default function BetSlip({ market, existingBet, disabled, bankrollCents }
             <span className="option-label">{o.label}</span>
             <span className="option-odds">{o.odds > 0 ? `+${o.odds}` : o.odds}</span>
           </button>
-        ))}
+          );
+        })}
       </div>
 
       {selected && !shut && reviewing && (

@@ -55,6 +55,33 @@ export default function RulesPage() {
             Lines come from Sleeper&apos;s own weekly projections. Nobody sets them by hand.
           </p>
 
+          <h2>Live betting</h2>
+          <p>
+            <strong>Matchups and spreads keep taking bets once games start.</strong> The
+            price moves as points come in — a team down 30 on Sunday morning pays far more
+            than they did on Wednesday.
+          </p>
+          <p>
+            Each matchup shows a live <strong>win probability</strong>. The number accounts
+            for how much is still left to play, not just the current score: a 30-point lead
+            on Thursday night barely moves it, because 90% of the week has not happened yet.
+          </p>
+          <p>
+            <strong>A matchup closes once one side reaches 90%.</strong> No fixed time — it
+            depends on the games. Tied going into Monday night and it stays open to the end;
+            up 40 on Sunday afternoon and it closes.
+          </p>
+          <p>
+            Your odds lock when you bet. If the price moves while you are confirming, the bet
+            is refused rather than filled at a worse number — check the new price and decide
+            again.
+          </p>
+          <p>
+            Live prices carry a bigger house cut than pregame, same as real sportsbooks.
+            Team totals and player props do not go live; they close before that player&apos;s
+            game as usual.
+          </p>
+
           <h2>Parlays</h2>
           <p>
             Pick two or more legs and combine them into one bet. Every leg has to win.

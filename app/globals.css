@@ -1968,3 +1968,9 @@ tbody tr:last-child td {
   text-transform: uppercase;
   color: var(--text-dim);
 }
+
+/* A market still taking bets after its posted lock, at a moving price. */
+.market-lock-live {
+  color: var(--teal);
+  letter-spacing: 0.5px;
+}

@@ -1,6 +1,7 @@
 import BetSlip from './BetSlip';
 import MatchupButton from './MatchupButton';
 import LiveProbability from './LiveProbability';
+import LiveMarkets from './LiveMarkets';
 
 const KIND_LABEL = {
   h2h: 'Winner',
@@ -73,19 +74,18 @@ export default function MatchupCard({ game, myByMarket, bankrollCents, defaultOp
           ) : (
           <div className="matchup-kind" key={kind}>
             <div className="matchup-kind-label">{KIND_LABEL[kind]}</div>
-            {game.markets[kind].map((m) => (
-              <BetSlip
-                key={m.id}
-                market={{
-                  ...m,
-                  id: String(m.id),
-                  title: shortTitle(m, kind),
-                  subtitle: kind === 'h2h' || kind === 'spread' ? null : m.subtitle,
-                }}
-                existingBet={myByMarket[String(m.id)] ?? null}
-                bankrollCents={bankrollCents}
-              />
-            ))}
+            <LiveMarkets
+              homeRoster={game.homeRoster}
+              awayRoster={game.awayRoster}
+              markets={game.markets[kind].map((m) => ({
+                ...m,
+                id: String(m.id),
+                title: shortTitle(m, kind),
+                subtitle: kind === 'h2h' || kind === 'spread' ? null : m.subtitle,
+              }))}
+              myByMarket={myByMarket}
+              bankrollCents={bankrollCents}
+            />
           </div>
           ),
         )}

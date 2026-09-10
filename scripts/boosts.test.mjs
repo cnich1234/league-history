@@ -184,6 +184,30 @@ console.log('\nBig Week stacks with Half Again');
     applyBoosts(20000, ['boost-50', 'boost-week', 'payout-cut', 'insurance']), 45000);
 }
 
+console.log('\nThe Void negates rather than scales');
+{
+  // Skim is a multiplier, so it composes with everything else. The Void is
+  // not: a voided bet pays nothing, and nothing applied afterwards can bring
+  // it back. That is why it short-circuits instead of joining the chain.
+  check('a winner pays nothing', applyBoosts(30000, ['void']), 0);
+  check('a boost cannot rescue it', applyBoosts(30000, ['void', 'boost-50']), 0);
+  check('nor can a week boost', applyBoosts(30000, ['void', 'boost-week']), 0);
+  check('nor both', applyBoosts(30000, ['void', 'boost-50', 'boost-week']), 0);
+  check('a skim on top changes nothing', applyBoosts(30000, ['void', 'payout-cut']), 0);
+
+  // It is still an attack, so the shield still stops it -- and stops it
+  // completely, leaving the bet paying exactly what it would have.
+  check('insurance blocks it outright', applyBoosts(30000, ['void', 'insurance']), 30000);
+  check(
+    'and a shielded boosted bet keeps its boost',
+    applyBoosts(20000, ['void', 'boost-50', 'insurance']),
+    30000,
+  );
+
+  // Order in the array must not matter, same as every other combination.
+  check('array order is irrelevant', applyBoosts(30000, ['boost-50', 'void']), 0);
+}
+
 console.log('\ncoming-soon boosts are marked, not sellable');
 {
   const soon = BOOSTS.filter((b) => b.comingSoon);
@@ -197,6 +221,20 @@ console.log('\ncoming-soon boosts are marked, not sellable');
     true,
   );
   check('the buyable ones are not marked', BOOSTS.filter((b) => !b.comingSoon).length, 7);
+
+  // Grand Theft and The Void would otherwise be the same boost, with theft
+  // strictly better -- same damage, plus you collect. What separates them is
+  // WHEN they are used: theft is blind and can be wasted on a loser, the void
+  // is used on a bet already known to have won.
+  const theft = byKind['steal'];
+  const voidBoost = byKind['void'];
+  check('theft is used blind', theft.blind, true);
+  check('the void is used after results', voidBoost.settledOnly, true);
+  check('theft is not usable after results', Boolean(theft.settledOnly), false);
+  // Price tracks certainty, not damage: a guaranteed kill is worth more than a
+  // coin-flip theft, even though theft also pays the thief.
+  check('the certain one costs more', voidBoost.cost > theft.cost, true);
+  check('only one of them moves the money', [theft.steals, voidBoost.steals], [true, undefined]);
 }
 
 console.log(failed ? `\n${failed} check(s) FAILED\n` : '\nall checks passed\n');

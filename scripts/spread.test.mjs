@@ -10,7 +10,7 @@
  * Caught by a bettor reading the board, not by any test -- hence this file.
  */
 import { liveProbability, liveSpreadProbability } from '../lib/odds.js';
-import { livePrice } from '../lib/live.js';
+import { livePrice, stateForMarket } from '../lib/live.js';
 
 let failed = 0;
 const check = (label, actual, expected) => {
@@ -95,6 +95,34 @@ check(
       liveSpreadProbability(state.home, state.away, 4.5),
   ) < 1e-9,
   true,
+);
+
+console.log('\nevery live market can find its own state');
+// A total carries only rosterId, not homeRoster/awayRoster, so building a key
+// from those produced 'undefined-undefined' and suspended every total while
+// the board still showed prices for them.
+const matchups = {
+  '1-2': { homeRoster: 1, awayRoster: 2, home: state.home, away: state.away, probability: state.probability, suspended: false },
+};
+check(
+  'h2h finds its matchup',
+  stateForMarket({ meta: { homeRoster: 1, awayRoster: 2 } }, matchups) != null,
+  true,
+);
+check(
+  'a total finds it from rosterId alone',
+  stateForMarket({ meta: { rosterId: 2, line: 120 } }, matchups) != null,
+  true,
+);
+check(
+  'and picks the right matchup',
+  stateForMarket({ meta: { rosterId: 1 } }, matchups)?.homeRoster,
+  1,
+);
+check(
+  'a roster in no matchup finds nothing',
+  stateForMarket({ meta: { rosterId: 99 } }, matchups),
+  null,
 );
 
 console.log(failed ? `\n${failed} check(s) FAILED\n` : '\nall checks passed\n');

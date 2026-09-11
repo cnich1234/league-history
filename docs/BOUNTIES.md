@@ -1,9 +1,11 @@
 # Bounties: how they work, and why they don't
 
-**Status: shipped, and structurally broken.** The mechanic runs, is tested, and
-does exactly what it was built to do. What it was built to do turns out not to
-make sense. This document records the current rules, the flaw, and the options
-for fixing it.
+**Status: shipped, structurally broken, and awaiting a redesign.** The mechanic
+runs, is tested, and does exactly what it was built to do. What it was built to
+do turns out not to make sense. This document records the current rules, the
+flaw, and the fix we are converging on (**§7, Option D — collective bounties**).
+
+Nothing below §7 is built. Four details are still open and are listed there.
 
 Written from the source (`lib/shop.js`, `lib/boosts.js`, `db/015_bounties.sql`),
 not from memory.
@@ -193,13 +195,129 @@ is the behaviour we want. Post 10, nobody bites, get 8 back.
 
 ---
 
-## 7. Proposed change set
+## 7. Option D — collective bounties (the likely direction)
 
-1. Adopt **Option A**: a bounty-claimed attack is anonymous on Receipt.
-2. **Unclaimed bounties forfeit 25%** (minimum 1), remainder refunded.
-3. Allow rewards **above** the boost cost — correct under A, and document why.
+Proposed by Chris, 11 Sep. This supersedes A/B/C and is probably what we build.
 
-Together these give a reason to post, a reason to take, and a cost to spamming.
+**Nobody buys a boost.** A bounty names a target and a weapon, and its cost *is*
+the weapon's list price. Anyone can contribute. When contributions reach the
+total, the attack fires automatically and the bounty closes.
+
+    Post: "The Void on Devin" -> cost is 12, fixed, not typed in
+    Six managers put in 2 each -> total reached -> the Void fires
+
+### Why this fixes what A/B/C were working around
+
+There is **no hunter role**, so there is no resale, so the non-overlapping
+interval in §3 simply does not arise. Nobody is buying at 12 to sell at 8. The
+crowd pays list price once and the attack happens.
+
+It also turns attacking into a **public referendum**: an expensive attack only
+lands if enough people agree the target deserves it.
+
+### What the split does to reach
+
+| Attack | Cost | Solo | Split 2 | Split 4 | Split 6 |
+|---|---:|---:|---:|---:|---:|
+| Slow Play | 5 | 5.0 | 2.5 | 1.3 | 0.8 |
+| Blind Sabotage | 6 | 6.0 | 3.0 | 1.5 | 1.0 |
+| Skim | 8 | 8.0 | 4.0 | 2.0 | 1.3 |
+| Grand Theft | 9 | 9.0 | 4.5 | 2.3 | 1.5 |
+| Poison the Well | 12 | 12.0 | 6.0 | 3.0 | 2.0 |
+| The Void | 12 | 12.0 | 6.0 | 3.0 | 2.0 |
+| Switcheroo | 14 | 14.0 | 7.0 | 3.5 | 2.3 |
+| Because, Fuck You | 16 | 16.0 | 8.0 | 4.0 | 2.7 |
+
+Against a 5/week allowance: a solo Void is **2.4 weeks** of income. Split six
+ways it is **2 points** — under half a week. That is the mechanic: it makes the
+expensive end of the catalogue reachable.
+
+### Open question 1 — why post rather than wait?
+
+As sketched, the costs land only on the poster (barred from attacking that
+target, plus a posting fee) while a contributor gets the same attack at the same
+per-point price with no restrictions. **Contributing strictly dominates
+posting**, so in theory nobody posts.
+
+Candidate fixes:
+
+- **Drop the posting fee**, keep the can't-attack rule. Posting costs optionality,
+  and the poster chooses target and weapon — that is the real perk. *(Recommended:
+  simplest, and agenda-setting is genuinely valuable.)*
+- **Bar contributors too** from attacking that target this week. Symmetric: you
+  helped, you are in.
+- **Poster's contribution counts double** toward the total. A perk rather than a
+  penalty, which flips the incentive.
+
+### Open question 2 — what happens if it does not fill
+
+A Void needs 12 and reaches 7 by week's end.
+
+- Refund everyone in full — encourages lowballing, contributing becomes a free
+  option
+- **Refund minus a small cut** — the §6 listing fee, applied to all contributors
+  *(recommended)*
+- Fire it partially — does not work; there is no half-Void
+
+### Open question 3 — must the poster contribute?
+
+If somebody can post a 12-point Void with 1 point down and let others fund it,
+that is very cheap agenda-setting. Suggest a **minimum of 25% of the cost**.
+
+### Open question 4 — which bet does it hit?
+
+The hardest one, and unresolved. Void, Skim, Grand Theft, Blind Sabotage and
+Switcheroo all target a **specific bet**, but at fire time the target may have
+several open.
+
+- Random among their open bets — fits the "attacks are blind" premise
+- Their biggest — predictable, and the target can game it by never having one big bet
+- The poster names it at post time — but that bet may settle before the bounty fills
+
+Slow Play and Because, Fuck You target a *person* rather than a bet, so they
+sidestep this entirely and would be the easiest to ship first.
+
+### Still to decide
+
+1. Which fix for open question 1
+2. Refund policy for an unfilled bounty
+3. Minimum poster contribution
+4. Bet-selection rule at fire time
+
+---
+
+## 7b. Superseded options
+
+The following were the earlier proposals. Kept for the reasoning, not as live
+plans.
+
+1. **Option A** — a bounty-claimed attack is anonymous on Receipt.
+2. **Unclaimed bounties forfeit 25%** (minimum 1). *Still live: the listing-fee
+   idea carries over to Option D as the unfilled-bounty policy.*
+3. Allow rewards above the boost cost — moot under D, where the price is fixed.
+
+### A rejected idea worth recording: the claim stipend
+
+Considered 11 Sep: pay hunters a recurring per-week bonus that scales with their
+career claim count, so claiming pays off over time.
+
+**Rejected — it compounds.** Modelled over a 14-week season with tiers of
++1/+2/+3/+5 per week:
+
+| Behaviour | Claims | Allowance-side points | vs baseline |
+|---|---:|---:|---:|
+| Never claims | 0 | 70 | — |
+| Claims 1/wk from week 1 | 14 | 110 | +40 |
+| Claims 1/wk from week 7 | 8 | 84 | +14 |
+| Claims 2/wk from week 1 | 28 | 124 | +54 |
+
+A per-week reward keyed to a running total pays early claims over more weeks, so
+whoever notices the mechanic first wins permanently and a latecomer can never
+catch up. It also **decays**: the trade only works while weeks remain, so
+bounties would die exactly when the season matters most.
+
+A flat one-off bonus at claim time, escalating with career claims, fixes both —
+but Option D removes the need for any of it.
 
 ---
 

@@ -12,6 +12,7 @@
  * which is the right answer rather than a special case someone has to remember.
  */
 import { neon } from '@neondatabase/serverless';
+import { testWeek, fundWeek, unfundWeek } from './test-helpers.mjs';
 // identity.js, not auth.js: auth.js imports next/headers for cookie access,
 // which does not resolve outside a Next request.
 import { GUEST_SLUG, isGuestSlug, makeToken, verifyToken } from '../lib/identity.js';
@@ -19,6 +20,8 @@ import { placeBet, placeParlay, getMyBets, getBankrolls } from '../lib/book.js';
 
 const sql = neon(process.env.DATABASE_URL);
 const TEST_SEASON = 9994;
+// Own week, not week 1: week 1 is real and has real money in it.
+const TEST_WEEK = testWeek(TEST_SEASON);
 
 let failed = 0;
 const check = (label, actual, expected) => {
@@ -43,7 +46,7 @@ const rejects = async (label, fn) => {
 async function makeMarket() {
   const [m] = await sql`
     insert into markets (season, week, kind, title, locks_at, status, meta)
-    values (${TEST_SEASON}, 1, 'h2h', ${'GUEST TEST ' + Math.random()},
+    values (${TEST_SEASON}, ${TEST_WEEK}, 'h2h', ${'GUEST TEST ' + Math.random()},
             ${new Date(Date.now() + 86400e3)}, 'open', '{}'::jsonb)
     returning id`;
   await sql`
@@ -60,12 +63,14 @@ async function cleanup() {
     await sql`delete from market_options where market_id = any(${ids})`;
     await sql`delete from markets where id = any(${ids})`;
   }
+  await unfundWeek(TEST_WEEK);
   // Belt and braces: nothing should ever exist under the guest slug.
   await sql`delete from ledger where bettor = ${GUEST_SLUG}`;
   await sql`delete from bets where bettor = ${GUEST_SLUG}`;
 }
 
 await cleanup();
+await fundWeek(TEST_WEEK);
 
 try {
   console.log('\nthe guest is not a manager');

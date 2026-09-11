@@ -7,11 +7,14 @@
  * rules, so each is tested through the data layer directly.
  */
 import { neon } from '@neondatabase/serverless';
+import { testWeek, fundWeek, unfundWeek } from './test-helpers.mjs';
 import { placeBet, settleMarket, visibleBets, getBankrolls, getMyBets } from '../lib/book.js';
-import { payoutCents } from '../lib/odds.js';
+import { payoutCents, MAX_STAKE_CENTS } from '../lib/odds.js';
 
 const sql = neon(process.env.DATABASE_URL);
 const TEST_SEASON = 9999;
+// Own week, not week 1: week 1 is real and has real money in it.
+const TEST_WEEK = testWeek(TEST_SEASON);
 
 let failed = 0;
 const check = (label, actual, expected) => {
@@ -47,7 +50,7 @@ async function makeMarket({ locked = false } = {}) {
   const locksAt = locked ? new Date(Date.now() - 3600e3) : new Date(Date.now() + 86400e3);
   const [m] = await sql`
     insert into markets (season, week, kind, title, locks_at, status, meta)
-    values (${TEST_SEASON}, 1, 'h2h', ${'TEST ' + Math.random()}, ${locksAt}, ${locked ? 'locked' : 'open'}, '{"test":true}'::jsonb)
+    values (${TEST_SEASON}, ${TEST_WEEK}, 'h2h', ${'TEST ' + Math.random()}, ${locksAt}, ${locked ? 'locked' : 'open'}, '{"test":true}'::jsonb)
     returning id`;
   await sql`
     insert into market_options (market_id, option_key, label, odds)
@@ -64,9 +67,13 @@ async function cleanup() {
     await sql`delete from market_options where market_id = any(${ids})`;
     await sql`delete from markets where id = any(${ids})`;
   }
+  await unfundWeek(TEST_WEEK);
   await sql`delete from ledger where bettor = 'test-broke'`;
   await sql`delete from bettors where slug = 'test-broke'`;
 }
+
+await cleanup();
+await fundWeek(TEST_WEEK);
 
 try {
   console.log('\nplacing bets');
@@ -90,7 +97,7 @@ try {
   );
   await rejects(
     'cannot bet over the maximum',
-    () => placeBet({ slug: B, marketId: m1, optionKey: 'home', stakeCents: 30000 }),
+    () => placeBet({ slug: B, marketId: m1, optionKey: 'home', stakeCents: MAX_STAKE_CENTS + 1000 }),
     'maximum',
   );
   await rejects(
@@ -104,13 +111,15 @@ try {
     'no such option',
   );
 
-  // A throwaway bettor with $15 cannot cover $250. Draining a real manager's
+  // A throwaway bettor with $15 cannot cover a big stake. Draining a real manager's
   // bankroll here would corrupt every later assertion.
   await sql`insert into bettors (slug, display_name) values ('test-broke', 'Broke')
             on conflict (slug) do nothing`;
   await sql`delete from ledger where bettor = 'test-broke'`;
-  await sql`insert into ledger (bettor, amount_cents, reason, note)
-            values ('test-broke', 1500, 'seed', 'test')`;
+  // Seeded INTO the test week: money with no week is bank money, which is not
+  // spendable. That distinction is the whole point of the new model.
+  await sql`insert into ledger (bettor, amount_cents, reason, note, week)
+            values ('test-broke', 1500, 'seed', 'test', ${TEST_WEEK})`;
   await rejects(
     'cannot bet more than the bankroll',
     () => placeBet({ slug: 'test-broke', marketId: m1, optionKey: 'home', stakeCents: 25000 }),
@@ -127,7 +136,7 @@ try {
   console.log('\nhidden until lock');
   const m2 = await makeMarket();
   await placeBet({ slug: B, marketId: m2, optionKey: 'away', stakeCents: 2000 });
-  const hidden = await visibleBets(TEST_SEASON, 1);
+  const hidden = await visibleBets(TEST_SEASON, TEST_WEEK);
   check(
     'unlocked bets are invisible to everyone',
     hidden.filter((b) => [m1, m2].includes(Number(b.market_id))).length,
@@ -144,7 +153,7 @@ try {
   // bets on games that had not started.
   await sql`update markets set status = 'locked' where id = ${m2}`;
   // Read back through the same path the app uses, after the write has landed.
-  const shown = await visibleBets(TEST_SEASON, 1);
+  const shown = await visibleBets(TEST_SEASON, TEST_WEEK);
   check(
     'locked bets become public',
     shown.some((b) => Number(b.market_id) === m2),

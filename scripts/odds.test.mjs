@@ -73,8 +73,13 @@ check('negative odds keep the minus', formatOdds(-150), '-150');
 
 console.log('\nlimits');
 check('minimum is $10', MIN_STAKE_CENTS, 1000);
-check('maximum is $250', MAX_STAKE_CENTS, 25000);
-check('max is a quarter of the opening bankroll', MAX_STAKE_CENTS * 4, 100000);
+// The cap is the weekly allowance: $250 was a quarter of the old $1,000
+// season bankroll, and against a $500 week it would have been half in one bet.
+check('maximum is the weekly allowance', MAX_STAKE_CENTS, 50000);
+// There is no opening bankroll any more -- the allowance resets weekly and only
+// profit banks -- so the cap is the allowance itself rather than a fraction of
+// anything.
+check('a minimum bet is a fiftieth of a week', MAX_STAKE_CENTS / MIN_STAKE_CENTS, 50);
 
 console.log(failed ? `\n${failed} check(s) FAILED\n` : '\nall checks passed\n');
 process.exit(failed ? 1 : 0);

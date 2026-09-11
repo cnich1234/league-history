@@ -7,11 +7,14 @@
  * the survivor rather than a whole refund.
  */
 import { neon } from '@neondatabase/serverless';
+import { testWeek, fundWeek, unfundWeek } from './test-helpers.mjs';
 import { placeParlay, settleMarket, getBankrolls, getMyBets, settledBets } from '../lib/book.js';
-import { payoutCents, parlayOdds } from '../lib/odds.js';
+import { payoutCents, parlayOdds, MAX_STAKE_CENTS } from '../lib/odds.js';
 
 const sql = neon(process.env.DATABASE_URL);
 const TEST_SEASON = 9997;
+// Own week, not week 1: week 1 is real and has real money in it.
+const TEST_WEEK = testWeek(TEST_SEASON);
 
 let failed = 0;
 const check = (label, actual, expected) => {
@@ -46,7 +49,7 @@ async function makeMarket({ locked = false, odds = -110 } = {}) {
   const locksAt = locked ? new Date(Date.now() - 3600e3) : new Date(Date.now() + 86400e3);
   const [m] = await sql`
     insert into markets (season, week, kind, title, locks_at, status, meta)
-    values (${TEST_SEASON}, 1, 'h2h', ${'PARLAY TEST ' + Math.random()}, ${locksAt}, ${locked ? 'locked' : 'open'}, '{}'::jsonb)
+    values (${TEST_SEASON}, ${TEST_WEEK}, 'h2h', ${'PARLAY TEST ' + Math.random()}, ${locksAt}, ${locked ? 'locked' : 'open'}, '{}'::jsonb)
     returning id`;
   await sql`
     insert into market_options (market_id, option_key, label, odds)
@@ -70,9 +73,11 @@ async function cleanup() {
     await sql`delete from market_options where market_id = any(${ids})`;
     await sql`delete from markets where id = any(${ids})`;
   }
+  await unfundWeek(TEST_WEEK);
 }
 
 await cleanup();
+await fundWeek(TEST_WEEK);
 
 try {
   console.log('\nplacing');
@@ -155,7 +160,7 @@ try {
     () =>
       placeParlay({
         slug: A,
-        stakeCents: 30000,
+        stakeCents: MAX_STAKE_CENTS + 1000,
         legs: [
           { marketId: m1, optionKey: 'home' },
           { marketId: m2, optionKey: 'home' },

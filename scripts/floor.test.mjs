@@ -8,10 +8,13 @@
  * One was a $250 stake.
  */
 import { neon } from '@neondatabase/serverless';
+import { testWeek, fundWeek, unfundWeek } from './test-helpers.mjs';
 import { placeBet, visibleBets } from '../lib/book.js';
 
 const sql = neon(process.env.DATABASE_URL);
 const TEST_SEASON = 9995;
+// Own week, not week 1: week 1 is real and has real money in it.
+const TEST_WEEK = testWeek(TEST_SEASON);
 const A = 'chris-nicholson';
 
 let failed = 0;
@@ -28,7 +31,7 @@ const check = (label, actual, expected) => {
 async function makeMarket({ live, locked, status = 'open' }) {
   const [m] = await sql`
     insert into markets (season, week, kind, title, locks_at, live, status, meta)
-    values (${TEST_SEASON}, 1, 'h2h', ${'FLOOR TEST ' + Math.random()},
+    values (${TEST_SEASON}, ${TEST_WEEK}, 'h2h', ${'FLOOR TEST ' + Math.random()},
             ${locked ? new Date(Date.now() - 3600e3) : new Date(Date.now() + 86400e3)},
             ${live}, ${status},
             ${JSON.stringify({ homeRoster: 1, awayRoster: 2, homeSlug: 'a', awaySlug: 'b' })}::jsonb)
@@ -47,12 +50,14 @@ async function cleanup() {
     await sql`delete from market_options where market_id = any(${ids})`;
     await sql`delete from markets where id = any(${ids})`;
   }
+  await unfundWeek(TEST_WEEK);
 }
 
 await cleanup();
+await fundWeek(TEST_WEEK);
 
 try {
-  const seen = async () => (await visibleBets(TEST_SEASON, 1)).map((b) => Number(b.market_id));
+  const seen = async () => (await visibleBets(TEST_SEASON, TEST_WEEK)).map((b) => Number(b.market_id));
 
   console.log('\nhidden while bettable');
   const openMarket = await makeMarket({ live: false, locked: false });
@@ -86,7 +91,7 @@ try {
   check('a live market reveals once it closes', (await seen()).includes(liveMarket), true);
 
   console.log('\nnothing bettable is ever shown');
-  const exposed = await visibleBets(TEST_SEASON, 1);
+  const exposed = await visibleBets(TEST_SEASON, TEST_WEEK);
   const ids = exposed.map((b) => Number(b.market_id));
   const stillOpen = ids.length
     ? await sql`select id from markets where id = any(${ids}) and live = true and status = 'open'`

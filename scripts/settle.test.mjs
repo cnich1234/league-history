@@ -7,11 +7,14 @@
  * to unwind than to prevent.
  */
 import { neon } from '@neondatabase/serverless';
+import { testWeek, fundWeek, unfundWeek } from './test-helpers.mjs';
 import { placeBet, settleMarket, getBankrolls } from '../lib/book.js';
 import { payoutCents } from '../lib/odds.js';
 
 const sql = neon(process.env.DATABASE_URL);
 const TEST_SEASON = 9998;
+// Own week, not week 1: week 1 is real and has real money in it.
+const TEST_WEEK = testWeek(TEST_SEASON);
 
 let failed = 0;
 const check = (label, actual, expected) => {
@@ -32,7 +35,7 @@ const balanceOf = async (slug) =>
 async function makeMarket(kind, options, meta = {}) {
   const [m] = await sql`
     insert into markets (season, week, kind, title, locks_at, meta)
-    values (${TEST_SEASON}, 1, ${kind}, ${kind + ' ' + Math.random()},
+    values (${TEST_SEASON}, ${TEST_WEEK}, ${kind}, ${kind + ' ' + Math.random()},
             ${new Date(Date.now() + 86400e3)}, ${JSON.stringify(meta)}::jsonb)
     returning id`;
   for (const [key, odds] of Object.entries(options)) {
@@ -50,9 +53,11 @@ async function cleanup() {
     await sql`delete from market_options where market_id = any(${ids})`;
     await sql`delete from markets where id = any(${ids})`;
   }
+  await unfundWeek(TEST_WEEK);
 }
 
 await cleanup();
+await fundWeek(TEST_WEEK);
 
 try {
   console.log('\nwinners and losers');

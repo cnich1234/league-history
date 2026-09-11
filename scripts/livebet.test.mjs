@@ -7,10 +7,13 @@
  * what I was shown" and used only to reject a stale fill.
  */
 import { neon } from '@neondatabase/serverless';
+import { testWeek, fundWeek, unfundWeek } from './test-helpers.mjs';
 import { placeBet, placeParlay, getBankrolls } from '../lib/book.js';
 
 const sql = neon(process.env.DATABASE_URL);
 const TEST_SEASON = 9996;
+// Own week, not week 1: week 1 is real and has real money in it.
+const TEST_WEEK = testWeek(TEST_SEASON);
 
 let failed = 0;
 const check = (label, actual, expected) => {
@@ -44,7 +47,7 @@ const A = 'chris-nicholson';
 async function makeMarket({ live, locked, status = 'open' }) {
   const [m] = await sql`
     insert into markets (season, week, kind, title, locks_at, live, status, meta)
-    values (${TEST_SEASON}, 1, 'h2h', ${'LIVE TEST ' + Math.random()},
+    values (${TEST_SEASON}, ${TEST_WEEK}, 'h2h', ${'LIVE TEST ' + Math.random()},
             ${locked ? new Date(Date.now() - 3600e3) : new Date(Date.now() + 86400e3)},
             ${live}, ${status},
             ${JSON.stringify({ homeRoster: 1, awayRoster: 2, homeSlug: 'a', awaySlug: 'b' })}::jsonb)
@@ -64,9 +67,11 @@ async function cleanup() {
     await sql`delete from market_options where market_id = any(${ids})`;
     await sql`delete from markets where id = any(${ids})`;
   }
+  await unfundWeek(TEST_WEEK);
 }
 
 await cleanup();
+await fundWeek(TEST_WEEK);
 
 try {
   console.log('\npregame is unchanged');

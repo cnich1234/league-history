@@ -26,8 +26,11 @@ check('75% is the last full-limit point', maxLiveStake(0.75), MAX_STAKE_CENTS);
 
 console.log('\ntapering');
 check('80% is reduced', maxLiveStake(0.8) < MAX_STAKE_CENTS, true);
-check('85% is roughly half', Math.abs(maxLiveStake(0.85) - 9000) < 1000, true);
-check('88% is small', maxLiveStake(0.88) < 5000, true);
+// Expressed as fractions of the cap rather than dollars: the taper scales from
+// MAX_STAKE_CENTS, so hardcoded amounts silently doubled when the cap moved
+// from $250 to the $500 weekly allowance.
+check('85% is roughly a third', Math.abs(maxLiveStake(0.85) / MAX_STAKE_CENTS - 0.36) < 0.06, true);
+check('88% is under a fifth', maxLiveStake(0.88) / MAX_STAKE_CENTS < 0.2, true);
 check('at the threshold it is the minimum', maxLiveStake(0.9), MIN_STAKE_CENTS);
 check('past the threshold stays at the minimum', maxLiveStake(0.97), MIN_STAKE_CENTS);
 

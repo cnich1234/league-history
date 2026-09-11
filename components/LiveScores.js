@@ -17,6 +17,9 @@ const POLL_MS = 60_000;
 export default function LiveScores({ owners, players, season = [] }) {
   const [state, setState] = useState({ status: 'loading' });
   const [updated, setUpdated] = useState(null);
+  // Spendable point balances, which this page cannot compute for itself: it
+  // prerenders, and these change whenever anyone buys a boost.
+  const [balances, setBalances] = useState({});
 
   const load = useCallback(async () => {
     try {
@@ -137,6 +140,23 @@ export default function LiveScores({ owners, players, season = [] }) {
     return () => clearInterval(id);
   }, [load]);
 
+  // Balances change when someone buys, not when a game scores, so this is
+  // fetched once rather than joining the minute poll. A failure leaves the
+  // column showing dashes, which is honest -- better than a wrong zero.
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/points')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (cancelled || !data?.balances) return;
+        setBalances(Object.fromEntries(data.balances.map((b) => [b.slug, b.points])));
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   if (state.status === 'loading') return <div className="empty">Loading live scores…</div>;
   if (state.status === 'error') {
     return <div className="empty">Could not reach Sleeper. {state.message}</div>;
@@ -148,10 +168,10 @@ export default function LiveScores({ owners, players, season = [] }) {
   const ranked = Object.entries(state.totals).sort((a, b) => b[1] - a[1]);
   const nameOf = (slug) => state.teams.find((t) => t.slug === slug)?.name ?? slug;
 
-  // Points banked in previous weeks, which is a different number from the
-  // projected total above: that one is this week and still moving.
-  const bySlug = Object.fromEntries(season.map((r) => [r.slug, r.points]));
-  const seasonPoints = (slug) => (slug && bySlug[slug] != null ? bySlug[slug] : 0);
+  // What each manager can actually SPEND, which is not the same as what they
+  // have earned: buying a boost takes points out. Null until the fetch lands,
+  // so the column shows a dash rather than a wrong zero.
+  const pointsFor = (slug) => (slug && balances[slug] != null ? balances[slug] : null);
 
   return (
     <>
@@ -184,7 +204,7 @@ export default function LiveScores({ owners, players, season = [] }) {
 
       <div className="section-head" style={{ marginTop: 18 }}>
         <h2>Scoreboard</h2>
-        <span className="dim">points earned</span>
+        <span className="dim">points to spend</span>
       </div>
       <div className="rows">
         {state.games.map((g, i) => {
@@ -201,7 +221,7 @@ export default function LiveScores({ owners, players, season = [] }) {
                 <div key={side.slug ?? side.name} className="scoreline-row">
                   <span className="scoreline-name">{side.name}</span>
                   <span className="scoreline-score">{side.points}</span>
-                  <span className="scoreline-season">{seasonPoints(side.slug)}</span>
+                  <span className="scoreline-season">{pointsFor(side.slug) ?? '—'}</span>
                 </div>
               ))}
             </div>

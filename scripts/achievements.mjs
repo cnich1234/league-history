@@ -87,9 +87,13 @@ export const ACHIEVEMENTS = [
       .map((g) => ({ slug: g.loserSlug, detail: `lost by ${g.margin.toFixed(2)}` })),
   },
   {
-    id: 'beat-projection', name: 'Overachiever', icon: '🚀', points: 2,
+    id: 'beat-projection', name: 'Overachiever', icon: '🚀', points: 1,
     category: CATEGORIES.PAIN,
     blurb: 'Scored more than you were projected to. A bad team does this as often as a good one.',
+    // One point, not two. This and beat-spread both fire about half of all
+    // weeks, so at 2 each they were 35% of every point earned in the league --
+    // two near-duplicate awards ("you did better than expected") drowning out
+    // everything else. At 1 they read as the participation bonuses they are.
     // Deliberately uncorrelated with the standings: it compares you to your own
     // expectation rather than to the league, so it is a genuine floor for
     // someone having a terrible season.
@@ -101,7 +105,7 @@ export const ACHIEVEMENTS = [
       })),
   },
   {
-    id: 'beat-spread', name: 'Beat the Spread', icon: '⚖️', points: 2,
+    id: 'beat-spread', name: 'Beat the Spread', icon: '⚖️', points: 1,
     category: CATEGORIES.PAIN,
     blurb: 'Did better than the projected margin -- win or lose.',
     // The best of the consolation awards, because losing does not disqualify

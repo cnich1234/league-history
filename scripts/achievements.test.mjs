@@ -20,11 +20,15 @@ const run = (id, ctx) => byId[id].compute(ctx).map((r) => r.slug).sort();
 
 // Five teams. Scores chosen so the median sits between b and c.
 const teams = [
-  { slug: 'a', points: 150, benchPoints: 10, winStreak: 2, worstBenchMistake: { benched: 'X', benchedPoints: 20, started: 'Y', startedPoints: 5, swing: 15 } },
-  { slug: 'b', points: 120, benchPoints: 3, winStreak: 0, worstBenchMistake: null },
-  { slug: 'c', points: 100, benchPoints: 40, winStreak: 0, worstBenchMistake: { benched: 'Z', benchedPoints: 30, started: 'W', startedPoints: 2, swing: 28 } },
-  { slug: 'd', points: 90, benchPoints: 25, winStreak: 0, worstBenchMistake: null },
-  { slug: 'e', points: 80, benchPoints: 5, winStreak: 3, worstBenchMistake: null },
+  // `missedPoints` is what the lineup award reads now -- points left by players
+  // who actually PLAYED. `benchPoints` is kept because other things display it,
+  // and team 'b' deliberately has a big raw bench but a perfect lineup, which
+  // is exactly the case the old award got wrong.
+  { slug: 'a', points: 150, benchPoints: 10, missedPoints: 12, projected: 140, winStreak: 2 },
+  { slug: 'b', points: 120, benchPoints: 40, missedPoints: 0, projected: 130, winStreak: 0 },
+  { slug: 'c', points: 100, benchPoints: 40, missedPoints: 28, projected: 95, winStreak: 0 },
+  { slug: 'd', points: 90, benchPoints: 25, missedPoints: 4, projected: 110, winStreak: 0 },
+  { slug: 'e', points: 80, benchPoints: 5, missedPoints: 9, projected: 100, winStreak: 3 },
 ];
 
 const games = [
@@ -49,11 +53,20 @@ check('high score is the top scorer', run('top-score', ctx), ['a']);
 check('beat-the-median excludes an exact median score', run('above-median', ctx), ['a', 'b']);
 check('biggest margin', run('biggest-margin', ctx), ['a']);
 check('player of the week is highest scorer at any position', run('top-player', ctx), ['c']);
-check('manager of the week left fewest bench points', run('manager-of-week', ctx), ['b']);
+check('manager of the week missed the fewest startable points', run('manager-of-week', ctx), ['b']);
+// The bug the rewrite fixed: 'b' has the BIGGEST raw bench (40) and still wins,
+// because none of it could have been started. The old award would have given
+// this to 'e' for having a thin bench.
+check('a big bench does not lose it', byId['manager-of-week'].compute(ctx)[0].slug, 'b');
 
 console.log('\npain achievements');
 check('low score', run('low-score', ctx), ['e']);
-check('worst bench call is the biggest swing', run('worst-bench', ctx), ['c']);
+check('and low score is now a consolation, not a fine', byId['low-score'].points > 0, true);
+// 'worst-bench' was removed: it punished a bad start/sit call, and nothing in
+// the list is negative any more.
+check('no punishment awards remain', ACHIEVEMENTS.filter((a) => a.points < 0), []);
+check('and the punishment award is gone', byId['worst-bench'], undefined);
+check('beating your own projection pays', run('beat-projection', ctx), ['a', 'c']);
 check('unluckiest is the highest-scoring loser', run('unluckiest', ctx), ['c']);
 
 console.log('\nbonus achievements');
@@ -70,18 +83,33 @@ console.log('\nties and edge cases');
 const tied = {
   ...ctx,
   teams: [
-    { slug: 'a', points: 150, benchPoints: 10, winStreak: 0, worstBenchMistake: null },
-    { slug: 'b', points: 150, benchPoints: 10, winStreak: 0, worstBenchMistake: null },
+    { slug: 'a', points: 150, benchPoints: 10, missedPoints: 10, projected: 140, winStreak: 0 },
+    { slug: 'b', points: 150, benchPoints: 10, missedPoints: 10, projected: 140, winStreak: 0 },
   ],
 };
 check('a tie awards everyone tied', run('top-score', tied), ['a', 'b']);
-check('no bench mistakes yields no award', run('worst-bench', { ...ctx, teams: teams.map((t) => ({ ...t, worstBenchMistake: null })) }), []);
+// A missing projection must not read as zero -- that would award everyone.
+check(
+  'no projection means no winner',
+  run('beat-projection', { ...ctx, teams: teams.map((t) => ({ ...t, projected: null })) }),
+  [],
+);
 check('empty starters yields no player award', run('top-player', { ...ctx, allStarters: [] }), []);
 check('no position match yields no award', run('top-qb', { ...ctx, allStarters: allStarters.filter((p) => p.position !== 'QB') }), []);
 
 console.log('\npoint values');
 check('lineup decision outranks raw high score', byId['manager-of-week'].points > byId['top-score'].points, true);
-check('pain awards are negative', ACHIEVEMENTS.filter((a) => a.category === 'pain' && a.points > 0).map((a) => a.id), ['unluckiest']);
+// Inverted deliberately. Points buy boosts now, so docking the manager already
+// losing on the field would compound a bad season into a bad season with
+// nothing to do about it. The 'pain' category pays consolation instead.
+check('every pain award pays something', ACHIEVEMENTS.filter((a) => a.category === 'pain' && a.points <= 0).map((a) => a.id), []);
+// The floor that matters: someone who loses badly still collects. A team that
+// lost, scored the league low, kept it close and beat the spread earns four.
+check(
+  'a losing team can still earn from four awards',
+  ['low-score', 'unluckiest', 'close-loss', 'beat-spread'].every((id) => byId[id]?.points > 0),
+  true,
+);
 check('every achievement has a unique id', new Set(ACHIEVEMENTS.map((a) => a.id)).size, ACHIEVEMENTS.length);
 
 console.log(failed ? `\n${failed} check(s) FAILED\n` : '\nall checks passed\n');

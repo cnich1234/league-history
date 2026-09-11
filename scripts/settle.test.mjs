@@ -12,6 +12,12 @@ import { placeBet, settleMarket, getBankrolls } from '../lib/book.js';
 import { payoutCents } from '../lib/odds.js';
 
 const sql = neon(process.env.DATABASE_URL);
+
+// Profit that survived a win. The stake is always consumed.
+const bankOf = async (slug) => {
+  const [r] = await sql`select bank_cents from banks where slug = ${slug}`;
+  return Number(r?.bank_cents ?? 0);
+};
 const TEST_SEASON = 9998;
 // Own week, not week 1: week 1 is real and has real money in it.
 const TEST_WEEK = testWeek(TEST_SEASON);
@@ -64,12 +70,13 @@ try {
   const m1 = await makeMarket('h2h', { home: -150, away: 130 });
   await placeBet({ slug: A, marketId: m1, optionKey: 'home', stakeCents: 5000 });
   await placeBet({ slug: B, marketId: m1, optionKey: 'away', stakeCents: 5000 });
-  const aBefore = await balanceOf(A);
-  const bBefore = await balanceOf(B);
+  const aBefore = await bankOf(A);
+  const bBefore = await bankOf(B);
   const r1 = await settleMarket(m1, 'home');
   check('both bets settled', r1.settled, 2);
-  check('winner paid stake plus profit', (await balanceOf(A)) - aBefore, payoutCents(5000, -150));
-  check('loser paid nothing', (await balanceOf(B)) - bBefore, 0);
+  // Profit only: the stake is consumed by the bet either way.
+  check('winner banks the profit', (await bankOf(A)) - aBefore, payoutCents(5000, -150) - 5000);
+  check('loser banks nothing', (await bankOf(B)) - bBefore, 0);
   check('only the winner was paid', r1.paidCents, payoutCents(5000, -150));
 
   console.log('\npush refunds');

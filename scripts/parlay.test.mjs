@@ -12,6 +12,12 @@ import { placeParlay, settleMarket, getBankrolls, getMyBets, settledBets } from 
 import { payoutCents, parlayOdds, MAX_STAKE_CENTS } from '../lib/odds.js';
 
 const sql = neon(process.env.DATABASE_URL);
+
+// Profit that survived a win. The stake is always consumed.
+const bankOf = async (slug) => {
+  const [r] = await sql`select bank_cents from banks where slug = ${slug}`;
+  return Number(r?.bank_cents ?? 0);
+};
 const TEST_SEASON = 9997;
 // Own week, not week 1: week 1 is real and has real money in it.
 const TEST_WEEK = testWeek(TEST_SEASON);
@@ -192,12 +198,13 @@ try {
       { marketId: w2, optionKey: 'home' },
     ],
   });
-  const beforeWin = await balanceOf(A);
+  const beforeWin = await bankOf(A);
   await settleMarket(w1, 'home');
-  check('not paid until every leg is in', await balanceOf(A), beforeWin);
+  check('not paid until every leg is in', await bankOf(A), beforeWin);
   await settleMarket(w2, 'home');
   const expectedPayout = payoutCents(4000, parlayOdds([-110, -110]));
-  check('paid the combined price', (await balanceOf(A)) - beforeWin, expectedPayout);
+  // Profit only banks; the stake is consumed like any other bet.
+  check('banks the combined profit', (await bankOf(A)) - beforeWin, expectedPayout - 4000);
   const [wonBet] = await sql`select status, payout_cents from bets where id = ${winner.id}`;
   check('marked won', wonBet.status, 'won');
   check('payout stored', Number(wonBet.payout_cents), expectedPayout);
@@ -213,7 +220,7 @@ try {
       { marketId: v2, optionKey: 'home' },
     ],
   });
-  const beforeMixed = await balanceOf(A);
+  const beforeMixed = await bankOf(A);
   await settleMarket(v1, 'home'); // wins
   await settleMarket(v2, 'void'); // drops out
   const [mixedBet] = await sql`select status, payout_cents, parlay_odds from bets where id = ${mixed.id}`;
@@ -221,7 +228,7 @@ try {
   // With one leg gone this is a straight bet on the survivor, priced at its own
   // odds rather than the original two-leg price.
   check('re-priced to the surviving leg', mixedBet.parlay_odds, -110);
-  check('paid as a single -110 bet', (await balanceOf(A)) - beforeMixed, payoutCents(3000, -110));
+  check('paid as a single -110 bet', (await bankOf(A)) - beforeMixed, payoutCents(3000, -110) - 3000);
 
   console.log('\nledger integrity');
   const mismatched = await sql`

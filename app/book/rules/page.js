@@ -34,6 +34,21 @@ export default function RulesPage() {
             been hit by someone.
           </p>
 
+          <h2>The money</h2>
+          <p>
+            <strong>$500 a week.</strong> It does not carry over — whatever is left when
+            the week closes is gone.
+          </p>
+          <p>
+            What survives is <strong>profit</strong>, which banks permanently. Win a $100
+            bet at +200 and $200 goes in the bank. The <strong>stake is always
+            consumed</strong>, win or lose. Most in the bank at the end of the season wins.
+          </p>
+          <p>
+            The exception is a push or a void — a tie, or a prop on someone who never
+            played. Those never really resolved, so the stake comes back into that week.
+          </p>
+
           <h2>Points and the store</h2>
           <p>
             Everything you do in the Trophy Room feeds The Book. Weekly achievements pay{' '}

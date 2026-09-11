@@ -151,16 +151,17 @@ try {
     const victimBefore = await bankOf(B);
     await settleMarket(m3, 'home');
 
-    const profit = payoutCents(20000, 200) - 20000;
-    check('the thief banks the winnings', (await bankOf(A)) - thiefBefore, profit);
+    const full = payoutCents(20000, 200);
+    check('the thief banks the WHOLE payout', (await bankOf(A)) - thiefBefore, full);
     check('and the victim banks nothing', (await bankOf(B)) - victimBefore, 0);
 
-    // They are not robbed of the stake -- they paid it, and the boost takes the
-    // upside rather than the whole wager.
-    const [ret] = await sql`
-      select amount_cents from ledger
-      where bet_id = ${mark.id} and reason = 'stake-return'`;
-    check('but does get the stake back', Number(ret?.amount_cents ?? 0), 20000);
+    // Not even the stake. Returning it would be a gesture rather than mercy:
+    // settlement runs after the week has rolled, so a returned stake lands in a
+    // week whose allowance has already reset and nobody can spend it.
+    const returned = await sql`
+      select id from ledger where bet_id = ${mark.id} and reason = 'stake-return'`;
+    check('the stake is not returned', returned.length, 0);
+    check('the thief got more than the profit', full > payoutCents(20000, 200) - 20000, true);
   }
 
   console.log('\nInsurance blocks a theft');

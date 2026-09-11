@@ -8,7 +8,14 @@
  */
 import { neon } from '@neondatabase/serverless';
 import { testWeek, fundWeek, unfundWeek } from './test-helpers.mjs';
-import { placeBet, settleMarket, visibleBets, getBankrolls, getMyBets } from '../lib/book.js';
+import {
+  placeBet,
+  settleMarket,
+  visibleBets,
+  getBankrolls,
+  getMyBets,
+  weeklyBalance,
+} from '../lib/book.js';
 import { payoutCents, MAX_STAKE_CENTS } from '../lib/odds.js';
 
 const sql = neon(process.env.DATABASE_URL);
@@ -45,6 +52,13 @@ const A = 'chris-nicholson';
 const B = 'chad-rissland';
 const balanceOf = async (slug) =>
   Number((await getBankrolls()).find((r) => r.slug === slug).balance_cents);
+
+// What actually survives a win now: profit into the bank. The stake is
+// consumed, won or lost.
+const bankOf = async (slug) => {
+  const [r] = await sql`select bank_cents from banks where slug = ${slug}`;
+  return Number(r?.bank_cents ?? 0);
+};
 
 async function makeMarket({ locked = false } = {}) {
   const locksAt = locked ? new Date(Date.now() - 3600e3) : new Date(Date.now() + 86400e3);
@@ -161,28 +175,33 @@ try {
   );
 
   console.log('\nsettlement');
-  const winBefore = await balanceOf(A);
+  const winBefore = await bankOf(A);
   const result = await settleMarket(m1, 'home');
   check('one bet settled', result.settled, 1);
   check('payout matches the odds', result.paidCents, payoutCents(5000, -150));
+  // Only the PROFIT banks. The stake is gone whether the bet won or lost --
+  // returning it to the week it came from was pointless, because settlement
+  // runs after that week has locked.
   check(
-    'winner credited stake plus profit',
-    (await balanceOf(A)) - winBefore,
-    payoutCents(5000, -150),
+    'winner banks the profit, not the stake',
+    (await bankOf(A)) - winBefore,
+    payoutCents(5000, -150) - 5000,
   );
   await rejects('cannot settle twice', () => settleMarket(m1, 'home'), 'already settled');
 
   const m3 = await makeMarket();
   await placeBet({ slug: A, marketId: m3, optionKey: 'away', stakeCents: 3000 });
-  const lossBefore = await balanceOf(A);
+  const lossBefore = await bankOf(A);
   await settleMarket(m3, 'home');
-  check('loser gets nothing back', await balanceOf(A), lossBefore);
+  check('loser banks nothing', await bankOf(A), lossBefore);
 
   const m4 = await makeMarket();
   await placeBet({ slug: A, marketId: m4, optionKey: 'home', stakeCents: 4000 });
-  const pushBefore = await balanceOf(A);
+  // A push is the exception: the bet never really resolved, so the stake does
+  // come back rather than being consumed.
+  const pushWeekBefore = await weeklyBalance(A, TEST_WEEK);
   await settleMarket(m4, 'push');
-  check('push refunds the stake', (await balanceOf(A)) - pushBefore, 4000);
+  check('push refunds the stake', (await weeklyBalance(A, TEST_WEEK)) - pushWeekBefore, 4000);
 
   console.log('\nledger integrity');
   const [{ sum }] = await sql`

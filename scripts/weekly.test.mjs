@@ -130,7 +130,10 @@ try {
     const expectedProfit = expectedPayout - 20000;
 
     check('the profit banked', (await bankOf(A)) - bankBefore, expectedProfit);
-    check('and the stake came back to its week', (await weeklyBalance(A, 901)) - weekBefore, 20000);
+    // The stake is gone, won or lost. Returning it to the week it came from
+    // looked fair and was pointless: settlement runs after the week has rolled,
+    // so that money could never be spent.
+    check('the stake is consumed', (await weeklyBalance(A, 901)) - weekBefore, 0);
     // The whole point: banking the full return would have been 40000.
     check('the full return did NOT bank', (await bankOf(A)) - bankBefore !== expectedPayout, true);
   }
@@ -159,6 +162,8 @@ try {
     await placeBet({ slug: A, marketId: m4, optionKey: 'home', stakeCents: 10000 });
     await settleMarket(m4, 'push');
     check('nothing banked', await bankOf(A), bankBefore);
+    // A refund is the exception: a pushed bet never really happened, so the
+    // stake genuinely does come back rather than being consumed.
     check('and the week is whole again', await weeklyBalance(A, 902), weekBefore);
   }
 

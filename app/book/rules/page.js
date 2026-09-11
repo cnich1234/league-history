@@ -63,6 +63,31 @@ export default function RulesPage() {
             Completely blind, so it is as likely to rescue a dead bet as to kill a winner.
           </p>
 
+          <h2>Putting points on someone</h2>
+          <p>
+            A <strong>🎯 Bounty</strong> is the one thing here that is not a boost. It buys
+            you nothing. It pays somebody <em>else</em> to do the hitting: you name a
+            target, name the weapon, and name the reward, and the first person to land
+            exactly that attack on exactly that person collects.
+          </p>
+          <p>
+            The weapon is <strong>named</strong>. A Void bounty pays for a Void — skimming
+            them instead earns nothing, and the boost is still spent. That is the whole
+            constraint: it makes a bounty a request rather than a tip for whatever someone
+            was going to do anyway.
+          </p>
+          <p>
+            The points <strong>leave your balance the moment you post</strong>, so an
+            advertised reward is always real. You cannot collect your own. If nobody takes
+            it by the end of the week it is refunded — nobody did the thing you asked for.
+          </p>
+          <p>
+            It is <strong>public and loud</strong>, on The Action. That is the point: the
+            target knows to buy Insurance, and everyone else knows there are points sitting
+            on the table. A bounty on a mirrored bet still rebounds, and the claimer
+            collects nothing.
+          </p>
+
           <h2>Defending yourself</h2>
           <p>
             <strong>🛡️ Insurance (4)</strong> absorbs a hit — a shielded bet ignores every

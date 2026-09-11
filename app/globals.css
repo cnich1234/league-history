@@ -1296,6 +1296,69 @@ tbody tr:last-child td {
   text-decoration: line-through;
 }
 
+/* Bounties. Deliberately the loudest thing on the page -- the whole value is
+   that everyone sees it, target included. */
+.bounty-list {
+  display: grid;
+  gap: 9px;
+  margin-bottom: 12px;
+}
+
+.bounty-alert {
+  padding: 13px 15px;
+  border-radius: var(--radius);
+  background: rgba(255, 92, 92, 0.1);
+  border: 1px solid rgba(255, 92, 92, 0.4);
+}
+
+.bounty-head {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  color: var(--negative);
+  margin-bottom: 6px;
+}
+
+.bounty-body {
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.bounty-reward {
+  color: var(--gold);
+}
+
+.bounty-poster {
+  font-size: 11.5px;
+  margin-top: 6px;
+}
+
+.bounty-pill {
+  background: rgba(255, 92, 92, 0.16);
+  color: var(--negative);
+}
+
+.bounty-post {
+  width: 100%;
+  padding: 11px;
+  border-radius: 10px;
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.bounty-form {
+  display: grid;
+  gap: 9px;
+  padding: 14px;
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
 /* ---------- Store and boosts ---------- */
 
 .points-card {

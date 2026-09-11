@@ -1,9 +1,11 @@
 import { currentBettor, isGuestSlug } from '@/lib/auth';
 import { attackableBets } from '@/lib/book';
-import { getInventory } from '@/lib/shop';
+import { getInventory, openBounties, getPoints } from '@/lib/shop';
+import { listBettors } from '@/lib/auth';
 import { byKind, BOOSTS } from '@/lib/boosts';
 import { formatMoney, formatOdds, payoutCents } from '@/lib/odds';
 import AttackButton from '@/components/AttackButton';
+import BountyBoard from '@/components/BountyBoard';
 
 export const metadata = { title: 'The Action' };
 export const dynamic = 'force-dynamic';
@@ -33,10 +35,21 @@ export default async function ActionPage() {
   }
 
   const guest = isGuestSlug(slug);
-  const [bets, inventory] = await Promise.all([
+  const [bets, inventory, bounties, managers, points] = await Promise.all([
     attackableBets(SEASON, WEEK),
     guest ? [] : getInventory(slug, SEASON),
+    openBounties(SEASON, WEEK),
+    listBettors(),
+    guest ? 0 : getPoints(slug, SEASON),
   ]);
+
+  // Bounties name a weapon, so the board needs the boost's display name.
+  const named = bounties.map((b) => ({
+    ...b,
+    weaponName: byKind[b.weapon]?.name ?? b.weapon,
+  }));
+  const bountyByTarget = {};
+  for (const b of named) (bountyByTarget[b.target] ??= []).push(b);
 
   // Attacks you own and could fire right now.
   const attacks = inventory
@@ -80,6 +93,16 @@ export default async function ActionPage() {
         )}
       </section>
 
+      {!guest && (
+        <BountyBoard
+          bounties={named}
+          managers={managers.filter((m) => m.slug !== slug)}
+          attacks={catalogue}
+          points={points}
+          week={WEEK}
+        />
+      )}
+
       <section className="section">
         <div className="section-head">
           <h2>Open bets</h2>
@@ -102,6 +125,11 @@ export default async function ActionPage() {
                       {b.is_parlay && (
                         <span className="dim"> · {b.leg_count}-leg parlay</span>
                       )}
+                      {(bountyByTarget[b.bettor] ?? []).map((x) => (
+                        <span key={x.id} className="pill bounty-pill" style={{ marginLeft: 6 }}>
+                          🎯 {x.reward_points}pt
+                        </span>
+                      ))}
                       {b.shielded > 0 && <span className="pill" style={{ marginLeft: 6 }}>🛡️</span>}
                       {b.attacked > 0 && <span className="pill" style={{ marginLeft: 4 }}>🎯</span>}
                     </span>

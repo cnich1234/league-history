@@ -87,6 +87,16 @@ export async function GET(request) {
       log.push(`scoring skipped: ${e.message}`);
     }
 
+    // Refund bounties nobody collected. Not forfeit -- nobody did the thing
+    // that was asked for, so the points go home.
+    try {
+      const { expireBounties } = await import('@/lib/shop');
+      const expired = await expireBounties(season, Math.max(1, week - 1));
+      if (expired) log.push(`refunded ${expired} unclaimed bounty(s)`);
+    } catch (e) {
+      log.push(`bounty expiry skipped: ${e.message}`);
+    }
+
     // Build the current week's board if it does not exist yet.
     const { buildWeek } = await import('@/lib/cron');
     const built = await buildWeek(sql, season, week);

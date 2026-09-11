@@ -210,17 +210,21 @@ console.log('\nThe Void negates rather than scales');
 
 console.log('\ncoming-soon boosts are marked, not sellable');
 {
-  const soon = BOOSTS.filter((b) => b.comingSoon);
-  check('three are placeholders', soon.length, 3);
-  check('all of them are attacks', soon.every((b) => b.attack), true);
-  // They all target a specific bet or bettor, which is exactly why they wait:
-  // naming a target would reveal a position.
+  // Nothing is a placeholder any more. The attack board solved the problem that
+  // held them back: it shows who bet, how much and at what price, but never
+  // which market or which side, so an attack can name a target without
+  // revealing a position.
+  check('everything is buyable', BOOSTS.filter((b) => b.comingSoon), []);
+  const attacks = BOOSTS.filter((b) => b.attack);
+  check('five attacks', attacks.length, 5);
+  // They are gambles now -- you cannot see what you are hitting -- so every one
+  // of them costs less than the dearest thing you can buy for yourself.
+  const dearestSelfish = Math.max(...BOOSTS.filter((b) => !b.attack).map((b) => b.cost));
   check(
-    'and all need to know whose bet they hit',
-    soon.every((b) => b.target === 'bet' || b.target === 'bettor'),
+    'and all cost less than the dearest non-attack',
+    attacks.every((b) => b.cost < dearestSelfish),
     true,
   );
-  check('the buyable ones are not marked', BOOSTS.filter((b) => !b.comingSoon).length, 7);
 
   // Grand Theft and The Void would otherwise be the same boost, with theft
   // strictly better -- same damage, plus you collect. What separates them is

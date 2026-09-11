@@ -46,7 +46,8 @@
     "test:shop": "node --env-file=.env.local scripts/shop.test.mjs",
     "sim:points": "node scripts/sim-points.mjs",
     "test:bye": "node scripts/bye.test.mjs",
-    "test:weekly": "node --env-file=.env.local scripts/weekly.test.mjs"
+    "test:weekly": "node --env-file=.env.local scripts/weekly.test.mjs",
+    "test:attack": "node --env-file=.env.local scripts/attack.test.mjs"
   },
   "dependencies": {
     "@neon/config": "^1.3.2",

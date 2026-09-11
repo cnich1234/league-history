@@ -1212,6 +1212,27 @@ tbody tr:last-child td {
   margin-bottom: 2px;
 }
 
+/* The attack board. Shows the money on every open bet and never the pick. */
+.attack-arsenal {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 0 2px;
+}
+
+.attack-btn {
+  flex-shrink: 0;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 92, 92, 0.35);
+  background: rgba(255, 92, 92, 0.1);
+  color: var(--negative);
+  font-size: 12.5px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+}
+
 /* ---------- Store and boosts ---------- */
 
 .points-card {

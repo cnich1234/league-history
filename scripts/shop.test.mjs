@@ -249,12 +249,11 @@ try {
       await consumeOddsBoost({ slug: A, season: TEST_SEASON, odds: 200 }), null);
   }
 
-  console.log('\ncoming-soon boosts cannot be bought');
-  await rejects(
-    'refused at the data layer, not just greyed in the shop',
-    () => buyBoost({ slug: A, season: TEST_SEASON, kind: 'steal' }),
-    'not available yet',
-  );
+  console.log('\nattacks are buyable now, and targetable');
+  // They were refused while the visibility question was open. The attack board
+  // settled it: money is public, picks are not.
+  const theft = await buyBoost({ slug: A, season: TEST_SEASON, kind: 'steal' });
+  check('Grand Theft can be bought', theft.kind, 'steal');
 
   console.log('\nledger integrity');
   const balances = await getPointBalances(TEST_SEASON);

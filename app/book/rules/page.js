@@ -14,6 +14,26 @@ export default function RulesPage() {
             <strong>$200</strong> in real money.
           </p>
 
+          <h2>The Action</h2>
+          <p>
+            Every open bet in the league, live as soon as it is placed. You see{' '}
+            <strong>who bet, how much, at what price and what it pays</strong> — and never
+            what they backed.
+          </p>
+          <p>
+            That is deliberate. A $250 bet at +600 is obviously the one worth hitting, but
+            knowing it exists tells you nothing about which side it is on, so there is
+            still no copying.
+          </p>
+          <p>
+            It is also why <strong>attacks are cheap</strong>. You are guessing. Steal a bet
+            that turns out to be a loser and the points bought you nothing at all.
+          </p>
+          <p>
+            A bet showing 🛡️ is insured and cannot be touched. One showing 🎯 has already
+            been hit by someone.
+          </p>
+
           <h2>Points and the store</h2>
           <p>
             Everything you do in the Trophy Room feeds The Book. Weekly achievements pay{' '}

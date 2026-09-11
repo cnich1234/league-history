@@ -155,6 +155,30 @@ with points on the board as finished.
 > is. Believing the flag locked six props early and put a bet on The Floor
 > before a ball was thrown.
 
+### Bye weeks
+
+Byes begin in **week 5** and take four or five teams out at a time, so for most
+of the season several starters in the league have no game.
+
+Two bugs met here and compounded. `projections[id] ?? 9` invented nine points
+for anyone missing from the projections map — which a bye player usually is —
+and `fractionRemaining(undefined)` returns 1, because an unknown game is treated
+as _not yet kicked off_ rather than as no game at all. A bye starter therefore
+contributed a full nine points of "still to come" that could never arrive.
+
+The damage was not cosmetic. A lineup ten points down late in the week with two
+bye starters priced at **73% to win instead of 10%**, and the market stayed open
+because the model believed eighteen points were coming.
+
+A starter whose team has no game this week now contributes nothing. A player
+with no _identifiable_ team still gets the placeholder — that is ignorance, not
+evidence of a bye, and dropping them would understate a lineup that does have
+people playing.
+
+The same fallback existed in market generation (`projectPlayer` in `lib/cron.js`
+fell through to `BASELINE`), inflating any total or spread a resting player
+touched. Fixed the same way, from `gameDates`.
+
 ### When a market suspends
 
 `shouldSuspend(probability, remainingShare)` — two triggers, either closes it:

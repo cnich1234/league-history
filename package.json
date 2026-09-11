@@ -44,7 +44,8 @@
     "test:showdown": "node scripts/showdown.test.mjs",
     "test:boosts": "node scripts/boosts.test.mjs",
     "test:shop": "node --env-file=.env.local scripts/shop.test.mjs",
-    "sim:points": "node scripts/sim-points.mjs"
+    "sim:points": "node scripts/sim-points.mjs",
+    "test:bye": "node scripts/bye.test.mjs"
   },
   "dependencies": {
     "@neon/config": "^1.3.2",

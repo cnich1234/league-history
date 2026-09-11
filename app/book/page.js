@@ -9,6 +9,8 @@ import {
   groupByMatchup,
   parlayLegsFor,
   weeksWithMarkets,
+  weeklyBalance,
+  getBanks,
 } from '@/lib/book';
 import { formatMoney, formatOdds } from '@/lib/odds';
 import Login from '@/components/Login';
@@ -59,14 +61,20 @@ export default async function BookPage({ searchParams }) {
   // there is nothing for them to return.
   const guest = isGuestSlug(slug);
 
-  const [me, markets, myBets, publicBets, commissioner, weeks] = await Promise.all([
+  const [me, markets, myBets, publicBets, commissioner, weeks, spendable, banks] =
+    await Promise.all([
     guest ? null : getBettor(slug),
     getMarketsForWeek(SEASON, week),
     guest ? [] : getMyBets(slug),
     visibleBets(SEASON, week),
     isCommissioner(),
     weeksWithMarkets(SEASON),
+    // What you can bet THIS WEEK, and what you have banked for the season.
+    // The old bankrolls view is a season-long pot that no longer exists.
+    guest ? 0 : weeklyBalance(slug, week),
+    getBanks(),
   ]);
+  const myBank = Number(banks.find((b) => b.slug === slug)?.bank_cents ?? 0);
 
   // Parlays have no market_id, so they cannot key this map -- and including
   // them would collide on the "null" key and mark unrelated markets as placed.
@@ -136,12 +144,18 @@ export default async function BookPage({ searchParams }) {
         <section className="section">
           <div className="bankroll-card">
             <div>
-              <div className="dim">{me.display_name}</div>
-              <div className="bankroll-amount">{formatMoney(me.balance_cents)}</div>
+              <div className="dim">To bet this week</div>
+              <div className="bankroll-amount">{formatMoney(spendable)}</div>
             </div>
             <div className="bankroll-record">
-              <span className="pos">{me.wins}W</span> · <span className="neg">{me.losses}L</span>
-              {me.pending > 0 && <> · {me.pending} pending</>}
+              {/* The bank is the prize. The weekly figure resets; this does not. */}
+              <div className="bank-line">
+                Banked <strong>{formatMoney(myBank)}</strong>
+              </div>
+              <div className="dim">
+                <span className="pos">{me.wins}W</span> · <span className="neg">{me.losses}L</span>
+                {me.pending > 0 && <> · {me.pending} pending</>}
+              </div>
             </div>
           </div>
         </section>
@@ -161,7 +175,7 @@ export default async function BookPage({ searchParams }) {
             markets={specials}
             myByMarket={myByMarket}
             myParlayByMarket={myParlayByMarket}
-            bankrollCents={guest ? 0 : Number(me.balance_cents)}
+            bankrollCents={guest ? 0 : spendable}
             // Open when there is nothing else on the board, so the page is not
             // a single collapsed heading; closed when the week's games are
             // there to lead with.
@@ -173,12 +187,12 @@ export default async function BookPage({ searchParams }) {
               games={games}
               myByMarket={myByMarket}
               myParlayByMarket={myParlayByMarket}
-              bankrollCents={guest ? 0 : Number(me.balance_cents)}
+              bankrollCents={guest ? 0 : spendable}
               week={week}
               readOnly={guest}
             />
           )}
-          {!guest && <ParlaySlip bankrollCents={Number(me.balance_cents)} />}
+          {!guest && <ParlaySlip bankrollCents={spendable} />}
         </SlipProvider>
       ) : (
         <section className="section">

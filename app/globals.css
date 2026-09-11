@@ -1203,6 +1203,15 @@ tbody tr:last-child td {
   font-variant-numeric: tabular-nums;
 }
 
+/* The bank sits beside the weekly figure: one resets every week, the other is
+   the prize. Showing only one of them was the bug -- the board displayed a
+   season pot that no longer exists. */
+.bank-line {
+  font-size: 13px;
+  color: var(--gold);
+  margin-bottom: 2px;
+}
+
 /* ---------- Store and boosts ---------- */
 
 .points-card {

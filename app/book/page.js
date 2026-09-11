@@ -12,6 +12,7 @@ import {
   weeklyBalance,
   getBanks,
 } from '@/lib/book';
+import { getArmedBoosts } from '@/lib/shop';
 import { formatMoney, formatOdds } from '@/lib/odds';
 import Login from '@/components/Login';
 import BoardSection from '@/components/BoardSection';
@@ -40,7 +41,7 @@ export default async function BookPage({ searchParams }) {
 
   const [slug, pool] = await Promise.all([
     currentBettor(),
-    getPrizePool(SEASON, 20000),
+    getPrizePool(SEASON, 30000),
   ]);
 
   if (!slug) {
@@ -49,7 +50,7 @@ export default async function BookPage({ searchParams }) {
     return (
       <section className="section">
         <p className="dim" style={{ marginTop: -6, marginBottom: 14 }}>
-          Play-money sportsbook. Most money at the end wins $200.
+          Play-money sportsbook. Most in the bank at the end wins $300.
         </p>
         <Login bettors={roster} />
       </section>
@@ -61,7 +62,7 @@ export default async function BookPage({ searchParams }) {
   // there is nothing for them to return.
   const guest = isGuestSlug(slug);
 
-  const [me, markets, myBets, publicBets, commissioner, weeks, spendable, banks] =
+  const [me, markets, myBets, publicBets, commissioner, weeks, spendable, banks, armed] =
     await Promise.all([
     guest ? null : getBettor(slug),
     getMarketsForWeek(SEASON, week),
@@ -73,6 +74,10 @@ export default async function BookPage({ searchParams }) {
     // The old bankrolls view is a season-long pot that no longer exists.
     guest ? 0 : weeklyBalance(slug, week),
     getBanks(),
+    // Anything armed and waiting to fire. Better Price is consumed by the very
+    // next bet placed, so not showing it meant someone could spend it on a $10
+    // punt without realising it was live.
+    guest ? [] : getArmedBoosts(slug, SEASON, week),
   ]);
   const myBank = Number(banks.find((b) => b.slug === slug)?.bank_cents ?? 0);
 
@@ -123,6 +128,16 @@ export default async function BookPage({ searchParams }) {
       </p>
 
       <WeekSwitcher weeks={weeks} current={week} />
+
+      {armed.length > 0 && (
+        <div className="armed-banner">
+          {armed.map((a) => (
+            <span key={a.id} className="armed-chip">
+              {a.icon} <strong>{a.name}</strong> {a.note}
+            </span>
+          ))}
+        </div>
+      )}
 
       {guest ? (
         <section className="section">

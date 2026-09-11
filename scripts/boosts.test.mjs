@@ -216,7 +216,11 @@ console.log('\ncoming-soon boosts are marked, not sellable');
   // revealing a position.
   check('everything is buyable', BOOSTS.filter((b) => b.comingSoon), []);
   const attacks = BOOSTS.filter((b) => b.attack);
-  check('five attacks', attacks.length, 5);
+  check('six attacks', attacks.length, 6);
+  // Ride Along is NOT one, even though it targets someone else's bet. It takes
+  // nothing from them -- they keep the bet unchanged and both sides win or lose
+  // together. It is a bet on the person, not against them.
+  check('riding along is not an attack', Boolean(byKind['ride-along'].attack), false);
   // They are gambles now -- you cannot see what you are hitting -- so every one
   // of them costs less than the dearest thing you can buy for yourself.
   const dearestSelfish = Math.max(...BOOSTS.filter((b) => !b.attack).map((b) => b.cost));

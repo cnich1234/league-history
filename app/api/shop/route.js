@@ -6,6 +6,8 @@ import {
   useBoostOnMarket,
   useBoostOnWeek,
   armBoost,
+  rideAlong,
+  curseWeek,
 } from '@/lib/shop';
 
 export const dynamic = 'force-dynamic';
@@ -41,7 +43,24 @@ export async function POST(request) {
       }
 
       if (body.betId != null) {
+        // Ride Along creates a bet rather than modifying one, so it has its own
+        // path -- routing it through useBoostOnBet would have treated a copy as
+        // an attack on the thing it copied.
+        const { byKind } = await import('@/lib/boosts');
+        if (byKind[body.kind]?.copies || body.copy) {
+          const row = await rideAlong({ slug, boostId, betId: Number(body.betId) });
+          return NextResponse.json({ ok: true, copied: row });
+        }
         const row = await useBoostOnBet({ slug, boostId, betId: Number(body.betId) });
+        return NextResponse.json({ ok: true, used: { ...row, id: String(row.id) } });
+      }
+      if (body.target != null) {
+        const row = await curseWeek({
+          slug,
+          boostId,
+          target: String(body.target),
+          week: Number(body.week ?? process.env.BOOK_WEEK ?? 1),
+        });
         return NextResponse.json({ ok: true, used: { ...row, id: String(row.id) } });
       }
       if (body.marketId != null) {

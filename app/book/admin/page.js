@@ -20,7 +20,7 @@ export default async function AdminPage() {
     listBettors(),
     getBankrolls(),
     getBuyins(SEASON),
-    getPrizePool(SEASON, 20000),
+    getPrizePool(SEASON, 30000),
   ]);
 
   // Merge claim status into the bankroll rows so one list shows both.

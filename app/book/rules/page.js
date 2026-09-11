@@ -9,9 +9,9 @@ export default function RulesPage() {
         <div className="prose">
           <h2>The game</h2>
           <p>
-            Everyone starts with <strong>$1,000</strong> in fake money. Bet on our own
-            matchups all season. Whoever has the most money at the end wins{' '}
-            <strong>$200</strong> in real money.
+            <strong>$500 a week</strong> in fake money, which resets every week. Bet on
+            our own matchups, bank what you win, and whoever has the most banked at the
+            end takes <strong>$300</strong> in real money.
           </p>
 
           <h2>The Action</h2>
@@ -47,6 +47,18 @@ export default function RulesPage() {
           <p>
             The exception is a push or a void — a tie, or a prop on someone who never
             played. Those never really resolved, so the stake comes back into that week.
+          </p>
+
+          <h2>Two odd ones</h2>
+          <p>
+            <strong>🚗 Ride Along</strong> copies someone else&apos;s bet at their stake
+            and their price. You never learn what it is — so it is a bet on the person,
+            not the wager. They lose nothing; you both win or lose together.
+          </p>
+          <p>
+            <strong>🖕 Because, Fuck You</strong> cuts 30% off everything one manager wins
+            that week. Not one bet, all of them. Declared before the games, so you are
+            guessing at their whole week.
           </p>
 
           <h2>Points and the store</h2>

@@ -1,12 +1,19 @@
 import { currentBettor } from '@/lib/auth';
-import { getBankrolls, getPrizePool, settledSummary, settledBets, parlayLegsFor } from '@/lib/book';
+import {
+  getBanks,
+  getPrizePool,
+  settledSummary,
+  settledBets,
+  parlayLegsFor,
+  weeklyBalances,
+} from '@/lib/book';
 import { formatMoney, formatOdds } from '@/lib/odds';
 
 export const metadata = { title: 'Standings' };
 export const dynamic = 'force-dynamic';
 
 const SEASON = Number(process.env.BOOK_SEASON ?? 2026);
-const OPENING_CENTS = 100000;
+const WEEK = Number(process.env.BOOK_WEEK ?? 1);
 
 export default async function StandingsPage() {
   const slug = await currentBettor();
@@ -18,9 +25,10 @@ export default async function StandingsPage() {
     );
   }
 
-  const [bankrolls, pool, summary, bets] = await Promise.all([
-    getBankrolls(),
-    getPrizePool(SEASON, 20000),
+  const [banks, weekly, pool, summary, bets] = await Promise.all([
+    getBanks(),
+    weeklyBalances(WEEK),
+    getPrizePool(SEASON, 30000),
     settledSummary(SEASON),
     settledBets(SEASON, 500),
   ]);
@@ -54,7 +62,7 @@ export default async function StandingsPage() {
 
       <section className="section">
         <div className="section-head">
-          <h2>Bankrolls</h2>
+          <h2>The bank</h2>
           <span className="dim">tap for settled bets</span>
         </div>
 
@@ -62,16 +70,19 @@ export default async function StandingsPage() {
           <span className="sh-rank" />
           <span className="sh-name">Manager</span>
           <span className="sh-record">W-L</span>
-          <span className="sh-money">Bankroll</span>
+          <span className="sh-money">Banked</span>
         </div>
 
-        {bankrolls.map((b, i) => {
+        {banks.map((b, i) => {
           const mine = b.slug === slug;
           const theirs = betsBySlug[b.slug] ?? [];
           const s = summaryBySlug[b.slug];
-          // Change against the $1,000 everyone started with, which reads more
-          // usefully than the raw balance once re-ups are in play.
-          const swing = Number(b.balance_cents) - OPENING_CENTS;
+          // What is left to bet this week, shown under the banked total. The
+          // old $1,000 opening bankroll is gone: money is a weekly allowance
+          // that resets, and only profit survives into the bank.
+          const spendable = Number(
+            weekly.find((w) => w.slug === b.slug)?.balance_cents ?? 0,
+          );
 
           return (
             <details className={`standing ${mine ? 'standing-me' : ''}`} key={b.slug}>
@@ -86,11 +97,10 @@ export default async function StandingsPage() {
                   {s?.refunded > 0 && <span className="dim">-{s.refunded}</span>}
                 </span>
                 <span className="sh-money">
-                  <span className="row-value">{formatMoney(b.balance_cents)}</span>
-                  {/* Always rendered, empty at exactly $1,000, so every row is
-                      the same height. */}
-                  <span className={`row-swing ${swing < 0 ? 'neg' : 'pos'}`}>
-                    {swing === 0 ? '' : `${swing > 0 ? '+' : '−'}${formatMoney(Math.abs(swing))}`}
+                  <span className="row-value">{formatMoney(b.bank_cents)}</span>
+                  {/* Always rendered so every row is the same height. */}
+                  <span className="row-swing dim">
+                    {formatMoney(spendable)} left
                   </span>
                 </span>
               </summary>

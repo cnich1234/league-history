@@ -216,7 +216,20 @@ console.log('\ncoming-soon boosts are marked, not sellable');
   // revealing a position.
   check('everything is buyable', BOOSTS.filter((b) => b.comingSoon), []);
   const attacks = BOOSTS.filter((b) => b.attack);
-  check('eight attacks', attacks.length, 8);
+  // Not a fixed count -- that only ever fails when the catalogue grows, which
+  // is not a bug. What matters is that every attack is aimed at someone else
+  // and none of them is also flagged defensive.
+  check('there are attacks at all', attacks.length > 0, true);
+  check(
+    'every attack targets someone else',
+    attacks.filter((b) => !['bet', 'bettor', 'market'].includes(b.target)).map((b) => b.kind),
+    [],
+  );
+  check(
+    'and none is defensive too',
+    attacks.filter((b) => b.defensive).map((b) => b.kind),
+    [],
+  );
   // Ride Along is NOT one, even though it targets someone else's bet. It takes
   // nothing from them -- they keep the bet unchanged and both sides win or lose
   // together. It is a bet on the person, not against them.

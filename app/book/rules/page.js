@@ -82,6 +82,18 @@ export default function RulesPage() {
             moved. A long parlay is not a hiding place.
           </p>
 
+          <h2>Taking a cut</h2>
+          <p>
+            <strong>🤝 Cut of the Action (5)</strong> is the gentle end of the shop. It
+            leaves the bet exactly where it is — they still win, they still bank — and
+            simply pays you <strong>half the profit</strong>. Half the profit, not half the
+            payout: their stake is never touched, so a win is still a win for them.
+          </p>
+          <p>
+            A gamble, like Grand Theft: back a loser and you get nothing at all. Cheap
+            because they barely feel it. Blocked by Insurance.
+          </p>
+
           <h2>Putting points on someone</h2>
           <p>
             A <strong>🎯 Bounty</strong> is the one thing here that is not a boost. It buys

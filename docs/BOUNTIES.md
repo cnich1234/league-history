@@ -1,11 +1,9 @@
 # Bounties: how they work, and why they don't
 
-**Status: shipped, structurally broken, and awaiting a redesign.** The mechanic
-runs, is tested, and does exactly what it was built to do. What it was built to
-do turns out not to make sense. This document records the current rules, the
-flaw, and the fix we are converging on (**§7, Option D — collective bounties**).
-
-Nothing below §7 is built. Four details are still open and are listed there.
+**Status: being replaced.** The shipped mechanic runs and is tested, but its
+economics do not work (§3). **§7 — collective bounties — is the agreed
+replacement, and every open question is now settled.** Sections 1-6 describe
+what exists today and why it is going away.
 
 Written from the source (`lib/shop.js`, `lib/boosts.js`, `db/015_bounties.sql`),
 not from memory.
@@ -197,7 +195,7 @@ is the behaviour we want. Post 10, nobody bites, get 8 back.
 
 ## 7. Option D — collective bounties (the likely direction)
 
-Proposed by Chris, 11 Sep. This supersedes A/B/C and is probably what we build.
+Proposed by Chris, 11 Sep. Supersedes A/B/C. **This is what we are building.**
 
 **Nobody buys a boost.** A bounty names a target and a weapon, and its cost *is*
 the weapon's list price. Anyone can contribute. When contributions reach the
@@ -232,59 +230,63 @@ Against a 5/week allowance: a solo Void is **2.4 weeks** of income. Split six
 ways it is **2 points** — under half a week. That is the mechanic: it makes the
 expensive end of the catalogue reachable.
 
-### Open question 1 — why post rather than wait?
+### Decisions (settled 11 Sep)
 
-As sketched, the costs land only on the poster (barred from attacking that
-target, plus a posting fee) while a contributor gets the same attack at the same
-per-point price with no restrictions. **Contributing strictly dominates
-posting**, so in theory nobody posts.
+| Question | Decision |
+|---|---|
+| Why post rather than wait? | **No punishment for posting.** No fee, no attack ban. Choosing the target and weapon is the perk. |
+| Unfilled bounty | **Closes, full refund** to every contributor. |
+| Minimum poster stake | **20% of the cost**, rounded to nearest whole point. |
+| Which bet | **The poster names it at post time**, and the bounty displays it. If that bet closes before the bounty fills, the bounty **dies and everyone is refunded**. |
+| Payout attacks | **Split between contributors** (new rule — see below). |
 
-Candidate fixes:
+Note the first decision reverses the "cannot attack that person" idea from the
+original sketch. Posting carries no cost at all beyond the 20% stake.
 
-- **Drop the posting fee**, keep the can't-attack rule. Posting costs optionality,
-  and the poster chooses target and weapon — that is the real perk. *(Recommended:
-  simplest, and agenda-setting is genuinely valuable.)*
-- **Bar contributors too** from attacking that target this week. Symmetric: you
-  helped, you are in.
-- **Poster's contribution counts double** toward the total. A perk rather than a
-  penalty, which flips the incentive.
+### The 20% minimum, in practice
 
-### Open question 2 — what happens if it does not fill
+| Attack | Cost | Poster puts in |
+|---|---:|---:|
+| Slow Play | 5 | 1 |
+| Blind Sabotage | 6 | 1 |
+| Skim | 8 | 2 |
+| Grand Theft | 9 | 2 |
+| Poison the Well | 12 | 2 |
+| The Void | 12 | 2 |
+| Switcheroo | 14 | 3 |
+| Because, Fuck You | 16 | 3 |
 
-A Void needs 12 and reaches 7 by week's end.
+Rounded to nearest, so a 12-point weapon needs 2 (2.4 rounds to 2) and a
+14-point one needs 3 (2.8 rounds to 3).
 
-- Refund everyone in full — encourages lowballing, contributing becomes a free
-  option
-- **Refund minus a small cut** — the §6 listing fee, applied to all contributors
-  *(recommended)*
-- Fire it partially — does not work; there is no half-Void
+### Splitting a payout
 
-### Open question 3 — must the poster contribute?
+Only one attack pays anything out: **Grand Theft**, which redirects the victim's
+entire winning payout to the thief. Under a collective bounty there is no single
+thief, so the payout is **split between contributors in proportion to what they
+put in**.
 
-If somebody can post a 12-point Void with 1 point down and let others fund it,
-that is very cheap agenda-setting. Suggest a **minimum of 25% of the cost**.
+Everything else in the catalogue reduces or diverts a payout rather than
+producing one — Skim and Blind Sabotage cut it, The Void cancels it, Switcheroo
+moves the bet, Poison worsens a price, Slow Play doubles a cost, Because Fuck
+You cuts a week. Nothing to split for any of those.
 
-### Open question 4 — which bet does it hit?
+Rounding note: a split rarely divides evenly in cents. The remainder goes to the
+largest contributor, and to the earliest of them on a tie, so the total paid out
+always equals the payout exactly.
 
-The hardest one, and unresolved. Void, Skim, Grand Theft, Blind Sabotage and
-Switcheroo all target a **specific bet**, but at fire time the target may have
-several open.
+### Consequences of naming the bet up front
 
-- Random among their open bets — fits the "attacks are blind" premise
-- Their biggest — predictable, and the target can game it by never having one big bet
-- The poster names it at post time — but that bet may settle before the bounty fills
+Naming the bet solves the fire-time ambiguity, and costs something in exchange:
 
-Slow Play and Because, Fuck You target a *person* rather than a bet, so they
-sidestep this entirely and would be the easiest to ship first.
-
-### Still to decide
-
-1. Which fix for open question 1
-2. Refund policy for an unfilled bounty
-3. Minimum poster contribution
-4. Bet-selection rule at fire time
-
----
+- A bounty is **tied to one bet**, so it dies if that bet settles, is voided, or
+  is undone before the bounty fills. Everyone is refunded.
+- It makes the bounty **partly sighted**. Contributors see which bet is being
+  targeted — its stake, price and owner — though still not the pick. That is a
+  deliberate softening of "attacks are blind", and it is what makes a collective
+  bounty something people can reason about before putting points in.
+- Slow Play and Because, Fuck You target a **person**, not a bet, so they carry
+  no bet reference and cannot die this way.
 
 ## 7b. Superseded options
 

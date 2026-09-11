@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { currentManager } from '@/lib/auth';
-import { postBounty } from '@/lib/shop';
+import { postBounty, contributeToBounty } from '@/lib/shop';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,13 +22,25 @@ export async function POST(request) {
 
   const body = await request.json().catch(() => ({}));
   try {
+    // Chipping into one that already exists, rather than opening a new one.
+    if (body.bountyId != null) {
+      const state = await contributeToBounty({
+        slug,
+        season: SEASON,
+        bountyId: Number(body.bountyId),
+        points: body.points,
+      });
+      return NextResponse.json({ ok: true, ...state });
+    }
+
     const bounty = await postBounty({
       slug,
       season: SEASON,
       week: Number(body.week ?? process.env.BOOK_WEEK ?? 1),
       target: String(body.target ?? ''),
       weapon: String(body.weapon ?? ''),
-      rewardPoints: body.rewardPoints,
+      betId: body.betId ?? null,
+      points: body.points,
     });
     return NextResponse.json({ ok: true, bounty });
   } catch (e) {

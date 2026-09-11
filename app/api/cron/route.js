@@ -90,9 +90,14 @@ export async function GET(request) {
     // Refund bounties nobody collected. Not forfeit -- nobody did the thing
     // that was asked for, so the points go home.
     try {
-      const { expireBounties } = await import('@/lib/shop');
+      const { expireBounties, cullDeadBountyBets } = await import('@/lib/shop');
       const expired = await expireBounties(season, Math.max(1, week - 1));
-      if (expired) log.push(`refunded ${expired} unclaimed bounty(s)`);
+      if (expired) log.push(`refunded ${expired} unfilled bounty(s)`);
+      // A bounty tied to a bet that has settled can never fire, so it is
+      // refunded now rather than holding everyone's points until the week
+      // rolls over.
+      const dead = await cullDeadBountyBets(season, week);
+      if (dead) log.push(`refunded ${dead} bounty(s) whose bet had settled`);
     } catch (e) {
       log.push(`bounty expiry skipped: ${e.message}`);
     }

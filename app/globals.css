@@ -2291,10 +2291,17 @@ tbody tr:last-child td {
 }
 
 /* Each bet says when it closes, in red, because misreading it costs money. */
+/* Red was every pre-lock market, including ones days away -- urgency for
+   something that is not urgent. It now means "closing today"; anything further
+   out is muted. */
 .market-lock {
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.2px;
+  color: var(--text-muted);
+}
+
+.market-lock-soon {
   color: var(--negative);
 }
 

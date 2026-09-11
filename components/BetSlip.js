@@ -32,11 +32,15 @@ const money = (n) =>
  * the real rule.
  */
 function lockLabel(market) {
-  if (market.live) return 'Open · prices move live';
   const day = new Date(market.locks_at).toLocaleDateString('en-US', {
     weekday: 'short',
     timeZone: 'UTC',
   });
+  // A live market that has NOT reached its lock yet said "Open · prices move
+  // live", which sat one line away from "LIVE · price moves" on a market that
+  // genuinely was live -- two near-identical phrases for opposite states. Say
+  // when it starts moving instead, since that is the thing you cannot see.
+  if (market.live) return `Live from ${day}`;
   return `Closes at ${day} kickoff`;
 }
 
@@ -69,6 +73,11 @@ export default function BetSlip({
   // midnight on the morning of the game, so greying out on that showed a bet as
   // closed while its game was still hours away.
   const pastLock = market.locks_at != null && new Date(market.locks_at) <= new Date();
+  // Within a day of closing. Only then is the deadline worth shouting about.
+  const closingToday =
+    market.locks_at != null &&
+    !pastLock &&
+    new Date(market.locks_at) - new Date() < 24 * 60 * 60 * 1000;
   const locked = market.status != null && market.status !== 'open';
   const liveNow = pastLock && market.live && livePrices != null;
   const liveShut = pastLock && market.live && livePrices == null;
@@ -158,7 +167,9 @@ export default function BetSlip({
                 ? 'market-lock market-lock-live'
                 : locked || liveShut
                   ? 'market-lock market-lock-shut'
-                  : 'market-lock'
+                  : closingToday
+                    ? 'market-lock market-lock-soon'
+                    : 'market-lock'
             }
           >
             {liveNow

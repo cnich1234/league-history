@@ -218,7 +218,12 @@ try {
   await sql`update markets set status = 'locked' where id = ${wronglyLocked}`;
   await lockDueMarkets([HOME], []);
   check('no scope means no reopen', await statusOf(wronglyLocked), 'locked');
-  await sql`update markets set status = 'open' where id = ${wronglyLocked}`;
+
+  // The case that made the first fix useless: NOBODY has finished. That is the
+  // strongest reason to reopen, not a reason to skip -- gating on a non-empty
+  // finished list left four real markets closed with 111 points still to come.
+  await lockDueMarkets([], [], scope);
+  check('an empty finished list still reopens', await statusOf(wronglyLocked), 'open');
 
   // A prop is a one-way door: reopening it would let someone bet a player who
   // has already scored.

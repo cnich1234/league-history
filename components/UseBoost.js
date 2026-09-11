@@ -18,7 +18,18 @@ const odds = (n) => (n > 0 ? `+${n}` : String(n));
  * Using a boost is irreversible, so the chosen target is confirmed before it
  * fires. Buying is not confirmed; using is.
  */
-export default function UseBoost({ boost, label }) {
+// Boosts with nothing to choose. Kept here rather than read from the boost
+// definition because lib/boosts.js pulls in server-only code.
+const NO_TARGET = new Set(['odds-boost', 'boost-week']);
+
+const DESCRIPTIONS = {
+  'odds-boost':
+    'Arm Better Price? The next bet you place gets 50% better odds. It cannot be saved for a later one.',
+  'boost-week':
+    'Declare Big Week? Every bet you win this week pays 50% more. If nothing wins, it is gone.',
+};
+
+export default function UseBoost({ boost, label, week }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [targets, setTargets] = useState(null);
@@ -39,6 +50,36 @@ export default function UseBoost({ boost, label }) {
     } catch (err) {
       setError(err.message);
       setTargets({ targets: [] });
+    }
+  }
+
+  /**
+   * Uses a boost that has no target.
+   *
+   * Confirmed first, because it is still irreversible: Better Price is spent by
+   * whatever you bet next, and Big Week is locked to the week you declare it
+   * for. Neither can be taken back.
+   */
+  async function activate() {
+    const def = DESCRIPTIONS[boost.kind];
+    if (!window.confirm(def ?? `Use ${boost.name}?`)) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const body = { action: 'use', boostId: boost.id };
+      if (boost.kind === 'boost-week') body.week = week;
+      const res = await fetch('/api/shop', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Could not use that.');
+      router.refresh();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -67,11 +108,25 @@ export default function UseBoost({ boost, label }) {
     }
   }
 
+  // Boosts that need no target: Better Price arms and waits for your next bet,
+  // Big Week covers the whole week. Opening a picker for them showed "Nothing
+  // to use this on right now", which reads as broken rather than as "there is
+  // nothing to choose".
+  const needsTarget = !NO_TARGET.has(boost.kind);
+
   if (!open) {
     return (
-      <button className="boost-use" type="button" onClick={openPicker}>
-        {label ?? 'Use'}
-      </button>
+      <>
+        <button
+          className="boost-use"
+          type="button"
+          onClick={needsTarget ? openPicker : activate}
+          disabled={busy}
+        >
+          {busy ? 'Working…' : label ?? (needsTarget ? 'Use' : 'Activate')}
+        </button>
+        {error && <div className="form-error">{error}</div>}
+      </>
     );
   }
 

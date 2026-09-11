@@ -1,6 +1,12 @@
 import { NextResponse } from 'next/server';
 import { currentManager } from '@/lib/auth';
-import { buyBoost, useBoostOnBet, useBoostOnMarket } from '@/lib/shop';
+import {
+  buyBoost,
+  useBoostOnBet,
+  useBoostOnMarket,
+  useBoostOnWeek,
+  armBoost,
+} from '@/lib/shop';
 
 export const dynamic = 'force-dynamic';
 
@@ -42,7 +48,16 @@ export async function POST(request) {
         const row = await useBoostOnMarket({ slug, boostId, marketId: Number(body.marketId) });
         return NextResponse.json({ ok: true, used: { ...row, id: String(row.id) } });
       }
-      return NextResponse.json({ error: 'Pick something to use it on.' }, { status: 400 });
+      if (body.week != null) {
+        const row = await useBoostOnWeek({ slug, boostId, week: Number(body.week) });
+        return NextResponse.json({ ok: true, used: { ...row, id: String(row.id) } });
+      }
+
+      // No target at all. Better Price arms and is consumed by whatever is bet
+      // next, so "using" it is just marking it ready -- there is nothing to
+      // point it at.
+      const row = await armBoost({ slug, boostId });
+      return NextResponse.json({ ok: true, used: { ...row, id: String(row.id) } });
     }
 
     return NextResponse.json({ error: 'Unknown action.' }, { status: 400 });

@@ -7,6 +7,7 @@ export const metadata = { title: 'My Boosts' };
 export const dynamic = 'force-dynamic';
 
 const SEASON = Number(process.env.BOOK_SEASON ?? 2026);
+const WEEK = Number(process.env.BOOK_WEEK ?? 1);
 
 export default async function BoostsPage() {
   const slug = await currentBettor();
@@ -64,7 +65,15 @@ export default async function BoostsPage() {
                     <span className="dim">{def.blurb}</span>
                   </span>
                   <UseBoost
-                    boost={{ id: String(b.id), kind: def.kind, name: def.name, icon: def.icon, blurb: def.blurb }}
+                    boost={{
+                      id: String(b.id),
+                      kind: def.kind,
+                      name: def.name,
+                      icon: def.icon,
+                      blurb: def.blurb,
+                    }}
+                    week={WEEK}
+                    label={b.detail?.armed ? 'Armed' : undefined}
                   />
                 </div>
               );

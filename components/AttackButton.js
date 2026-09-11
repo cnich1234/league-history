@@ -13,7 +13,7 @@ import { useRouter } from 'next/navigation';
  * Confirmed, because it is irreversible and because it is aimed at a person who
  * will find out.
  */
-export default function AttackButton({ betId, who, attacks }) {
+export default function AttackButton({ betId, who, attacks, catalogue = [], shielded = false }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -55,32 +55,60 @@ export default function AttackButton({ betId, who, attacks }) {
       <div className="picker">
         <div className="picker-head">
           <span className="picker-icon" aria-hidden="true">
-            🎯
+            {shielded ? '🛡️' : '🎯'}
           </span>
           <div>
             <div className="picker-title">Attack {who}</div>
-            <div className="dim">You cannot see what they backed.</div>
+            <div className="dim">
+              {shielded
+                ? 'This bet is insured. Nothing will get through.'
+                : 'You cannot see what they backed.'}
+            </div>
           </div>
         </div>
 
-        <div className="picker-list">
-          {attacks.map((a) => (
-            <button
-              key={a.id}
-              type="button"
-              className="picker-item"
-              disabled={busy}
-              onClick={() => fire(a)}
-            >
-              <span className="picker-item-main">
-                <span className="picker-item-title">
-                  {a.icon} {a.name}
+        {attacks.length > 0 ? (
+          <div className="picker-list">
+            {attacks.map((a) => (
+              <button
+                key={a.id}
+                type="button"
+                className="picker-item"
+                disabled={busy || shielded}
+                onClick={() => fire(a)}
+              >
+                <span className="picker-item-main">
+                  <span className="picker-item-title">
+                    {a.icon} {a.name}
+                  </span>
+                  <span className="dim">{a.blurb}</span>
                 </span>
-                <span className="dim">{a.blurb}</span>
-              </span>
-            </button>
-          ))}
-        </div>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <>
+            {/* Owning nothing used to hide the button entirely, which made the
+                page look like it had no actions. Show what could be bought
+                instead. */}
+            <div className="picker-note">
+              You do not own any attacks. These are in the Store:
+            </div>
+            <div className="picker-list">
+              {catalogue.map((a) => (
+                <div key={a.kind} className="picker-item picker-item-flat">
+                  <span className="picker-item-main">
+                    <span className="picker-item-title">
+                      {a.icon} {a.name}
+                    </span>
+                    <span className="dim">{a.blurb}</span>
+                  </span>
+                  <span className="picker-cost">{a.cost}</span>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
 
         {error && <div className="form-error">{error}</div>}
 

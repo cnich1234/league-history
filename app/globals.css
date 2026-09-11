@@ -1233,6 +1233,21 @@ tbody tr:last-child td {
   cursor: pointer;
 }
 
+/* A catalogue entry in the attack popup: shown, not clickable, because you do
+   not own it yet. */
+.picker-item-flat {
+  align-items: center;
+  justify-content: space-between;
+  cursor: default;
+  opacity: 0.75;
+}
+
+.picker-cost {
+  font-weight: 800;
+  color: var(--gold);
+  font-variant-numeric: tabular-nums;
+}
+
 /* ---------- Store and boosts ---------- */
 
 .points-card {

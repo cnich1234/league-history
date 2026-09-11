@@ -1,7 +1,7 @@
 import { currentBettor, isGuestSlug } from '@/lib/auth';
 import { attackableBets } from '@/lib/book';
 import { getInventory } from '@/lib/shop';
-import { byKind } from '@/lib/boosts';
+import { byKind, BOOSTS } from '@/lib/boosts';
 import { formatMoney, formatOdds, payoutCents } from '@/lib/odds';
 import AttackButton from '@/components/AttackButton';
 
@@ -41,6 +41,17 @@ export default async function ActionPage() {
   const attacks = inventory
     .map((b) => ({ ...b, def: byKind[b.kind] }))
     .filter((b) => b.def?.attack && b.def.target === 'bet');
+
+  // Every attack that exists, so the popup can show what you COULD buy rather
+  // than rendering nothing. Hiding the button when you own none made the page
+  // look like it had no actions at all.
+  const catalogue = BOOSTS.filter((b) => b.attack && b.target === 'bet').map((b) => ({
+    kind: b.kind,
+    name: b.name,
+    icon: b.icon,
+    blurb: b.blurb,
+    cost: b.cost,
+  }));
 
   const mine = bets.filter((b) => b.bettor === slug);
   const theirs = bets.filter((b) => b.bettor !== slug);
@@ -98,14 +109,20 @@ export default async function ActionPage() {
                       {formatMoney(returns)}
                     </span>
                   </span>
-                  {!guest && !isMine && attacks.length > 0 && (
-                    <AttackButton betId={String(b.id)} who={b.bettor_name} attacks={attacks.map((a) => ({
-                      id: String(a.id),
-                      kind: a.kind,
-                      name: a.def.name,
-                      icon: a.def.icon,
-                      blurb: a.def.blurb,
-                    }))} />
+                  {!guest && !isMine && (
+                    <AttackButton
+                      betId={String(b.id)}
+                      who={b.bettor_name}
+                      shielded={b.shielded > 0}
+                      catalogue={catalogue}
+                      attacks={attacks.map((a) => ({
+                        id: String(a.id),
+                        kind: a.kind,
+                        name: a.def.name,
+                        icon: a.def.icon,
+                        blurb: a.def.blurb,
+                      }))}
+                    />
                   )}
                   {isMine && <span className="row-value dim">yours</span>}
                 </div>

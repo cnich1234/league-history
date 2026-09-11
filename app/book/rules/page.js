@@ -235,7 +235,7 @@ export default function RulesPage() {
             store.
           </p>
           <p>
-            Boosts run from <strong>1</strong> for a Receipt to <strong>25</strong> for an
+            Boosts run from <strong>3</strong> for a Receipt to <strong>75</strong> for an
             Undo. The cheap ones protect and improve your own bets; the expensive ones go
             after everyone else, or undo your own mistakes. Buy them on the Store tab, use
             them from My Boosts.

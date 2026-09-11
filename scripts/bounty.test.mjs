@@ -386,11 +386,13 @@ try {
     const bet = await placeBet({
       slug: B, marketId: await mkt(), optionKey: 'home', stakeCents: 5000,
     });
+    const seedA = minimumStake(byKind['void'].cost);
+    const chipC = 4;
     const posted = await postBounty({
       slug: A, season: S, week: W, target: B, weapon: 'void',
-      betId: Number(bet.id), points: minimumStake(byKind['void'].cost),
+      betId: Number(bet.id), points: seedA,
     });
-    await contributeToBounty({ slug: C, season: S, bountyId: Number(posted.id), points: 4 });
+    await contributeToBounty({ slug: C, season: S, bountyId: Number(posted.id), points: chipC });
 
     const aBefore = await getPoints(A, S);
     const cBefore = await getPoints(C, S);
@@ -402,8 +404,8 @@ try {
     });
 
     ok('the bounty was cancelled', res.bountiesRefunded, 1);
-    ok('the poster got their stake back', (await getPoints(A, S)) - aBefore, 2);
-    ok('and the backer theirs', (await getPoints(C, S)) - cBefore, 4);
+    ok('the poster got their stake back', (await getPoints(A, S)) - aBefore, seedA);
+    ok('and the backer theirs', (await getPoints(C, S)) - cBefore, chipC);
     // Scoped to THIS bounty: an earlier block leaves an unrelated one open.
     const [row] = await sql`select status, closed_reason from bounties where id = ${Number(posted.id)}`;
     ok('and it is closed', row.status, 'void');

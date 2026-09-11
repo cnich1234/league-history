@@ -47,6 +47,15 @@ const LINEUP = ['QB', 'RB', 'RB', 'WR', 'WR', 'WR', 'TE', 'K', 'DEF'];
 const BENCH = ['QB', 'RB', 'RB', 'WR', 'WR'];
 const POS_MEAN = { QB: 18, RB: 11, WR: 10, TE: 8, K: 8, DEF: 8 };
 const POS_SD_FRAC = 0.4;
+// Defences swing much harder in relative terms and are the only position that
+// can finish below zero. 0.75 of an 8-point mean puts a negative week at about
+// 14%, which is close to how often it really happens.
+const DEF_SD_FRAC = 0.75;
+// Transactions. A 10-team league sees a handful of trades a season and waiver
+// claims every week; both drive awards worth 12 points between them, and
+// neither was modelled at all.
+const TRADES_PER_SEASON = 6;
+const PICKUPS_PER_TEAM_WEEK = 0.55;
 // Share of bench players who actually suit up. The rest are hurt or on bye and
 // could not have been started, so they cannot count against the lineup award.
 const BENCH_PLAY_RATE = 0.8;
@@ -131,7 +140,17 @@ function drawYards(pos, played) {
 function drawRoster(target) {
   const draw = (pos, played = true) => ({
     position: pos,
-    points: played ? round2(Math.max(0, normal(POS_MEAN[pos], POS_MEAN[pos] * POS_SD_FRAC))) : 0,
+    // Defences can and do go negative -- a pick-six and a few sacks against is
+    // a minus week. Clamping every position at zero made "negative defense"
+    // impossible to win, so the sim scored it at 0.000 wins/season while the
+    // award is worth 2 points.
+    points: played
+      ? round2(
+          pos === 'DEF'
+            ? normal(POS_MEAN[pos], POS_MEAN[pos] * DEF_SD_FRAC)
+            : Math.max(0, normal(POS_MEAN[pos], POS_MEAN[pos] * POS_SD_FRAC)),
+        )
+      : 0,
     played,
     ...drawYards(pos, played),
   });
@@ -262,7 +281,36 @@ function simulateSeason(errors) {
       });
     }
 
-    const w = { teams, games, allStarters, median: median(teams.map((t) => t.points)) };
+    // Waiver pickups. A claim only counts for the award if the player is in
+    // the lineup, so these point at a random STARTER -- the same thing the real
+    // feed produces when somebody picks up a player and starts him.
+    const pickups = [];
+    for (const slug of SLUGS) {
+      if (rand() >= PICKUPS_PER_TEAM_WEEK) continue;
+      const mine = allStarters.filter((p) => p.slug === slug);
+      if (!mine.length) continue;
+      const pick = mine[Math.floor(rand() * mine.length)];
+      pickups.push({ slug, playerId: pick.id });
+    }
+
+    // Trades. Spread across the season rather than one a week: both managers
+    // in a trade get the award, which is why this pushes two slugs.
+    const traded = [];
+    if (rand() < TRADES_PER_SEASON / WEEKS) {
+      const a = SLUGS[Math.floor(rand() * SLUGS.length)];
+      let b = SLUGS[Math.floor(rand() * SLUGS.length)];
+      while (b === a) b = SLUGS[Math.floor(rand() * SLUGS.length)];
+      traded.push(a, b);
+    }
+
+    const w = {
+      teams,
+      games,
+      allStarters,
+      pickups,
+      traded,
+      median: median(teams.map((t) => t.points)),
+    };
 
     // build-weekly.mjs folds THIS week's result into winStreak before running
     // compute(), so three-in-a-row includes the week you are being awarded for.

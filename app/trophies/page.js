@@ -1,13 +1,22 @@
 import Link from 'next/link';
-import { getWeekly, byId, ACHIEVEMENTS } from '@/lib/weekly';
+import { getWeeks, getSeasonStandings, byId, ACHIEVEMENTS } from '@/lib/trophies';
 import { getOwners } from '@/lib/data';
 import { SLEEPER_OWNERS } from '@/scripts/sleeper-owners.mjs';
 import LiveSection from '@/components/LiveSection';
 
+export const dynamic = 'force-dynamic';
+
+const SEASON = Number(process.env.BOOK_SEASON ?? 2026);
 export const metadata = { title: 'Trophy Room' };
 
-export default function TrophiesPage() {
-  const { weeks, season = [] } = getWeekly();
+export default async function TrophiesPage() {
+  // From the database, not a build-time file. The old data/weekly.json was read
+  // at build, so a week scored by the cron would not have appeared until the
+  // next deploy -- which nothing triggers.
+  const [weeks, season] = await Promise.all([
+    getWeeks(SEASON),
+    getSeasonStandings(SEASON),
+  ]);
   const nameBySlug = Object.fromEntries(getOwners().map((o) => [o.slug, o.name]));
   const latest = weeks[weeks.length - 1] ?? null;
 

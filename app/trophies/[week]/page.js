@@ -1,15 +1,15 @@
 import Link from 'next/link';
 
-import { getWeekly, getWeek, byId } from '@/lib/weekly';
+import { getWeek, byId } from '@/lib/trophies';
 import { getOwners } from '@/lib/data';
 
-export function generateStaticParams() {
-  // With `output: export` a dynamic route needs at least one param at build
-  // time or the build fails outright. Before any week is scored there are none,
-  // so emit a placeholder that renders the empty state.
-  const weeks = getWeekly().weeks.map((w) => ({ week: String(w.week) }));
-  return weeks.length ? weeks : [{ week: '1' }];
-}
+// Rendered on demand rather than prerendered. generateStaticParams used to read
+// the scored weeks from a file at build time; from the database it would freeze
+// whatever had been scored when the deploy happened, and a week scored by the
+// cron would 404 until the next one.
+export const dynamic = 'force-dynamic';
+
+const SEASON = Number(process.env.BOOK_SEASON ?? 2026);
 
 export async function generateMetadata({ params }) {
   const { week } = await params;
@@ -18,7 +18,7 @@ export async function generateMetadata({ params }) {
 
 export default async function WeekPage({ params }) {
   const { week: weekParam } = await params;
-  const week = getWeek(weekParam);
+  const week = await getWeek(SEASON, Number(weekParam));
   if (!week) {
     return (
       <main className="page">

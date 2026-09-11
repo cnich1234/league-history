@@ -62,6 +62,31 @@ export async function GET(request) {
       }
     }
 
+    // Score last week's trophies.
+    //
+    // This never ran here before -- `buildWeek` below is the MARKET builder, a
+    // different function with a confusingly similar name. So the cron settled
+    // bets and opened the next board while awarding nobody anything, and the
+    // Trophy Room would have stayed empty all season.
+    try {
+      const { buildWeek: scoreWeek } = await import('@/scripts/build-weekly.mjs');
+      const { saveWeek, weekPointsBySlug } = await import('@/lib/trophies');
+      const { grantTrophyPoints } = await import('@/lib/shop');
+
+      const priorWeek = Math.max(1, week - 1);
+      const scored = await scoreWeek(priorWeek);
+      await saveWeek(season, scored);
+      log.push(`week ${priorWeek}: ${scored.awards.length} award(s)`);
+
+      // Trophy points into the shop. Once-only per week, enforced by an index,
+      // so a second cron run cannot inflate anyone.
+      const points = await weekPointsBySlug(season, priorWeek);
+      const granted = await grantTrophyPoints(season, priorWeek, points);
+      if (granted.length) log.push(`granted trophy points to ${granted.length}`);
+    } catch (e) {
+      log.push(`scoring skipped: ${e.message}`);
+    }
+
     // Build the current week's board if it does not exist yet.
     const { buildWeek } = await import('@/lib/cron');
     const built = await buildWeek(sql, season, week);

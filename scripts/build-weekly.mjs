@@ -340,6 +340,16 @@ async function main() {
   store.generatedAt = new Date().toISOString();
 
   writeFileSync(OUT, JSON.stringify(store, null, 2));
+
+  // Also to the database, which is what the site actually reads now. The file
+  // is kept as a local artefact for inspecting a week by hand.
+  try {
+    const { saveWeek } = await import('../lib/trophies.js');
+    await saveWeek(SEASON, built);
+    console.log('saved to the database');
+  } catch (e) {
+    console.warn('database save failed:', e.message);
+  }
   console.log(`Week ${week}: ${built.awards.length} awards`);
   console.log(`Week winner(s): ${built.weekWinners.join(', ')} (${built.weekWinnerPoints} pts)`);
   console.log('\nSeason standings:');

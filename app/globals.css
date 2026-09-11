@@ -2568,3 +2568,61 @@ tbody tr:last-child td {
   color: var(--teal);
   letter-spacing: 0.5px;
 }
+
+/* Store groups. Twenty boosts in one grid read as a wall; the split is by what
+   a boost does to whom, which is how you arrive at the store thinking. */
+.shop-group {
+  margin-top: 1.5rem;
+}
+.shop-group:first-of-type {
+  margin-top: 0.5rem;
+}
+.shop-group-head {
+  margin-bottom: 0.6rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--line);
+}
+.shop-group-head h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+.shop-group-head p {
+  margin: 0.15rem 0 0;
+  font-size: 0.82rem;
+}
+
+/* Board effects banner. Loud enough to change a decision, quiet enough that it
+   is not mistaken for an error. */
+.effects {
+  border: 1px solid var(--warn-line, #8a6d1f);
+  background: var(--warn-bg, rgba(190, 150, 30, 0.09));
+  border-radius: 10px;
+  padding: 0.7rem 0.85rem;
+}
+.effects-head {
+  font-weight: 700;
+  font-size: 0.86rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 0.45rem;
+}
+.effects-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.effects-list li {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+.effects-icon {
+  flex: none;
+}

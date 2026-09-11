@@ -12,7 +12,7 @@ import {
   weeklyBalance,
   getBanks,
 } from '@/lib/book';
-import { getArmedBoosts, availableOddsBoosts } from '@/lib/shop';
+import { getArmedBoosts, availableOddsBoosts, marketEffects } from '@/lib/shop';
 import { formatMoney, formatOdds } from '@/lib/odds';
 import Login from '@/components/Login';
 import BoardSection from '@/components/BoardSection';
@@ -20,6 +20,7 @@ import { SlipProvider } from '@/components/SlipProvider';
 import ParlaySlip from '@/components/ParlaySlip';
 import SpecialSection from '@/components/SpecialSection';
 import WeekSwitcher from '@/components/WeekSwitcher';
+import EffectsBanner from '@/components/EffectsBanner';
 
 export const metadata = { title: 'The Book' };
 // Reads a session cookie and live odds, so this page can never be prerendered.
@@ -62,8 +63,19 @@ export default async function BookPage({ searchParams }) {
   // there is nothing for them to return.
   const guest = isGuestSlug(slug);
 
-  const [me, markets, myBets, publicBets, commissioner, weeks, spendable, banks, armed, oddsBoosts] =
-    await Promise.all([
+  const [
+    me,
+    markets,
+    myBets,
+    publicBets,
+    commissioner,
+    weeks,
+    spendable,
+    banks,
+    armed,
+    oddsBoosts,
+    effects,
+  ] = await Promise.all([
     guest ? null : getBettor(slug),
     getMarketsForWeek(SEASON, week),
     guest ? [] : getMyBets(slug),
@@ -79,6 +91,10 @@ export default async function BookPage({ searchParams }) {
     // punt without realising it was live.
     guest ? [] : getArmedBoosts(slug, SEASON, week),
     guest ? [] : availableOddsBoosts(slug, SEASON),
+    // What is bending the board for everyone. Guests see it too -- it is
+    // already public, and a read-only view of a poisoned market that does not
+    // say so is just a wrong price.
+    marketEffects(SEASON, week),
   ]);
   const myBank = Number(banks.find((b) => b.slug === slug)?.bank_cents ?? 0);
 
@@ -176,6 +192,9 @@ export default async function BookPage({ searchParams }) {
           </div>
         </section>
       )}
+
+      {/* Above the markets, because it changes what the prices below mean. */}
+      <EffectsBanner effects={effects} />
 
       {!anyOpen && games.length > 0 && (
         <section className="section">

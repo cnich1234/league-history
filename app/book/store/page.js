@@ -1,6 +1,6 @@
 import { currentBettor, isGuestSlug } from '@/lib/auth';
 import { getPoints, getPointBalances, getInventory, getPointHistory } from '@/lib/shop';
-import { BOOSTS, WEEKLY_ALLOWANCE } from '@/lib/boosts';
+import { BOOSTS, WEEKLY_ALLOWANCE, groupedBoosts } from '@/lib/boosts';
 import BuyButton from '@/components/BuyButton';
 
 export const metadata = { title: 'Store' };
@@ -55,10 +55,16 @@ export default async function StorePage() {
           <span className="dim">{BOOSTS.length} boosts</span>
         </div>
 
-        <div className="shop-grid">
-          {BOOSTS.map((b) => {
-            const owned = ownedByKind[b.kind] ?? 0;
-            return (
+        {groupedBoosts().map((group) => (
+          <div key={group.key} className="shop-group">
+            <div className="shop-group-head">
+              <h3>{group.title}</h3>
+              <p className="dim">{group.blurb}</p>
+            </div>
+            <div className="shop-grid">
+              {group.items.map((b) => {
+                const owned = ownedByKind[b.kind] ?? 0;
+                return (
               <div key={b.kind} className={`shop-item ${b.comingSoon ? 'shop-item-soon' : ''}`}>
                 <div className="shop-head">
                   <span className="shop-icon" aria-hidden="true">
@@ -73,8 +79,6 @@ export default async function StorePage() {
                 <p className="shop-detail">{b.detail}</p>
                 <div className="shop-foot">
                   {owned > 0 && <span className="pill teal">{owned} in stock</span>}
-                  {b.attack && <span className="pill">attack</span>}
-                  {b.defensive && <span className="pill">defence</span>}
                   {b.comingSoon ? (
                     <span className="shop-soon">Coming soon</span>
                   ) : (
@@ -82,9 +86,11 @@ export default async function StorePage() {
                   )}
                 </div>
               </div>
-            );
-          })}
-        </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </section>
 
       {!guest && history.length > 0 && (

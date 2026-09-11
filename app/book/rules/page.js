@@ -277,7 +277,13 @@ export default function RulesPage() {
             <li><strong>Head to head</strong> — who wins the matchup</li>
             <li><strong>Spread</strong> — does the favourite win by more than the line</li>
             <li><strong>Team total</strong> — over or under a team&apos;s projected score</li>
-            <li><strong>Player props</strong> — over or under one starter&apos;s points</li>
+            <li>
+              <strong>Player props</strong> — over or under one player&apos;s points, for
+              <em>every</em> skill player on a roster, bench included. A bench prop settles
+              on what they actually scored, so backing somebody&apos;s benched sleeper is a
+              real bet. Anyone projected under 3 is left off: at that line the bet is
+              whether they dressed, not football.
+            </li>
           </ul>
           <p>
             Lines come from Sleeper&apos;s own weekly projections. Nobody sets them by hand.

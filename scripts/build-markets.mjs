@@ -18,6 +18,10 @@ const sql = neon(process.env.DATABASE_URL);
 const LEAGUE_ID = process.env.SLEEPER_LEAGUE_ID ?? '1389735198932877312';
 const PLAYERS = 'C:/Users/chris/fantasy/draft-tool/data/sleeper-players.json';
 
+/** Lowest projection worth a prop. Below this the line is a bet on whether
+ *  somebody dressed, not on football. Mirrors lib/cron.js. */
+const PROP_FLOOR = 3;
+
 const api = async (p) => {
   const r = await fetch(`https://api.sleeper.app/v1${p}`);
   if (!r.ok) throw new Error(`Sleeper ${p} -> ${r.status}`);
@@ -217,16 +221,21 @@ for (const pair of Object.values(byMatchup)) {
   }
 }
 
-// 4. A player prop for every skill starter, so anyone can bet anyone on their
-//    roster. Kickers and defences are skipped -- their scoring is near enough a
-//    coin flip that the line carries no information.
+// 4. A player prop for every rostered skill player, bench included, so anyone
+//    can bet anyone on their roster. Kickers and defences are skipped -- their
+//    scoring is near enough a coin flip that the line carries no information.
+//    Anyone projected under PROP_FLOOR is skipped too: a 0.5 line is a bet on
+//    whether somebody dressed, not on football.
 const propCandidates = [];
 for (const m of matchups) {
   const team = teamOf(m.roster_id);
   if (!team) continue;
-  for (const id of (m.starters ?? []).filter((x) => x && x !== '0')) {
+  const starting = new Set((m.starters ?? []).filter((x) => x && x !== '0'));
+  for (const id of (m.players ?? []).filter((x) => x && x !== '0')) {
     const p = players[id];
     if (!p || !['QB', 'RB', 'WR', 'TE'].includes(p.position)) continue;
+    const projection = projectPlayer(id);
+    if (projection < PROP_FLOOR) continue;
     propCandidates.push({
       playerId: id,
       name: `${p.first_name ?? ''} ${p.last_name ?? ''}`.trim(),
@@ -235,7 +244,8 @@ for (const m of matchups) {
       slug: team.slug,
       team: team.team,
       nflTeam: p.team,
-      projection: projectPlayer(id),
+      projection,
+      benched: !starting.has(id),
     });
   }
 }
@@ -247,10 +257,10 @@ for (const prop of propCandidates) {
   await createMarket({
     kind: 'prop',
     title: `${prop.name} over/under ${line}`,
-    subtitle: `${prop.position} · started by ${prop.team}`,
+    subtitle: `${prop.position} · ${prop.benched ? 'benched by' : 'started by'} ${prop.team}`,
     meta: { playerId: prop.playerId, playerName: prop.name, position: prop.position,
             rosterId: prop.rosterId, slug: prop.slug, line,
-            nflTeam: prop.nflTeam },
+            nflTeam: prop.nflTeam, benched: prop.benched },
     // A prop locks on its own player's game day, so a Thursday player's prop
     // closes Thursday while a Sunday player's stays open through Saturday.
     locksAt: lockTimeFor([prop.nflTeam], gameDates, fallbackLock),

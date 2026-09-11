@@ -54,7 +54,8 @@
     "test:defence": "node --env-file=.env.local scripts/defence.test.mjs",
     "test:selfboosts": "node --env-file=.env.local scripts/selfboosts.test.mjs",
     "test:attacks2": "node --env-file=.env.local scripts/attacks2.test.mjs",
-    "test:bounty": "node --env-file=.env.local scripts/bounty.test.mjs"
+    "test:bounty": "node --env-file=.env.local scripts/bounty.test.mjs",
+    "test:effects": "node --env-file=.env.local scripts/effects.test.mjs"
   },
   "dependencies": {
     "@neon/config": "^1.3.2",

@@ -72,6 +72,26 @@ check('exactly on the line is under', r('prop', { playerId: 'p3', line: 20.0 }),
 check('benched player voids, not under', r('prop', { playerId: 'benched', line: 20.5 }), 'void');
 check('unknown player voids', r('prop', { playerId: 'nobody', line: 20.5 }), 'void');
 
+// Props are written for the whole roster now, so a BENCH prop settles on what
+// the player actually scored. Voiding it would make every bench prop a no-op.
+check(
+  'a bench prop settles over',
+  r('prop', { playerId: 'benched', line: 20.5, benched: true }),
+  'over',
+);
+check(
+  'a bench prop settles under',
+  r('prop', { playerId: 'benched', line: 40.5, benched: true }),
+  'under',
+);
+// Still voided when the player was not available at all: no score entry means
+// inactive or on a bye, and neither side could have been right.
+check(
+  'a bench prop on a player who never played still voids',
+  r('prop', { playerId: 'nobody', line: 5.5, benched: true }),
+  'void',
+);
+
 console.log('\nunknown kinds');
 check('unrecognised kind returns null', r('futures', {}), null);
 

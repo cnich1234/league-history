@@ -75,6 +75,12 @@ export default function RulesPage() {
             ten-way special it lands somewhere <em>random</em> — nine ways to be wrong.
             Completely blind, so it is as likely to rescue a dead bet as to kill a winner.
           </p>
+          <p>
+            It works on <strong>parlays</strong> too: one live leg is chosen at random and
+            moved, which usually kills the slip outright, since every leg has to land.
+            Legs that are already decided are left alone — only what is still live can be
+            moved. A long parlay is not a hiding place.
+          </p>
 
           <h2>Putting points on someone</h2>
           <p>

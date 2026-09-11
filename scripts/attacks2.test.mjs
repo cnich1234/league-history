@@ -309,6 +309,121 @@ try {
     ok('and it is not where it started', res.to !== 'opt0', true);
   }
 
+  console.log('\nSwitcheroo moves ONE leg of a parlay');
+  {
+    const legs = [
+      { marketId: await mkt(2), optionKey: 'opt0' },
+      { marketId: await mkt(2), optionKey: 'opt0' },
+      { marketId: await mkt(2), optionKey: 'opt0' },
+    ];
+    const par = await placeParlay({ slug: B, legs, stakeCents: 5000 });
+    const sw = await buyBoost({ slug: A, season: S, kind: 'switcheroo' });
+    const res = await switcheroo({ slug: A, boostId: Number(sw.id), betId: Number(par.id) });
+
+    ok('it reports three legs to choose from', res.legs, 3);
+
+    const after = await sql`
+      select market_id, option_key, odds from parlay_legs where bet_id = ${Number(par.id)}
+      order by market_id`;
+    const moved = after.filter((l) => l.option_key !== 'opt0');
+    ok('exactly one leg moved', moved.length, 1);
+    ok('and it took the new price', Number(moved[0].odds), 210);
+    // The other two are untouched: a switcheroo is one leg, not a reshuffle.
+    ok('the rest are where they were', after.filter((l) => l.option_key === 'opt0').length, 2);
+
+    // The parlay itself is unchanged -- only a leg moved.
+    const [row] = await sql`select stake_cents, status from bets where id = ${Number(par.id)}`;
+    ok('the stake is untouched', Number(row.stake_cents), 5000);
+    ok('and it is still pending', row.status, 'pending');
+  }
+
+  console.log('\na settled leg cannot be moved');
+  {
+    const live = await mkt(2);
+    const done = await mkt(2);
+    const par = await placeParlay({
+      slug: B,
+      legs: [
+        { marketId: live, optionKey: 'opt0' },
+        { marketId: done, optionKey: 'opt0' },
+      ],
+      stakeCents: 4000,
+    });
+    // Decide one leg. Only the other is eligible now.
+    await sql`
+      update parlay_legs set status = 'won', settled_at = now()
+      where bet_id = ${Number(par.id)} and market_id = ${done}`;
+
+    const sw = await buyBoost({ slug: A, season: S, kind: 'switcheroo' });
+    const res = await switcheroo({ slug: A, boostId: Number(sw.id), betId: Number(par.id) });
+    ok('only the live leg was on offer', res.legs, 1);
+
+    const [settledLeg] = await sql`
+      select option_key from parlay_legs
+      where bet_id = ${Number(par.id)} and market_id = ${done}`;
+    ok('the decided leg is untouched', settledLeg.option_key, 'opt0');
+    const [liveLeg] = await sql`
+      select option_key from parlay_legs
+      where bet_id = ${Number(par.id)} and market_id = ${live}`;
+    ok('the live one moved', liveLeg.option_key, 'opt1');
+  }
+
+  console.log('\nand a fully decided parlay is refused');
+  {
+    const par = await placeParlay({
+      slug: B,
+      legs: [
+        { marketId: await mkt(2), optionKey: 'opt0' },
+        { marketId: await mkt(2), optionKey: 'opt0' },
+      ],
+      stakeCents: 3000,
+    });
+    await sql`
+      update parlay_legs set status = 'won', settled_at = now()
+      where bet_id = ${Number(par.id)}`;
+    const sw = await buyBoost({ slug: A, season: S, kind: 'switcheroo' });
+    await rejects(
+      'nothing left to move',
+      () => switcheroo({ slug: A, boostId: Number(sw.id), betId: Number(par.id) }),
+      'already been decided',
+    );
+  }
+
+  console.log('\nit can rebound onto a parlay too');
+  {
+    // A mirrored target, and the attacker's own biggest open bet is a PARLAY.
+    // Before parlays were switchable this path threw rather than rebounding.
+    const mine = await placeParlay({
+      slug: A,
+      legs: [
+        { marketId: await mkt(2), optionKey: 'opt0' },
+        { marketId: await mkt(2), optionKey: 'opt0' },
+      ],
+      stakeCents: 40000,
+    });
+    const guarded = await placeBet({
+      slug: B,
+      marketId: await mkt(2),
+      optionKey: 'opt0',
+      stakeCents: 3000,
+    });
+    const mirror = await buyBoost({ slug: B, season: S, kind: 'mirror' });
+    await useBoostOnBet({ slug: B, boostId: Number(mirror.id), betId: Number(guarded.id) });
+
+    const sw = await buyBoost({ slug: A, season: S, kind: 'switcheroo' });
+    const res = await switcheroo({ slug: A, boostId: Number(sw.id), betId: Number(guarded.id) });
+    ok('it rebounded', res.reflected, true);
+    ok('onto the attacker own parlay', res.betId, String(mine.id));
+
+    const legs = await sql`
+      select option_key from parlay_legs where bet_id = ${Number(mine.id)}`;
+    ok('one of their own legs moved', legs.filter((l) => l.option_key !== 'opt0').length, 1);
+
+    // And the bet they aimed at is untouched.
+    const [target] = await sql`select option_key from bets where id = ${Number(guarded.id)}`;
+    ok('the mirrored bet stayed put', target.option_key, 'opt0');
+  }
+
   console.log('\nSwitcheroo rules');
   {
     const m = await mkt();

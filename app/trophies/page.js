@@ -16,7 +16,7 @@ export default function TrophiesPage() {
       <main className="page">
         <header className="page-head">
           <h1>Trophy Room</h1>
-          <p className="dim">Weekly achievements and the season points race.</p>
+          <p className="dim">Weekly achievements. Points buy boosts in The Book.</p>
         </header>
         <section className="section">
           <div className="section-head">
@@ -34,7 +34,7 @@ export default function TrophiesPage() {
       <header className="page-head">
         <h1>Trophy Room</h1>
         <p className="dim">
-          {weeks.length} week{weeks.length === 1 ? '' : 's'} scored · season points race
+          {weeks.length} week{weeks.length === 1 ? '' : 's'} scored · points earned
         </p>
       </header>
 
@@ -64,7 +64,10 @@ export default function TrophiesPage() {
 
       <section className="section">
         <div className="section-head">
-          <h2>Season Standings</h2>
+          <h2>Points Earned</h2>
+          {/* Total earned all season, not what is left to spend -- the Store
+              tab holds the balance, which goes down as boosts are bought. */}
+          <span className="dim">all season · spend them in The Book</span>
         </div>
         <div className="rows">
           {season.map((s, i) => (

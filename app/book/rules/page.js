@@ -66,6 +66,21 @@ export default function RulesPage() {
             changes no money at all. It just turns a hit into a grudge.
           </p>
 
+          <h2>Managing a position</h2>
+          <p>
+            <strong>🎣 Hedge (8)</strong> lets you back the other side of a market you are
+            already on — normally one bet per market. The second one pays whatever the
+            market costs <em>now</em>, which on a live market is a very different number
+            from the one you got, so squaring off is never free. Both bets settle on their
+            own merits.
+          </p>
+          <p>
+            <strong>📌 Lock In (7)</strong> freezes a live price for you for half an hour.
+            The number stops moving while you decide — for you only; everyone else is still
+            betting the live market. Claim it by betting before the clock runs out or it
+            expires unused. No real sportsbook offers this.
+          </p>
+
           <h2>Getting out of a bet</h2>
           <p>
             Two ways, and they suit different moments.

@@ -216,7 +216,7 @@ console.log('\ncoming-soon boosts are marked, not sellable');
   // revealing a position.
   check('everything is buyable', BOOSTS.filter((b) => b.comingSoon), []);
   const attacks = BOOSTS.filter((b) => b.attack);
-  check('six attacks', attacks.length, 6);
+  check('eight attacks', attacks.length, 8);
   // Ride Along is NOT one, even though it targets someone else's bet. It takes
   // nothing from them -- they keep the bet unchanged and both sides win or lose
   // together. It is a bet on the person, not against them.

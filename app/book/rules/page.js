@@ -49,6 +49,20 @@ export default function RulesPage() {
             played. Those never really resolved, so the stake comes back into that week.
           </p>
 
+          <h2>Two nastier attacks</h2>
+          <p>
+            <strong>🐌 Slow Play (5)</strong> doubles what their next bet costs. It comes
+            out of their <em>allowance</em>, not their winnings — the only attack that
+            makes someone poorer rather than shrinking a payout. They find out when they go
+            to bet. Cheap, because it costs them nothing if they simply stop betting.
+          </p>
+          <p>
+            <strong>🔀 Switcheroo (14)</strong> moves one of their bets to a different
+            option, and the price moves with it. On a two-sided market it flips. On a
+            ten-way special it lands somewhere <em>random</em> — nine ways to be wrong.
+            Completely blind, so it is as likely to rescue a dead bet as to kill a winner.
+          </p>
+
           <h2>Defending yourself</h2>
           <p>
             <strong>🛡️ Insurance (4)</strong> absorbs a hit — a shielded bet ignores every

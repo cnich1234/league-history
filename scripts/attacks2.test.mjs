@@ -1,0 +1,206 @@
+/**
+ * Slow Play and Switcheroo.
+ *
+ * Both hit something no other attack touches:
+ *
+ *   Slow Play doubles what the next bet COSTS, which comes out of the weekly
+ *   allowance rather than the payout. It is the only attack that makes someone
+ *   poorer rather than making their winnings smaller.
+ *
+ *   Switcheroo moves a bet to a different option. Two-sided markets flip; a
+ *   ten-way special lands somewhere random, which is far worse. The attacker
+ *   cannot see what they are moving, so it is as likely to rescue a dead bet as
+ *   to kill a winner.
+ */
+import { neon } from '@neondatabase/serverless';
+import { testWeek, fundWeek, unfundWeek } from './test-helpers.mjs';
+import { placeBet, weeklyBalance } from '../lib/book.js';
+import {
+  buyBoost,
+  useBoostOnBet,
+  switcheroo,
+  slowPlay,
+  pendingSlowPlay,
+  undoBet,
+} from '../lib/shop.js';
+
+const sql = neon(process.env.DATABASE_URL);
+const S = 9983;
+const W = testWeek(S);
+const A = 'chris-nicholson';
+const B = 'devin-nicholson';
+
+let failed = 0;
+const ok = (label, actual, expected) => {
+  const match = JSON.stringify(actual) === JSON.stringify(expected);
+  console.log(
+    `  ${match ? 'ok  ' : 'FAIL'} ${label}` +
+      (match ? '' : ` (want ${JSON.stringify(expected)}, got ${JSON.stringify(actual)})`),
+  );
+  if (!match) failed++;
+};
+const rejects = async (label, fn, fragment) => {
+  try {
+    await fn();
+    console.log(`  FAIL ${label} (expected a rejection)`);
+    failed++;
+  } catch (e) {
+    const hit = !fragment || e.message.toLowerCase().includes(fragment.toLowerCase());
+    console.log(`  ${hit ? 'ok  ' : 'FAIL'} ${label}${hit ? '' : `: ${e.message}`}`);
+    if (!hit) failed++;
+  }
+};
+
+async function mkt(optionCount = 2) {
+  const [m] = await sql`
+    insert into markets (season, week, kind, title, locks_at, status, live, meta)
+    values (${S}, ${W}, ${optionCount > 2 ? 'special' : 'h2h'}, ${'A2 ' + Math.random()},
+            ${new Date(Date.now() + 86400e3)}, 'open', false, '{}'::jsonb)
+    returning id`;
+  for (let i = 0; i < optionCount; i++) {
+    await sql`
+      insert into market_options (market_id, option_key, label, odds)
+      values (${m.id}, ${'opt' + i}, ${'Option ' + i}, ${200 + i * 10})`;
+  }
+  return Number(m.id);
+}
+
+async function pts(slug, n) {
+  await sql`
+    insert into point_ledger (bettor, season, amount, reason, note)
+    values (${slug}, ${S}, ${n}, 'adjustment', 'attack2 test')`;
+}
+
+async function clean() {
+  const ids = (await sql`select id from markets where season = ${S}`).map((r) => r.id);
+  const bids = ids.length
+    ? (await sql`select id from bets where market_id = any(${ids})`).map((r) => r.id)
+    : [];
+  if (bids.length) {
+    await sql`delete from boosts where target_bet_id = any(${bids})`;
+    await sql`delete from ledger where bet_id = any(${bids})`;
+    await sql`delete from bets where id = any(${bids})`;
+  }
+  if (ids.length) {
+    await sql`delete from market_options where market_id = any(${ids})`;
+    await sql`delete from markets where id = any(${ids})`;
+  }
+  await sql`delete from boosts where season = ${S}`;
+  await sql`delete from point_ledger where season = ${S}`;
+  await unfundWeek(W);
+}
+
+await clean();
+await fundWeek(W);
+
+try {
+  await pts(A, 400);
+  await pts(B, 400);
+
+  console.log('\nSlow Play doubles the next stake');
+  {
+    const slow = await buyBoost({ slug: A, season: S, kind: 'slow-play' });
+    await slowPlay({ slug: A, boostId: Number(slow.id), target: B, week: W });
+    ok('B is slowed', (await pendingSlowPlay(B, W)) != null, true);
+
+    const before = await weeklyBalance(B, W);
+    const m = await mkt();
+    const bet = await placeBet({ slug: B, marketId: m, optionKey: 'opt0', stakeCents: 10000 });
+
+    ok('the bet is the size they asked for', Number(bet.stake_cents), 10000);
+    // The allowance, not the payout: it cost twice as much to place.
+    ok('but it cost double', before - (await weeklyBalance(B, W)), 20000);
+    ok('and the slow is used up', await pendingSlowPlay(B, W), null);
+
+    const after = await weeklyBalance(B, W);
+    const m2 = await mkt();
+    await placeBet({ slug: B, marketId: m2, optionKey: 'opt0', stakeCents: 10000 });
+    ok('the next bet is normal again', after - (await weeklyBalance(B, W)), 10000);
+  }
+
+  console.log('\nundoing a slowed bet returns what it COST');
+  {
+    const slow = await buyBoost({ slug: A, season: S, kind: 'slow-play' });
+    await slowPlay({ slug: A, boostId: Number(slow.id), target: B, week: W });
+    const m = await mkt();
+    const before = await weeklyBalance(B, W);
+    const bet = await placeBet({ slug: B, marketId: m, optionKey: 'opt0', stakeCents: 8000 });
+    ok('charged double', before - (await weeklyBalance(B, W)), 16000);
+
+    const undo = await buyBoost({ slug: B, season: S, kind: 'undo' });
+    const res = await undoBet({ slug: B, boostId: Number(undo.id), betId: Number(bet.id) });
+    // Refunding the nominal stake would quietly cost them 8000.
+    ok('refunds the full cost, not the nominal stake', res.refundedCents, 16000);
+    ok('the week is whole again', await weeklyBalance(B, W), before);
+  }
+
+  console.log('\nSlow Play rules');
+  {
+    const s2 = await buyBoost({ slug: A, season: S, kind: 'slow-play' });
+    await rejects(
+      'cannot slow yourself',
+      () => slowPlay({ slug: A, boostId: Number(s2.id), target: A, week: W }),
+      'someone else',
+    );
+    await slowPlay({ slug: A, boostId: Number(s2.id), target: B, week: W });
+    const s3 = await buyBoost({ slug: A, season: S, kind: 'slow-play' });
+    await rejects(
+      'cannot stack two on one person',
+      () => slowPlay({ slug: A, boostId: Number(s3.id), target: B, week: W }),
+      'already slowed',
+    );
+  }
+
+  console.log('\nSwitcheroo flips a two-sided bet');
+  {
+    const m = await mkt(2);
+    const bet = await placeBet({ slug: B, marketId: m, optionKey: 'opt0', stakeCents: 5000 });
+    const sw = await buyBoost({ slug: A, season: S, kind: 'switcheroo' });
+    const res = await switcheroo({ slug: A, boostId: Number(sw.id), betId: Number(bet.id) });
+
+    ok('only one place it could go', res.outOf, 1);
+    ok('and it went there', res.to, 'opt1');
+    const [moved] = await sql`select option_key, odds from bets where id = ${bet.id}`;
+    ok('the bet moved', moved.option_key, 'opt1');
+    // The price moves with it: their stake now rides what THAT option was worth.
+    ok('and took the new price', moved.odds, 210);
+  }
+
+  console.log('\nand lands randomly on a ten-way special');
+  {
+    const m = await mkt(10);
+    const bet = await placeBet({ slug: B, marketId: m, optionKey: 'opt0', stakeCents: 5000 });
+    const sw = await buyBoost({ slug: A, season: S, kind: 'switcheroo' });
+    const res = await switcheroo({ slug: A, boostId: Number(sw.id), betId: Number(bet.id) });
+
+    ok('nine other places it could land', res.outOf, 9);
+    ok('and it is not where it started', res.to !== 'opt0', true);
+  }
+
+  console.log('\nSwitcheroo rules');
+  {
+    const m = await mkt();
+    const own = await placeBet({ slug: A, marketId: m, optionKey: 'opt0', stakeCents: 4000 });
+    const sw = await buyBoost({ slug: A, season: S, kind: 'switcheroo' });
+    await rejects(
+      'cannot switch your own bet',
+      () => switcheroo({ slug: A, boostId: Number(sw.id), betId: Number(own.id) }),
+      'someone else',
+    );
+
+    const m2 = await mkt();
+    const safe = await placeBet({ slug: B, marketId: m2, optionKey: 'opt0', stakeCents: 4000 });
+    const shield = await buyBoost({ slug: B, season: S, kind: 'insurance' });
+    await useBoostOnBet({ slug: B, boostId: Number(shield.id), betId: Number(safe.id) });
+    await rejects(
+      'insurance blocks it',
+      () => switcheroo({ slug: A, boostId: Number(sw.id), betId: Number(safe.id) }),
+      'insured',
+    );
+  }
+} finally {
+  await clean();
+}
+
+console.log(failed ? `\n${failed} FAILED\n` : '\nall checks passed\n');
+process.exit(failed ? 1 : 0);

@@ -9,6 +9,8 @@ import {
   curseWeek,
   undoBet,
   readReceipt,
+  switcheroo,
+  slowPlay,
 } from '@/lib/shop';
 
 export const dynamic = 'force-dynamic';
@@ -38,6 +40,7 @@ export async function POST(request) {
     }
 
     if (body.action === 'use') {
+      const { byKind } = await import('@/lib/boosts');
       const boostId = Number(body.boostId);
       if (!Number.isFinite(boostId)) {
         return NextResponse.json({ error: 'Which boost?' }, { status: 400 });
@@ -47,7 +50,11 @@ export async function POST(request) {
         // Ride Along creates a bet rather than modifying one, so it has its own
         // path -- routing it through useBoostOnBet would have treated a copy as
         // an attack on the thing it copied.
-        const { byKind } = await import('@/lib/boosts');
+        // Switcheroo moves a bet rather than modifying its payout.
+        if (byKind[body.kind]?.flips || body.switch) {
+          const row = await switcheroo({ slug, boostId, betId: Number(body.betId) });
+          return NextResponse.json({ ok: true, switched: row });
+        }
         // Receipt reads rather than writes: it returns WHO, and changes no money.
         if (byKind[body.kind]?.reveals || body.receipt) {
           const found = await readReceipt({ slug, boostId, betId: Number(body.betId) });
@@ -64,6 +71,15 @@ export async function POST(request) {
         }
         const row = await useBoostOnBet({ slug, boostId, betId: Number(body.betId) });
         return NextResponse.json({ ok: true, used: { ...row, id: String(row.id) } });
+      }
+      if (body.target != null && byKind[body.kind]?.doublesStake) {
+        const row = await slowPlay({
+          slug,
+          boostId,
+          target: String(body.target),
+          week: Number(body.week ?? process.env.BOOK_WEEK ?? 1),
+        });
+        return NextResponse.json({ ok: true, slowed: row });
       }
       if (body.target != null) {
         const row = await curseWeek({

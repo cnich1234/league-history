@@ -71,7 +71,7 @@ export const ACHIEVEMENTS = [
     compute: (w) => best(w.teams, (t) => -t.points).map((t) => ({ slug: t.slug, detail: `${t.points.toFixed(2)} pts` })),
   },
   {
-    id: 'unluckiest', name: 'Nice Score, Still Lost', icon: '😤', points: 1,
+    id: 'unluckiest', name: 'Nice Score, Still Lost', icon: '😤', points: 2,
     category: CATEGORIES.PAIN,
     blurb: 'Highest-scoring loser of the week. Worth a point because it was not your fault.',
     compute: (w) => {
@@ -121,6 +121,37 @@ export const ACHIEVEMENTS = [
             : `lost by ${Math.abs(s.actualMargin).toFixed(2)}, projected to lose by ${Math.abs(s.expectedMargin).toFixed(2)}`,
         })),
     ),
+  },
+
+  {
+    id: 'lucky-win', name: 'Ugly Win', icon: '🐗', points: 2,
+    category: CATEGORIES.PAIN,
+    blurb: 'Won the week with the lowest score of anyone who won.',
+    // The mirror of Nice Score Still Lost: you were bad and got away with it.
+    compute: (w) => {
+      const winners = w.games.map((g) => ({ slug: g.winnerSlug, points: g.winnerPoints }));
+      return best(winners, (x) => -x.points).map((x) => ({
+        slug: x.slug,
+        detail: `won with only ${x.points.toFixed(2)}`,
+      }));
+    },
+  },
+  {
+    id: 'over-projection', name: 'Blew It Away', icon: '📊', points: 2,
+    category: CATEGORIES.PAIN,
+    blurb: 'Beat your projection by the most points in the league.',
+    // Distinct from Overachiever, which pays EVERYONE who beat their number.
+    // This is the single biggest overperformance, so exactly one winner.
+    compute: (w) => {
+      const over = w.teams
+        .filter((t) => t.projected != null)
+        .map((t) => ({ slug: t.slug, by: t.points - t.projected, points: t.points, projected: t.projected }))
+        .filter((t) => t.by > 0);
+      return best(over, (t) => t.by).map((t) => ({
+        slug: t.slug,
+        detail: `${t.points.toFixed(2)} vs ${t.projected.toFixed(2)} projected (+${t.by.toFixed(2)})`,
+      }));
+    },
   },
 
   // ---- bonus ----
@@ -174,6 +205,76 @@ export const ACHIEVEMENTS = [
       .map((p) => ({ slug: p.slug, detail: `${p.name} ${p.rushYards} rush yds` })),
   },
 
+  {
+    id: 'bench-beats-lineup', name: 'Wrong Nine', icon: '🙃', points: 10,
+    category: CATEGORIES.BONUS,
+    blurb: 'Your bench outscored your starters.',
+    // Worth 10 because it is genuinely rare: across all 150 team-weeks of the
+    // 2025 season it happened exactly ZERO times, with starters averaging 134
+    // against a bench of 39. If someone manages it they have earned the points.
+    compute: (w) => w.teams
+      .filter((t) => t.benchPoints != null && t.benchPoints > t.points)
+      .map((t) => ({
+        slug: t.slug,
+        detail: `bench ${t.benchPoints.toFixed(2)} beat starters ${t.points.toFixed(2)}`,
+      })),
+  },
+  {
+    id: 'perfect-lineup', name: 'Perfect Lineup', icon: '💎', points: 4,
+    category: CATEGORIES.BONUS,
+    blurb: 'Nobody on your bench could have scored more than a starter you played.',
+    // The strict version of Actually Set Your Lineup: not "fewest points
+    // missed" but none at all. Measured on startable players only, so an
+    // injured or bye-week bench does not hand it to you.
+    compute: (w) => w.teams
+      .filter((t) => t.missedPoints != null && t.missedPoints === 0)
+      .map((t) => ({ slug: t.slug, detail: 'nothing left on the bench' })),
+  },
+  {
+    id: 'negative-defense', name: 'Defenceless', icon: '🚨', points: 2,
+    category: CATEGORIES.BONUS,
+    blurb: 'Started a defence that finished on negative points.',
+    // Happens about 2.2 times per NFL week, so with ten started defences this
+    // fires most weeks for somebody. Consolation rather than mockery.
+    compute: (w) => w.allStarters
+      .filter((p) => p.position === 'DEF' && p.points < 0)
+      .map((p) => ({ slug: p.slug, detail: `${p.name} ${p.points.toFixed(2)}` })),
+  },
+
+  {
+    id: 'made-a-trade', name: 'Wheeler Dealer', icon: '🤝', points: 10,
+    category: CATEGORIES.BONUS,
+    blurb: 'Completed a trade this week.',
+    // Worth a lot on purpose: trades are the thing a quiet league does least,
+    // and both sides get paid. Everyone involved earns it, not just whoever
+    // proposed it.
+    compute: (w) => (w.traded ?? []).map((slug) => ({ slug, detail: 'made a trade' })),
+  },
+  {
+    id: 'best-pickup', name: 'Waiver Wire Genius', icon: '🎣', points: 2,
+    category: CATEGORIES.BONUS,
+    blurb: 'Your waiver pickup outscored every other pickup this week.',
+    // Must have been STARTED. Claiming someone and leaving them on the bench
+    // was not a decision that paid off, so it does not count.
+    compute: (w) => {
+      const started = new Map(
+        (w.allStarters ?? []).map((p) => [`${p.slug}:${p.id ?? p.name}`, p]),
+      );
+      const candidates = (w.pickups ?? [])
+        .map((p) => {
+          const player = (w.allStarters ?? []).find(
+            (s) => s.slug === p.slug && String(s.id) === String(p.playerId),
+          );
+          return player ? { slug: p.slug, name: player.name, points: player.points } : null;
+        })
+        .filter(Boolean);
+      return best(candidates, (c) => c.points).map((c) => ({
+        slug: c.slug,
+        detail: `${c.name} ${c.points.toFixed(2)} off waivers`,
+      }));
+    },
+  },
+
   // ---- position awards ----
   ...['QB', 'RB', 'WR', 'TE'].map((pos) => ({
     id: `top-${pos.toLowerCase()}`, name: `Best ${pos}`, icon: positionIcon(pos), points: 1,
@@ -182,7 +283,29 @@ export const ACHIEVEMENTS = [
     compute: (w) => best(w.allStarters.filter((p) => p.position === pos), (p) => p.points)
       .map((p) => ({ slug: p.slug, detail: `${p.name} ${p.points.toFixed(2)}` })),
   })),
+
+  // Started the WORST at a position. A consolation, not a fine -- nothing in
+  // this list takes points away any more.
+  ...['QB', 'RB', 'WR', 'TE'].map((pos) => ({
+    id: `worst-${pos.toLowerCase()}`, name: `Worst ${pos}`, icon: worstIcon(pos), points: 1,
+    category: CATEGORIES.PAIN,
+    blurb: `Started the lowest-scoring ${pos} in the league.`,
+    // Needs a real field. With only one started player at a position, the same
+    // person would win Best and Worst in the same week, which is nonsense.
+    compute: (w) => {
+      const atPos = w.allStarters.filter((p) => p.position === pos);
+      if (atPos.length < 2) return [];
+      return best(atPos, (p) => -p.points).map((p) => ({
+        slug: p.slug,
+        detail: `${p.name} ${p.points.toFixed(2)}`,
+      }));
+    },
+  })),
 ];
+
+function worstIcon(pos) {
+  return { QB: '🥴', RB: '🐢', WR: '🧤', TE: '🪨' }[pos] ?? '🫠';
+}
 
 function positionIcon(pos) {
   return { QB: '🎯', RB: '🏃', WR: '🙌', TE: '🧱' }[pos] ?? '⭐';

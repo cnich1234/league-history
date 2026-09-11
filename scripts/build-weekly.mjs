@@ -103,10 +103,13 @@ async function loadWeekExtras(season, week) {
 }
 
 export async function buildWeek(week) {
-  const [users, rosters, matchups] = await Promise.all([
+  const [users, rosters, matchups, transactions] = await Promise.all([
     api(`/league/${LEAGUE_ID}/users`),
     api(`/league/${LEAGUE_ID}/rosters`),
     api(`/league/${LEAGUE_ID}/matchups/${week}`),
+    // Trades and waiver pickups. A failure here costs two awards rather than
+    // the whole week, so it degrades to an empty list.
+    api(`/league/${LEAGUE_ID}/transactions/${week}`).catch(() => []),
   ]);
   if (!matchups.some((m) => m.points > 0)) {
     throw new Error(`Week ${week} has no scores yet.`);
@@ -239,7 +242,43 @@ export async function buildWeek(week) {
       };
     });
 
-  const ctx = { teams, games, allStarters, median: median(teams.map((t) => t.points)) };
+  // Who traded, and who picked someone up. Keyed by roster so the awards can
+  // map them to a manager the same way everything else does.
+  const tradedRosters = new Set();
+  const pickups = [];
+  for (const t of Array.isArray(transactions) ? transactions : []) {
+    if (t.status !== 'complete') continue;
+    if (t.type === 'trade') {
+      for (const r of t.roster_ids ?? []) tradedRosters.add(r);
+      continue;
+    }
+    // A waiver claim or free-agent add. `adds` maps playerId -> rosterId.
+    if (t.type === 'waiver' || t.type === 'free_agent') {
+      for (const [playerId, rosterId] of Object.entries(t.adds ?? {})) {
+        pickups.push({ playerId, rosterId });
+      }
+    }
+  }
+
+  const slugOfRoster = (rosterId) => {
+    const r = rosterById[rosterId];
+    return SLEEPER_OWNERS[r?.owner_id]?.slug ?? null;
+  };
+
+  const ctx = {
+    teams,
+    games,
+    allStarters,
+    median: median(teams.map((t) => t.points)),
+    // Managers who completed a trade this week.
+    traded: [...tradedRosters].map(slugOfRoster).filter(Boolean),
+    // Players picked up this week, with whoever claimed them. The award only
+    // counts the ones who were actually STARTED -- a pickup left on the bench
+    // was not a decision that paid off.
+    pickups: pickups
+      .map((p) => ({ ...p, slug: slugOfRoster(p.rosterId) }))
+      .filter((p) => p.slug),
+  };
 
   // A team's win streak counts THIS week's result too.
   for (const t of teams) {

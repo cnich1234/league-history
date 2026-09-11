@@ -11,6 +11,7 @@ import { SLEEPER_OWNERS } from './sleeper-owners.mjs';
 import { ACHIEVEMENTS } from './achievements.mjs';
 
 const LEAGUE_ID = process.env.SLEEPER_LEAGUE_ID ?? '1389735198932877312';
+const SEASON = Number(process.env.BOOK_SEASON ?? 2026);
 const OUT = 'data/weekly.json';
 const PLAYERS = 'C:/Users/chris/fantasy/draft-tool/data/sleeper-players.json';
 
@@ -54,6 +55,53 @@ async function recordsBefore(week) {
   return rec;
 }
 
+/**
+ * Per-player projections and raw stats for a week.
+ *
+ * Needed by three awards that cannot be computed from matchup points alone:
+ * the two projection awards compare a score to what was expected, and the
+ * yardage awards need rushing and receiving yards rather than fantasy points.
+ *
+ * Both endpoints are undocumented but stable, and both are already used
+ * elsewhere in the app. A failure here degrades those awards to "nobody won
+ * it" rather than failing the whole week.
+ */
+async function loadWeekExtras(season, week) {
+  const url =
+    `https://api.sleeper.com/projections/nfl/${season}/${week}` +
+    `?season_type=regular&position[]=QB&position[]=RB&position[]=WR&position[]=TE` +
+    `&position[]=K&position[]=DEF&order_by=pts_ppr`;
+  const statsUrl =
+    `https://api.sleeper.com/stats/nfl/${season}/${week}` +
+    `?season_type=regular&position[]=QB&position[]=RB&position[]=WR&position[]=TE` +
+    `&order_by=pts_ppr`;
+
+  const projections = {};
+  const stats = {};
+  try {
+    const [pRes, sRes] = await Promise.all([fetch(url), fetch(statsUrl)]);
+    if (pRes.ok) {
+      for (const r of await pRes.json()) {
+        if (r.player_id && typeof r?.stats?.pts_ppr === 'number') {
+          projections[r.player_id] = r.stats.pts_ppr;
+        }
+      }
+    }
+    if (sRes.ok) {
+      for (const r of await sRes.json()) {
+        if (!r.player_id) continue;
+        stats[r.player_id] = {
+          recYards: r.stats?.rec_yd ?? 0,
+          rushYards: r.stats?.rush_yd ?? 0,
+        };
+      }
+    }
+  } catch {
+    // Leave both empty; the awards that need them simply find no winner.
+  }
+  return { projections, stats };
+}
+
 export async function buildWeek(week) {
   const [users, rosters, matchups] = await Promise.all([
     api(`/league/${LEAGUE_ID}/users`),
@@ -66,6 +114,7 @@ export async function buildWeek(week) {
 
   const players = JSON.parse(readFileSync(PLAYERS, 'utf8'));
   const prior = await recordsBefore(week);
+  const { projections, stats } = await loadWeekExtras(SEASON, week);
   const userById = Object.fromEntries(users.map((u) => [u.user_id, u]));
   const rosterById = Object.fromEntries(rosters.map((r) => [r.roster_id, r]));
 
@@ -83,10 +132,18 @@ export async function buildWeek(week) {
 
     const named = (id) => {
       const p = players[id] ?? {};
+      const st = stats[id] ?? {};
       return {
+        id,
         name: `${p.first_name ?? ''} ${p.last_name ?? ''}`.trim() || id,
         position: p.position ?? '?',
         points: +(pts[id] ?? 0).toFixed(2),
+        projected: projections[id] ?? null,
+        recYards: st.recYards ?? 0,
+        rushYards: st.rushYards ?? 0,
+        // A player with no game that week -- bye or inactive -- could not have
+        // been started, which is what the lineup award has to know.
+        played: (pts[id] ?? 0) !== 0 || (st.recYards ?? 0) > 0 || (st.rushYards ?? 0) > 0,
       };
     };
     const starters = starterIds.map(named);
@@ -123,6 +180,26 @@ export async function buildWeek(week) {
       points: +(m.points ?? 0).toFixed(2),
       benchPoints: +bench.reduce((a, b) => a + b.points, 0).toFixed(2),
       worstBenchMistake: worst,
+      // What Sleeper expected this lineup to score. Null when projections
+      // could not be loaded, which the awards check for rather than treating
+      // a missing projection as zero.
+      projected: starters.every((x) => x.projected == null)
+        ? null
+        : +starters.reduce((a, x) => a + (x.projected ?? 0), 0).toFixed(2),
+      // Points left on the bench by players who ACTUALLY PLAYED and could have
+      // started in place of someone weaker at the same position. The old
+      // benchPoints figure counted injured and bye-week players, so a manager
+      // with a thin bench won the lineup award by having nothing to leave.
+      missedPoints: +bench
+        .filter((b) => b.played)
+        .reduce((total, b) => {
+          const swappable = starters.filter((x) => x.position === b.position);
+          const weakest = [...swappable].sort((x, y) => x.points - y.points)[0];
+          return weakest && b.points > weakest.points
+            ? total + (b.points - weakest.points)
+            : total;
+        }, 0)
+        .toFixed(2),
       recordBefore: `${pr.w}-${pr.l}`,
       winPctBefore: pr.w + pr.l ? pr.w / (pr.w + pr.l) : 0,
       winStreak: Math.max(0, pr.streak),
@@ -145,6 +222,20 @@ export async function buildWeek(week) {
         loserRecordBefore: lose.recordBefore,
         margin: +(win.points - lose.points).toFixed(2),
         upset: lose.winPctBefore > win.winPctBefore,
+        // Both sides, so "did you beat the spread" can be asked of the loser
+        // as well as the winner -- which is the entire point of that award.
+        sides: pair.map((t) => ({
+          slug: t.slug,
+          points: t.points,
+          projected: t.projected,
+          // What the model expected this side to win or lose by. A team
+          // projected to lose by 20 that loses by 5 beat the spread.
+          expectedMargin:
+            t.projected == null || pair.some((x) => x.projected == null)
+              ? null
+              : +(t.projected - pair.find((x) => x.slug !== t.slug).projected).toFixed(2),
+          actualMargin: +(t.points - pair.find((x) => x.slug !== t.slug).points).toFixed(2),
+        })),
       };
     });
 

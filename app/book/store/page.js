@@ -89,6 +89,16 @@ export default async function StorePage() {
                 );
               })}
             </div>
+            {/* A bounty is not a boost, so it is not for sale here -- but this
+                is where someone shopping for an attack will look for it. */}
+            {group.key === 'attack' && (
+              <p className="shop-aside">
+                🎯 You can also put points on someone&apos;s head — name a target, name the
+                attack, and whoever lands it collects. That lives on{' '}
+                <strong>The Action</strong>, not here: a bounty buys you nothing, it pays
+                somebody else to do it.
+              </p>
+            )}
           </div>
         ))}
       </section>

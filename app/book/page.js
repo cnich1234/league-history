@@ -18,6 +18,7 @@ import {
   availableOddsBoosts,
   marketEffects,
   pendingSlowPlay,
+  openBounties,
 } from '@/lib/shop';
 import { formatMoney, formatOdds } from '@/lib/odds';
 import Login from '@/components/Login';
@@ -27,6 +28,7 @@ import ParlaySlip from '@/components/ParlaySlip';
 import SpecialSection from '@/components/SpecialSection';
 import WeekSwitcher from '@/components/WeekSwitcher';
 import EffectsBanner from '@/components/EffectsBanner';
+import BountyAlert from '@/components/BountyAlert';
 
 export const metadata = { title: 'The Book' };
 // Reads a session cookie and live odds, so this page can never be prerendered.
@@ -82,6 +84,7 @@ export default async function BookPage({ searchParams }) {
     oddsBoosts,
     effects,
     slowPending,
+    bounties,
   ] = await Promise.all([
     guest ? null : getBettor(slug),
     getMarketsForWeek(SEASON, week),
@@ -106,6 +109,9 @@ export default async function BookPage({ searchParams }) {
     // a big enough bet wears it off, so springing it would just look like the
     // stake box was broken.
     guest ? null : pendingSlowPlay(slug, week),
+    // Announced on the board, not just on The Action. A bounty is only worth
+    // posting if people see it -- and the board is where they are.
+    openBounties(SEASON, week),
   ]);
   const myBank = Number(banks.find((b) => b.slug === slug)?.bank_cents ?? 0);
 
@@ -114,6 +120,12 @@ export default async function BookPage({ searchParams }) {
   const slowed = slowPending
     ? { minStakeDollars: byKind['slow-play']?.minStakeDollars ?? 0 }
     : null;
+
+  // Bounties name a weapon by kind; the alert shows its display name.
+  const namedBounties = bounties.map((b) => ({
+    ...b,
+    weaponName: byKind[b.weapon]?.name ?? b.weapon,
+  }));
 
   // Parlays have no market_id, so they cannot key this map -- and including
   // them would collide on the "null" key and mark unrelated markets as placed.
@@ -212,6 +224,9 @@ export default async function BookPage({ searchParams }) {
 
       {/* Above the markets, because it changes what the prices below mean. */}
       <EffectsBanner effects={effects} />
+
+      {/* Guests see it too: a bounty is public by design. */}
+      <BountyAlert bounties={namedBounties} mine={guest ? null : slug} />
 
       {slowed && (
         <section className="section">

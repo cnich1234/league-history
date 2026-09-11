@@ -1338,17 +1338,26 @@ tbody tr:last-child td {
   color: var(--negative);
 }
 
+/* Gold, because that is already the reward colour inside a bounty card -- the
+   button matches the thing it produces. The dashed grey it replaced read as a
+   disabled placeholder rather than the one action on the panel. */
 .bounty-post {
   width: 100%;
-  padding: 11px;
+  padding: 12px;
   border-radius: 10px;
-  border: 1px dashed rgba(255, 255, 255, 0.15);
-  background: transparent;
-  color: var(--text-muted);
+  border: 1px solid var(--gold);
+  background: rgba(255, 197, 61, 0.12);
+  color: var(--gold);
   font-family: inherit;
-  font-size: 13.5px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
   cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.bounty-post:hover {
+  background: rgba(255, 197, 61, 0.2);
 }
 
 .bounty-form {
@@ -2643,4 +2652,42 @@ tbody tr:last-child td {
 .slowed-icon {
   flex: none;
   font-size: 1.1rem;
+}
+
+/* Bounty alert on the board: the announcement without the post form, which
+   stays on The Action. Denser than the full card because several can stack. */
+.bounty-alert-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.bounty-alert-list li {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  font-size: 14px;
+  line-height: 1.45;
+}
+.bounty-icon {
+  flex: none;
+}
+.bounty-on-you {
+  color: var(--negative);
+}
+.bounty-alert-foot {
+  margin-top: 8px;
+  font-size: 11.5px;
+}
+
+/* Pointer to something that is not for sale in the shop. */
+.shop-aside {
+  margin: 0.7rem 0 0;
+  padding: 0.6rem 0.75rem;
+  border-left: 2px solid var(--line);
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--dim, #9a9a9a);
 }

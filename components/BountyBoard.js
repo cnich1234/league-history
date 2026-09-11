@@ -78,7 +78,7 @@ export default function BountyBoard({ bounties, managers, attacks, points, week 
 
       {!open ? (
         <button className="bounty-post" type="button" onClick={() => setOpen(true)}>
-          Put points on someone
+          🎯 Post Bounty
         </button>
       ) : (
         <div className="bounty-form">

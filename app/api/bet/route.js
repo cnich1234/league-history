@@ -21,7 +21,8 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Guests cannot place bets.' }, { status: 403 });
   }
 
-  const { marketId, optionKey, stakeDollars, expectedOdds } = await request.json().catch(() => ({}));
+  const { marketId, optionKey, stakeDollars, expectedOdds, oddsBoostId } =
+    await request.json().catch(() => ({}));
 
   const dollars = Number(stakeDollars);
   if (!Number.isFinite(dollars)) {

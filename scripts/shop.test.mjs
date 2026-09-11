@@ -22,7 +22,7 @@ import {
   boostsForBets,
   marketPenalty,
   consumeOddsBoost,
-  hasArmedOddsBoost,
+  availableOddsBoosts,
 } from '../lib/shop.js';
 import { WEEKLY_ALLOWANCE, byKind } from '../lib/boosts.js';
 
@@ -228,24 +228,28 @@ try {
   {
     await grantTrophyPoints(TEST_SEASON, 3, { [A]: 30 });
     const ob = await buyBoost({ slug: A, season: TEST_SEASON, kind: 'odds-boost' });
-    check('armed', await hasArmedOddsBoost(A, TEST_SEASON), true);
+    // Offered in the bet slip rather than armed in advance: you pick the bet
+    // AND see what it does to the price before committing.
+    check('offered', (await availableOddsBoosts(A, TEST_SEASON)).length, 1);
 
-    // Two placements racing for one boost: exactly one may win it. Without the
-    // `used_at is null` guard on the update, both would claim the same boost
-    // and one of them would get a free price.
-    const [a, b] = await Promise.all([
-      consumeOddsBoost({ slug: A, season: TEST_SEASON, odds: 200 }),
-      consumeOddsBoost({ slug: A, season: TEST_SEASON, odds: 200 }),
+    // Two placements racing for the SAME chosen boost: exactly one may win it.
+    // The `used_at is null` guard on the update is what makes that safe -- both
+    // can pass the ownership read, and only one can claim.
+    const results = await Promise.allSettled([
+      consumeOddsBoost({ slug: A, season: TEST_SEASON, odds: 200, boostId: ob.id }),
+      consumeOddsBoost({ slug: A, season: TEST_SEASON, odds: 200, boostId: ob.id }),
     ]);
-    const winners = [a, b].filter(Boolean);
-    check('exactly one placement gets it', winners.length, 1);
-    check('and it improved the price', winners[0].odds, 300);
-    check('nothing is armed afterwards', await hasArmedOddsBoost(A, TEST_SEASON), false);
+    const won = results.filter((r) => r.status === 'fulfilled' && r.value);
+    check('exactly one placement gets it', won.length, 1);
+    check('and it improved the price', won[0].value.odds, 300);
+    check('the other is told why', 
+      results.some((r) => r.status === 'rejected' && /already been used/i.test(r.reason.message)),
+      true);
 
     const spent = await sql`select used_at from boosts where id = ${Number(ob.id)}`;
     check('the boost is marked used', Boolean(spent[0].used_at), true);
 
-    check('and a later placement gets nothing',
+    check('a placement that does not ask for one gets nothing',
       await consumeOddsBoost({ slug: A, season: TEST_SEASON, odds: 200 }), null);
   }
 

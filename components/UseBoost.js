@@ -20,11 +20,9 @@ const odds = (n) => (n > 0 ? `+${n}` : String(n));
  */
 // Boosts with nothing to choose. Kept here rather than read from the boost
 // definition because lib/boosts.js pulls in server-only code.
-const NO_TARGET = new Set(['odds-boost', 'boost-week']);
+const NO_TARGET = new Set(['boost-week']);
 
 const DESCRIPTIONS = {
-  'odds-boost':
-    'Arm Better Price? The next bet you place gets 50% better odds. It cannot be saved for a later one.',
   'boost-week':
     'Declare Big Week? Every bet you win this week pays 50% more. If nothing wins, it is gone.',
 };

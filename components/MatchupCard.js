@@ -27,6 +27,7 @@ export default function MatchupCard({
   game,
   myByMarket,
   myParlayByMarket = {},
+  oddsBoosts = [],
   bankrollCents,
   defaultOpen,
   week,
@@ -77,6 +78,7 @@ export default function MatchupCard({
                       parlayLegs={myParlayByMarket[String(m.id)] ?? null}
                       bankrollCents={bankrollCents}
                       disabled={readOnly}
+                      oddsBoosts={oddsBoosts}
                     />
                   ))}
                 </details>
@@ -101,6 +103,7 @@ export default function MatchupCard({
               myParlayByMarket={myParlayByMarket}
               bankrollCents={bankrollCents}
               readOnly={readOnly}
+              oddsBoosts={oddsBoosts}
             />
           </div>
           ),

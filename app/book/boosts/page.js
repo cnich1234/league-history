@@ -64,6 +64,15 @@ export default async function BoostsPage() {
                     <span className="boost-name">{def.name}</span>
                     <span className="dim">{def.blurb}</span>
                   </span>
+                  {def.kind === 'odds-boost' ? (
+                    // Chosen in the bet slip, not from here -- you pick it when
+                    // placing a bet so you can see what it does to the price.
+                    <span className="dim" style={{ fontSize: 12.5, textAlign: 'right' }}>
+                      Use it on the board,
+                      <br />
+                      when you place a bet
+                    </span>
+                  ) : (
                   <UseBoost
                     boost={{
                       id: String(b.id),
@@ -73,8 +82,8 @@ export default async function BoostsPage() {
                       blurb: def.blurb,
                     }}
                     week={WEEK}
-                    label={b.detail?.armed ? 'Armed' : undefined}
                   />
+                  )}
                 </div>
               );
             })}

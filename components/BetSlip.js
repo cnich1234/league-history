@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useSlip } from './SlipProvider';
+import { boostOdds } from '@/lib/boosts';
 
 const MIN = 10;
 const MAX = 250;
@@ -47,6 +48,9 @@ function lockLabel(market) {
 export default function BetSlip({
   market,
   existingBet,
+  // Unused Better Price boosts. Offered here rather than armed in advance, so
+  // you choose the bet AND see what it does to the price before committing.
+  oddsBoosts = [],
   // Legs of YOUR parlays that sit on this market. A parlay has no market_id of
   // its own, so without this a market you had already backed inside a slip
   // looked exactly like one you had never touched.
@@ -65,6 +69,7 @@ export default function BetSlip({
   // separate step with the confirm button in a different place, so muscle
   // memory from tapping "Review" cannot carry through to confirming.
   const [reviewing, setReviewing] = useState(false);
+  const [useBoost, setUseBoost] = useState(false);
 
   // A live market keeps taking bets after its posted lock, at a price that
   // moves with the game. It only truly closes when the model suspends it.
@@ -86,6 +91,17 @@ export default function BetSlip({
   // that never invited the tap.
   const shut = disabled || locked || liveShut;
   const stakeNum = Number(stake);
+
+  // What the bet would actually be placed at. Boosting multiplies the PROFIT,
+  // not the payout, so +200 becomes +300 rather than +450 -- worth seeing
+  // before you commit rather than discovering afterwards.
+  const boostAvailable = oddsBoosts.length > 0;
+  const boosting = boostAvailable && useBoost;
+  const effectiveOdds = selected
+    ? boosting
+      ? boostOdds(selected.odds)
+      : selected.odds
+    : null;
   // A live market caps lower as it approaches being decided. Display only --
   // the server recomputes and enforces it, since this component is editable.
   const cap = liveNow && livePrices?.maxStakeCents != null ? livePrices.maxStakeCents / 100 : MAX;
@@ -115,6 +131,9 @@ export default function BetSlip({
           // if this has drifted, so a scoring play mid-tap cannot fill at a
           // number that no longer exists.
           expectedOdds: selected.odds,
+          // Which boost to spend, if any. The server re-prices from this rather
+          // than trusting the number above.
+          oddsBoostId: boosting ? oddsBoosts[0].id : null,
         }),
       });
       const data = await res.json();
@@ -226,7 +245,22 @@ export default function BetSlip({
             </div>
             <div>
               <dt>Odds</dt>
-              <dd>{selected.odds > 0 ? `+${selected.odds}` : selected.odds}</dd>
+              <dd>
+                {boosting ? (
+                  <>
+                    <span className="dim strike">
+                      {selected.odds > 0 ? `+${selected.odds}` : selected.odds}
+                    </span>{' '}
+                    <strong className="boosted">
+                      {effectiveOdds > 0 ? `+${effectiveOdds}` : effectiveOdds}
+                    </strong>
+                  </>
+                ) : selected.odds > 0 ? (
+                  `+${selected.odds}`
+                ) : (
+                  selected.odds
+                )}
+              </dd>
             </div>
             <div>
               <dt>Stake</dt>
@@ -234,7 +268,7 @@ export default function BetSlip({
             </div>
             <div className="confirm-total">
               <dt>Returns if it wins</dt>
-              <dd>{money(payout(stakeNum, selected.odds))}</dd>
+              <dd>{money(payout(stakeNum, effectiveOdds))}</dd>
             </div>
           </dl>
           <p className="confirm-warning">Bets cannot be changed or cancelled.</p>
@@ -264,6 +298,32 @@ export default function BetSlip({
         </div>
       )}
 
+      {/* Offered only when you own one and have picked a side, so it appears at
+          the moment the decision is actually being made. */}
+      {selected && !shut && !reviewing && !inSlip && boostAvailable && (
+        <label className="boost-offer">
+          <input
+            type="checkbox"
+            checked={useBoost}
+            onChange={(e) => setUseBoost(e.target.checked)}
+          />
+          <span>
+            ⚡ Use <strong>Better Price</strong>
+            {useBoost ? (
+              <>
+                {' '}
+                — {selected.odds > 0 ? `+${selected.odds}` : selected.odds} becomes{' '}
+                <strong className="boosted">
+                  {effectiveOdds > 0 ? `+${effectiveOdds}` : effectiveOdds}
+                </strong>
+              </>
+            ) : (
+              <span className="dim"> — 50% better odds on this bet</span>
+            )}
+          </span>
+        </label>
+      )}
+
       {selected && !shut && !reviewing && !inSlip && (
         <div className="stake-row">
           <div className="stake-input">
@@ -282,7 +342,7 @@ export default function BetSlip({
           <div className="stake-preview">
             {valid ? (
               <>
-                returns <strong>{money(payout(stakeNum, selected.odds))}</strong>
+                returns <strong>{money(payout(stakeNum, effectiveOdds))}</strong>
               </>
             ) : stakeNum * 100 > bankrollCents ? (
               <span className="neg">More than your bankroll</span>

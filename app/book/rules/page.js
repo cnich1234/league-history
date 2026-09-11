@@ -49,6 +49,18 @@ export default function RulesPage() {
             played. Those never really resolved, so the stake comes back into that week.
           </p>
 
+          <h2>Better Price</h2>
+          <p>
+            If you own one, a tick-box appears when you pick a side. Tick it and the new
+            odds and payout show immediately, before you confirm — so nothing is ever
+            spent by accident.
+          </p>
+          <p>
+            It boosts the <strong>profit</strong>, not the payout. +200 becomes +300, so
+            $100 wins $300 instead of $200. That is weaker than it sounds on a favourite,
+            which is why it is one of the cheapest things in the shop.
+          </p>
+
           <h2>Two odd ones</h2>
           <p>
             <strong>🚗 Ride Along</strong> copies someone else&apos;s bet at their stake

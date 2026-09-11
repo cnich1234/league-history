@@ -18,6 +18,7 @@ export default function SpecialSection({
   markets,
   myByMarket,
   myParlayByMarket = {},
+  oddsBoosts = [],
   bankrollCents,
   defaultOpen,
   readOnly,
@@ -55,6 +56,7 @@ export default function SpecialSection({
               parlayLegs={myParlayByMarket[String(m.id)] ?? null}
               bankrollCents={bankrollCents}
               disabled={readOnly}
+              oddsBoosts={oddsBoosts}
             />
           ))}
         </div>

@@ -1266,6 +1266,36 @@ tbody tr:last-child td {
   font-size: 12.5px;
 }
 
+/* Better Price, offered at the moment of betting rather than armed in advance.
+   Arming left too much room to spend it on a bet you did not mean to boost. */
+.boost-offer {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 12px;
+  margin-top: 8px;
+  border-radius: 10px;
+  background: rgba(255, 197, 61, 0.09);
+  border: 1px solid rgba(255, 197, 61, 0.25);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.boost-offer input {
+  accent-color: var(--gold);
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.boosted {
+  color: var(--gold);
+}
+
+.strike {
+  text-decoration: line-through;
+}
+
 /* ---------- Store and boosts ---------- */
 
 .points-card {

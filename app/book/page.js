@@ -12,7 +12,7 @@ import {
   weeklyBalance,
   getBanks,
 } from '@/lib/book';
-import { getArmedBoosts } from '@/lib/shop';
+import { getArmedBoosts, availableOddsBoosts } from '@/lib/shop';
 import { formatMoney, formatOdds } from '@/lib/odds';
 import Login from '@/components/Login';
 import BoardSection from '@/components/BoardSection';
@@ -62,7 +62,7 @@ export default async function BookPage({ searchParams }) {
   // there is nothing for them to return.
   const guest = isGuestSlug(slug);
 
-  const [me, markets, myBets, publicBets, commissioner, weeks, spendable, banks, armed] =
+  const [me, markets, myBets, publicBets, commissioner, weeks, spendable, banks, armed, oddsBoosts] =
     await Promise.all([
     guest ? null : getBettor(slug),
     getMarketsForWeek(SEASON, week),
@@ -78,6 +78,7 @@ export default async function BookPage({ searchParams }) {
     // next bet placed, so not showing it meant someone could spend it on a $10
     // punt without realising it was live.
     guest ? [] : getArmedBoosts(slug, SEASON, week),
+    guest ? [] : availableOddsBoosts(slug, SEASON),
   ]);
   const myBank = Number(banks.find((b) => b.slug === slug)?.bank_cents ?? 0);
 
@@ -196,6 +197,7 @@ export default async function BookPage({ searchParams }) {
             // there to lead with.
             defaultOpen={games.length === 0}
             readOnly={guest}
+            oddsBoosts={oddsBoosts}
           />
           {games.length > 0 && (
             <BoardSection
@@ -205,6 +207,7 @@ export default async function BookPage({ searchParams }) {
               bankrollCents={guest ? 0 : spendable}
               week={week}
               readOnly={guest}
+              oddsBoosts={oddsBoosts}
             />
           )}
           {!guest && <ParlaySlip bankrollCents={spendable} />}

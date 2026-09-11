@@ -228,9 +228,10 @@ export default function RulesPage() {
             store.
           </p>
           <p>
-            Boosts run from <strong>4</strong> for Insurance to <strong>22</strong> for The
-            Void. The cheap ones protect and improve your own bets; the expensive ones go
-            after everyone else. Buy them on the Store tab, use them from My Boosts.
+            Boosts run from <strong>1</strong> for a Receipt to <strong>25</strong> for an
+            Undo. The cheap ones protect and improve your own bets; the expensive ones go
+            after everyone else, or undo your own mistakes. Buy them on the Store tab, use
+            them from My Boosts.
           </p>
           <p>
             Buying is instant, but <strong>using</strong> a boost asks you to pick a target

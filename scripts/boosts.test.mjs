@@ -36,6 +36,20 @@ console.log('\nthe catalogue is coherent');
   check('every boost has a unique kind', new Set(BOOSTS.map((b) => b.kind)).size, BOOSTS.length);
   check('every boost has an icon', BOOSTS.every((b) => Boolean(b.icon)), true);
   check('every boost costs something', BOOSTS.every((b) => b.cost > 0), true);
+  // A boost that does everything another does, plus pays you, cannot be the
+  // cheaper of the two. Checked as a rule rather than as two hardcoded numbers
+  // so it still holds after a repricing.
+  const dominates = [
+    // [better, worse] -- same damage, but the first also pays the attacker.
+    ['steal', 'void'],
+  ];
+  for (const [better, worse] of dominates) {
+    check(
+      `${byKind[better].name} costs more than ${byKind[worse].name}`,
+      byKind[better].cost > byKind[worse].cost,
+      true,
+    );
+  }
   // The weekly allowance must buy something, or the default grant is pointless.
   check(
     'the allowance affords at least one boost',
@@ -250,11 +264,21 @@ console.log('\ncoming-soon boosts are marked, not sellable');
   const theft = byKind['steal'];
   const voidBoost = byKind['void'];
   check('theft is used blind', theft.blind, true);
-  check('the void is used after results', voidBoost.settledOnly, true);
-  check('theft is not usable after results', Boolean(theft.settledOnly), false);
-  // Price tracks certainty, not damage: a guaranteed kill is worth more than a
-  // coin-flip theft, even though theft also pays the thief.
-  check('the certain one costs more', voidBoost.cost > theft.cost, true);
+  // The Void carried settledOnly and cost more, on the theory that it was the
+  // one certain attack. It never was: canAttach refuses a settled bet and The
+  // Action lists only pending ones, so it was always as blind as the rest.
+  // The old test read the flag and never checked it did anything.
+  check('and so is the void', voidBoost.blind, true);
+  check(
+    'neither can be used after a bet settles',
+    [theft, voidBoost].map((b) =>
+      canAttach(b, { marketLocked: true, marketLive: false, betStatus: 'won' }).ok,
+    ),
+    [false, false],
+  );
+  // Same damage -- the victim loses everything either way -- but a theft also
+  // PAYS the attacker. A strictly better boost cannot be the cheaper one.
+  check('the one that pays you costs more', theft.cost > voidBoost.cost, true);
   check('only one of them moves the money', [theft.steals, voidBoost.steals], [true, undefined]);
 }
 

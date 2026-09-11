@@ -50,9 +50,16 @@ const TIERS = {
  *     be the reason somebody cannot afford to play
  *   - blind attacks are common: they are a gamble, and a gamble you can only
  *     take twice a season is not a gamble, it is a ceremony
- *   - anything certain, or anything that removes risk, is rare -- Undo and The
- *     Void end an outcome rather than nudging it
+ *   - anything that removes risk from YOUR OWN position is rare: Undo hands a
+ *     stake back after you have seen the game turn
  *   - the two that rewrite a whole week are signature
+ *
+ * One ordering rule falls out of the effects rather than from taste. The Void
+ * and Grand Theft do the same damage -- the victim loses the lot -- but a theft
+ * also pays the attacker. A strictly better boost cannot cost less, so The Void
+ * sits a tier BELOW the theft. It priced the other way round for a while on the
+ * theory that The Void was certain and the theft a gamble; it was not, and is
+ * not.
  */
 const TIER_OF = {
   receipt: 'staple',
@@ -66,13 +73,14 @@ const TIER_OF = {
   'slow-play': 'common',
   'blind-sabotage': 'common',
   tithe: 'common',
+  // Same damage as a theft, no payout -- so one tier cheaper than one.
+  void: 'common',
   'payout-cut': 'considered',
   mirror: 'considered',
   steal: 'considered',
   'boost-50': 'considered',
   switcheroo: 'rare',
   'market-poison': 'rare',
-  void: 'rare',
   'boost-week': 'signature',
   'week-curse': 'signature',
   undo: 'signature',

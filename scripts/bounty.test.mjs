@@ -17,6 +17,7 @@
 import { neon } from '@neondatabase/serverless';
 import { testWeek, fundWeek, unfundWeek } from './test-helpers.mjs';
 import { placeBet } from '../lib/book.js';
+import { byKind } from '../lib/boosts.js';
 import {
   buyBoost,
   useBoostOnBet,
@@ -129,15 +130,19 @@ try {
       target: B,
       weapon: 'void',
       betId: Number(bet.id),
-      points: 2,
+      points: minimumStake(byKind['void'].cost),
     });
     bountyId = Number(posted.id);
 
-    ok('the price is the weapon, not a typed number', posted.cost, 12);
-    ok('the stake is escrowed at once', before - (await getPoints(A, S)), 2);
-    ok('and counted', await bountyTotal(bountyId), 2);
+    // Read from the catalogue: a repricing must not break the test that checks
+    // the price comes FROM the catalogue.
+    const VOID = byKind['void'].cost;
+    const VOID_STAKE = minimumStake(VOID);
+    ok('the price is the weapon, not a typed number', posted.cost, VOID);
+    ok('the stake is escrowed at once', before - (await getPoints(A, S)), VOID_STAKE);
+    ok('and counted', await bountyTotal(bountyId), VOID_STAKE);
     ok('it is public', (await openBounties(S, W)).length, 1);
-    ok('with the rest still to raise', (await openBounties(S, W))[0].remaining, 10);
+    ok('with the rest still to raise', (await openBounties(S, W))[0].remaining, VOID - VOID_STAKE);
   }
 
   console.log('\nposting rules');
@@ -148,14 +153,17 @@ try {
       optionKey: 'home',
       stakeCents: 4000,
     });
+    // Below the floor, whatever the floor currently is. A repricing changes
+    // the number; it must not turn this case into a passing post.
+    const floor = minimumStake(byKind['void'].cost);
     await rejects(
       'under 20% is refused',
       () =>
         postBounty({
           slug: A, season: S, week: W, target: B, weapon: 'void',
-          betId: Number(bet.id), points: 1,
+          betId: Number(bet.id), points: floor - 1,
         }),
-      'at least 2',
+      'at least',
     );
     await rejects(
       'cannot bounty yourself',
@@ -192,16 +200,23 @@ try {
 
   console.log('\nthe crowd fills it, and it fires');
   {
-    // 2 down, 10 to go. Three more backers finish it.
-    await contributeToBounty({ slug: C, season: S, bountyId, points: 4 });
-    ok('still open at 6', (await openBounties(S, W)).length, 1);
-    ok('and short by 6', (await openBounties(S, W))[0].remaining, 6);
+    // The poster's stake is down; a second backer covers part, a third finishes
+    // it. All derived, so a repricing does not turn this into arithmetic
+    // nobody can follow.
+    const cost = byKind['void'].cost;
+    const seeded = minimumStake(cost);
+    const part = Math.max(1, Math.floor((cost - seeded) / 2));
+    await contributeToBounty({ slug: C, season: S, bountyId, points: part });
+
+    const left = cost - seeded - part;
+    ok('still open', (await openBounties(S, W)).length, 1);
+    ok('and short by the rest', (await openBounties(S, W))[0].remaining, left);
 
     const cBefore = await getPoints(D, S);
-    const res = await contributeToBounty({ slug: D, season: S, bountyId, points: 6 });
+    const res = await contributeToBounty({ slug: D, season: S, bountyId, points: left });
     ok('the last contribution fills it', res.funded, true);
     ok('it fired', Boolean(res.fired?.fired), true);
-    ok('and the escrow came out', cBefore - (await getPoints(D, S)), 6);
+    ok('and the escrow came out', cBefore - (await getPoints(D, S)), left);
     ok('it is off the board', (await openBounties(S, W)).length, 0);
 
     // The attack exists as a real boost row, so settlement and Receipt see it

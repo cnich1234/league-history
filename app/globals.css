@@ -2852,3 +2852,13 @@ tbody tr:last-child td {
   font-weight: 700;
   margin-bottom: 6px;
 }
+
+/* The board's bounty banner links to the Bounties tab. */
+a.bounty-alert {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+a.bounty-alert:hover {
+  background: rgba(255, 92, 92, 0.14);
+}

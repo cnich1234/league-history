@@ -50,6 +50,18 @@ console.log('\nthe catalogue is coherent');
       true,
     );
   }
+
+  // Insurance blocks every bet-targeted attack outright. If it is cheaper than
+  // the things it stops, shielding beats attacking and the right move is to
+  // shield everything -- which is no decision at all. It sat at 4 while
+  // blocking a 14-point Switcheroo.
+  const shield = byKind['insurance'];
+  const blockable = BOOSTS.filter((b) => b.attack && b.target === 'bet');
+  check(
+    'insurance costs more than most of what it blocks',
+    blockable.filter((a) => a.cost >= shield.cost).map((a) => a.kind),
+    ['switcheroo'],
+  );
   // The weekly allowance must buy something, or the default grant is pointless.
   check(
     'the allowance affords at least one boost',

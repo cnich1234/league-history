@@ -14,16 +14,20 @@
  */
 export default function BountyAlert({ bounties = [], mine = null }) {
   if (bounties.length === 0) return null;
+  // The board is for betting. Five of these pushed the markets off a phone, so
+  // it shows the three closest to firing and links to the rest.
+  const shown = bounties.slice(0, 3);
+  const hidden = bounties.length - shown.length;
 
   return (
     <section className="section">
-      <div className="bounty-alert bounty-alert-compact">
+      <a className="bounty-alert bounty-alert-compact" href="/book/bounties">
         <div className="bounty-head">
           BOUNTY ALERT
           {bounties.length > 1 && <span className="dim"> · {bounties.length} open</span>}
         </div>
         <ul className="bounty-alert-list">
-          {bounties.map((b) => {
+          {shown.map((b) => {
             // Being the target is the one case where this is not gossip but a
             // warning, so say so rather than making them match their own name.
             const onMe = mine != null && b.target === mine;
@@ -45,18 +49,17 @@ export default function BountyAlert({ bounties = [], mine = null }) {
                     {b.raised}/{b.cost_points}
                   </strong>{' '}
                   funded.{' '}
-                  <span className="dim">
-                    {b.remaining} to go. Chip in on The Action.
-                  </span>
+                  <span className="dim">{b.remaining} to go.</span>
                 </span>
               </li>
             );
           })}
         </ul>
         <div className="dim bounty-alert-foot">
-          Fund it on <strong>The Action</strong> — when it fills, the attack fires.
+          {hidden > 0 && <>and {hidden} more. </>}
+          Fund one on the <strong>Bounties</strong> tab — when it fills, the attack fires.
         </div>
-      </div>
+      </a>
     </section>
   );
 }

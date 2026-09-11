@@ -24,7 +24,7 @@ import {
   consumeOddsBoost,
   availableOddsBoosts,
 } from '../lib/shop.js';
-import { WEEKLY_ALLOWANCE, byKind } from '../lib/boosts.js';
+import { WEEKLY_ALLOWANCE, byKind, BOOSTS } from '../lib/boosts.js';
 
 const sql = neon(process.env.DATABASE_URL);
 const TEST_SEASON = 9993;
@@ -127,6 +127,14 @@ try {
   check('re-scoring a week does not double-pay', notDoubled[0].n, WEEKLY_ALLOWANCE + 7);
 
   console.log('\nbuying');
+  // Enough to buy anything in the catalogue twice over. Seeded from the
+  // catalogue rather than a fixed number: this used to hold exactly the price
+  // of an Insurance, so repricing it left the rest of the file with nothing.
+  const HEADROOM = Math.max(...BOOSTS.map((b) => b.cost)) * 3;
+  await sql`
+    insert into point_ledger (bettor, season, amount, reason, note)
+    values (${A}, ${TEST_SEASON}, ${HEADROOM}, 'adjustment', 'shop test headroom')`;
+
   const before = await getPoints(A, TEST_SEASON);
   const bought = await buyBoost({ slug: A, season: TEST_SEASON, kind: 'insurance' });
   check('a boost appears', bought.kind, 'insurance');

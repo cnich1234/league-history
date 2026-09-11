@@ -140,10 +140,17 @@ export default function RulesPage() {
 
           <h2>Defending yourself</h2>
           <p>
-            <strong>🛡️ Insurance (4)</strong> absorbs a hit — a shielded bet ignores every
-            attack. <strong>🪞 Mirror (10)</strong> returns one instead: whoever fires at a
-            mirrored bet takes the same attack on their own biggest open bet, and they are
-            told it happened.
+            <strong>🛡️ Insurance (12)</strong> absorbs a hit — a shielded bet ignores
+            every attack. It is deliberately <em>dear</em>: it costs more than almost
+            everything it blocks, so it goes on the one bet you would hate to lose rather
+            than on all of them. At four points it was cheaper than being attacked, and
+            shielding everything was simply the right move.
+          </p>
+          <p>
+            <strong>🪞 Mirror (10)</strong> returns a hit instead of absorbing it: whoever
+            fires at a mirrored bet takes the same attack on their own biggest open bet,
+            and they are told it happened. Cheaper than Insurance, because it only pays off
+            if somebody actually comes for you.
           </p>
           <p>
             <strong>👻 Ghost (5)</strong> takes a different line — your bets vanish from The

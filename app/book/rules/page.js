@@ -49,6 +49,22 @@ export default function RulesPage() {
             played. Those never really resolved, so the stake comes back into that week.
           </p>
 
+          <h2>Getting out of a bet</h2>
+          <p>
+            Two ways, and they suit different moments.
+          </p>
+          <p>
+            <strong>💸 Cash Out (6)</strong> settles a live bet early at whatever it is
+            currently worth. Up on a position and want it banked before it turns? This.
+          </p>
+          <p>
+            <strong>⏮️ Undo (25)</strong> voids the bet entirely and hands the whole stake
+            back — any bet that has not settled, live ones included. Watching one die and
+            want out? This. It is the dearest thing in the shop because it removes the
+            risk completely, and an undone bet pays nothing even if the side you had
+            backed goes on to win.
+          </p>
+
           <h2>Better Price</h2>
           <p>
             If you own one, a tick-box appears when you pick a side. Tick it and the new

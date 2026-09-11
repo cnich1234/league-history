@@ -70,10 +70,16 @@ export async function GET(request) {
       // A parlay spans several markets, so "is it live" has no single answer.
       // Cash out is refused on one rather than guessing which leg to price.
       const isParlay = Boolean(r.is_parlay);
-      const eligible = check.ok && !r.already && !(def.liveOnly && isParlay);
+
+      // Undo works on anything unsettled, live or not, so it skips the
+      // state checks the other own-bet boosts run.
+      const eligible = def.voids
+        ? !r.already
+        : check.ok && !r.already && !(def.liveOnly && isParlay);
 
       let why = null;
       if (r.already) why = `Already has ${def.name}`;
+      else if (def.voids) why = null;
       else if (def.liveOnly && isParlay) why = 'Parlays cannot be cashed out';
       else if (!check.ok) why = check.why;
 

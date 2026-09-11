@@ -4,43 +4,77 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 /**
- * Open bounties, and the form to post one.
+ * Open bounties, and the form to start one.
  *
- * A bounty is not a boost -- it buys nothing for the person posting it. It pays
- * somebody ELSE to act, which makes it the only thing in the app where one
- * manager's move is worth money to another.
+ * A bounty is not a boost. Nobody buys anything: it names a target, a weapon and
+ * a bet, costs exactly what that weapon costs in the shop, and anyone can put
+ * points in. When the total is reached the attack fires by itself.
+ *
+ * That removes the pricing problem the first version had -- there is no hunter
+ * buying at 12 to be paid 8 -- and it makes the expensive end of the catalogue
+ * reachable: a 12-point Void is two and a half weeks of allowance alone, or two
+ * points each if six people agree.
  *
  * Deliberately loud. The whole value is that everyone sees it: the target knows
- * to defend, and everyone else knows there are points on the table.
+ * to buy Insurance, and everybody else knows there are points on the table.
  */
-export default function BountyBoard({ bounties, managers, attacks, points, week }) {
+export default function BountyBoard({
+  bounties,
+  bets,
+  attacks,
+  managers,
+  points,
+  week,
+  me,
+  stakes,
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [target, setTarget] = useState('');
   const [weapon, setWeapon] = useState('');
-  const [reward, setReward] = useState('10');
+  const [betId, setBetId] = useState('');
+  const [target, setTarget] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
+  const [note, setNote] = useState(null);
 
-  const rewardNum = Number(reward);
-  const valid =
-    target && weapon && Number.isFinite(rewardNum) && rewardNum >= 1 && rewardNum <= points;
+  const def = attacks.find((a) => a.kind === weapon) ?? null;
+  // Slow Play and Because, Fuck You hit a PERSON, so they need no bet. Every
+  // other attack hits one bet, and the poster names which.
+  const needsBet = def?.target === 'bet';
+  const seed = def ? (stakes[def.kind] ?? 1) : 0;
+  const chosen = bets.find((b) => String(b.id) === betId) ?? null;
 
-  async function post() {
-    if (!valid) return;
+  // Only other people's bets are worth aiming at.
+  const theirs = bets.filter((b) => b.bettor !== me);
+  const byOwner = {};
+  for (const b of theirs) (byOwner[b.bettor_name] ??= []).push(b);
+
+  const ready = Boolean(
+    def && (needsBet ? chosen && !chosen.shielded : target) && points >= seed,
+  );
+
+  async function send(body, okNote) {
     setBusy(true);
     setError(null);
+    setNote(null);
     try {
       const res = await fetch('/api/bounty', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ target, weapon, rewardPoints: rewardNum, week }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? 'Could not post that.');
+      if (!res.ok) throw new Error(data.error ?? 'That did not work.');
+
+      const fired = data.fired ?? data.bounty?.fired;
+      if (fired?.fired) setNote('Funded — the attack just landed.');
+      else if (fired?.refunded) setNote(`It could not land: ${fired.why}. Everyone refunded.`);
+      else setNote(okNote);
+
       setOpen(false);
-      setTarget('');
       setWeapon('');
+      setBetId('');
+      setTarget('');
       router.refresh();
     } catch (err) {
       setError(err.message);
@@ -49,6 +83,20 @@ export default function BountyBoard({ bounties, managers, attacks, points, week 
     }
   }
 
+  const post = () => {
+    if (!ready) return;
+    send(
+      {
+        week,
+        weapon,
+        target: needsBet ? chosen.bettor : target,
+        betId: needsBet ? Number(betId) : null,
+        points: seed,
+      },
+      'Bounty posted.',
+    );
+  };
+
   return (
     <section className="section">
       <div className="section-head">
@@ -56,22 +104,19 @@ export default function BountyBoard({ bounties, managers, attacks, points, week 
         <span className="dim">{bounties.length} open</span>
       </div>
 
+      {note && <div className="bounty-note">{note}</div>}
+
       {bounties.length > 0 && (
         <div className="bounty-list">
           {bounties.map((b) => (
-            <div key={b.id} className="bounty-alert">
-              <div className="bounty-head">BOUNTY ALERT</div>
-              <div className="bounty-body">
-                A bounty has been placed on{' '}
-                <strong>{b.target_name.toUpperCase()}</strong>
-                <br />
-                <span className="dim">ATTACK:</span> <strong>{b.weaponName}</strong>
-                <br />
-                <span className="dim">REWARD:</span>{' '}
-                <strong className="bounty-reward">{b.reward_points} Points</strong>
-              </div>
-              <div className="dim bounty-poster">posted by {b.poster_name}</div>
-            </div>
+            <BountyCard
+              key={b.id}
+              bounty={b}
+              points={points}
+              me={me}
+              busy={busy}
+              onGive={(n) => send({ bountyId: Number(b.id), points: n }, 'Points in.')}
+            />
           ))}
         </div>
       )}
@@ -82,36 +127,61 @@ export default function BountyBoard({ bounties, managers, attacks, points, week 
         </button>
       ) : (
         <div className="bounty-form">
-          <select className="field" value={target} onChange={(e) => setTarget(e.target.value)}>
-            <option value="">Who?</option>
-            {managers.map((m) => (
-              <option key={m.slug} value={m.slug}>
-                {m.display_name}
-              </option>
-            ))}
-          </select>
+          <label className="field-label">
+            Which attack?
+            <select className="field" value={weapon} onChange={(e) => setWeapon(e.target.value)}>
+              <option value="">Pick one…</option>
+              {attacks.map((a) => (
+                <option key={a.kind} value={a.kind}>
+                  {a.icon} {a.name} — {a.cost} points
+                </option>
+              ))}
+            </select>
+          </label>
 
-          <select className="field" value={weapon} onChange={(e) => setWeapon(e.target.value)}>
-            <option value="">Which attack?</option>
-            {attacks.map((a) => (
-              <option key={a.kind} value={a.kind}>
-                {a.icon} {a.name}
-              </option>
-            ))}
-          </select>
+          {def && (
+            <p className="bounty-blurb">
+              {def.blurb}{' '}
+              <span className="dim">
+                Costs {def.cost} in total — you start it with {seed}.
+              </span>
+            </p>
+          )}
 
-          <div className="stake-input">
-            <input
-              type="number"
-              inputMode="numeric"
-              min={1}
-              max={points}
-              value={reward}
-              onChange={(e) => setReward(e.target.value)}
-              aria-label="Reward in points"
-            />
-            <span className="dim">of {points} points</span>
-          </div>
+          {def && needsBet && (
+            <label className="field-label">
+              On which bet?
+              <select className="field" value={betId} onChange={(e) => setBetId(e.target.value)}>
+                <option value="">Pick a bet…</option>
+                {Object.entries(byOwner).map(([owner, rows]) => (
+                  <optgroup key={owner} label={owner}>
+                    {rows.map((b) => (
+                      <option key={b.id} value={String(b.id)} disabled={b.shielded > 0}>
+                        {b.label}
+                        {b.shielded > 0 ? ' — insured' : ''}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
+            </label>
+          )}
+
+          {def && !needsBet && (
+            <label className="field-label">
+              On whom?
+              <select className="field" value={target} onChange={(e) => setTarget(e.target.value)}>
+                <option value="">Pick a manager…</option>
+                {managers
+                  .filter((m) => m.slug !== me)
+                  .map((m) => (
+                    <option key={m.slug} value={m.slug}>
+                      {m.display_name}
+                    </option>
+                  ))}
+              </select>
+            </label>
+          )}
 
           {error && <div className="form-error">{error}</div>}
 
@@ -119,16 +189,100 @@ export default function BountyBoard({ bounties, managers, attacks, points, week 
             <button className="btn-ghost" type="button" onClick={() => setOpen(false)}>
               Cancel
             </button>
-            <button className="btn-primary btn-sm" type="button" onClick={post} disabled={busy || !valid}>
-              {busy ? 'Posting…' : 'Post bounty'}
+            <button
+              className="btn-primary btn-sm"
+              type="button"
+              onClick={post}
+              disabled={busy || !ready}
+            >
+              {busy ? 'Posting…' : def ? `Post and put in ${seed}` : 'Post bounty'}
             </button>
           </div>
-          <p className="confirm-warning">
-            The points leave your balance now. If nobody claims it this week, you get them
-            back.
-          </p>
+          {def && (
+            <p className="confirm-warning">
+              You put in <strong>{seed}</strong> to start it — 20% of {def.cost}. The rest has
+              to come from other people. If nobody fills it by the end of the week, everyone
+              gets their points back.
+            </p>
+          )}
         </div>
       )}
     </section>
+  );
+}
+
+/** One open bounty: who, what, how far along, and a way to chip in. */
+function BountyCard({ bounty, points, me, busy, onGive }) {
+  const pct = Math.min(100, Math.round((bounty.raised / bounty.cost_points) * 100));
+  const mine = bounty.target === me;
+  // The target cannot fund their own hanging, and nobody can give what they do
+  // not have.
+  const canGive = !mine && points > 0 && bounty.remaining > 0;
+
+  return (
+    <div className="bounty-alert">
+      <div className="bounty-head">
+        BOUNTY ALERT
+        {mine && <span className="bounty-on-you"> · ON YOU</span>}
+      </div>
+      <div className="bounty-body">
+        {mine ? (
+          <strong>Somebody wants you hit</strong>
+        ) : (
+          <>
+            A bounty on <strong>{bounty.target_name.toUpperCase()}</strong>
+          </>
+        )}
+        <br />
+        <span className="dim">ATTACK:</span> <strong>{bounty.weaponName}</strong>
+        {bounty.betLabel && (
+          <>
+            <br />
+            <span className="dim">ON:</span> <strong>{bounty.betLabel}</strong>
+          </>
+        )}
+      </div>
+
+      <div
+        className="bounty-bar"
+        role="img"
+        aria-label={`${bounty.raised} of ${bounty.cost_points} points raised`}
+      >
+        <div className="bounty-bar-fill" style={{ width: `${pct}%` }} />
+      </div>
+      <div className="bounty-bar-text">
+        <strong className="bounty-reward">
+          {bounty.raised} / {bounty.cost_points}
+        </strong>{' '}
+        <span className="dim">
+          · {bounty.remaining} to go · {bounty.backers} backer
+          {bounty.backers === 1 ? '' : 's'}
+        </span>
+      </div>
+
+      {canGive && (
+        <div className="bounty-give">
+          {[1, 5]
+            .filter((n) => n <= bounty.remaining && n <= points)
+            .map((n) => (
+              <button key={n} type="button" disabled={busy} onClick={() => onGive(n)}>
+                +{n}
+              </button>
+            ))}
+          {bounty.remaining <= points && (
+            <button
+              type="button"
+              className="bounty-fill"
+              disabled={busy}
+              onClick={() => onGive(bounty.remaining)}
+            >
+              Fill it ({bounty.remaining})
+            </button>
+          )}
+        </div>
+      )}
+
+      <div className="dim bounty-poster">started by {bounty.poster_name}</div>
+    </div>
   );
 }

@@ -2691,3 +2691,71 @@ tbody tr:last-child td {
   line-height: 1.45;
   color: var(--dim, #9a9a9a);
 }
+
+/* Collective bounties: the funding bar and the buttons that fill it. */
+.bounty-bar {
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  margin: 10px 0 6px;
+}
+.bounty-bar-fill {
+  height: 100%;
+  background: var(--gold);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+.bounty-bar-text {
+  font-size: 13px;
+}
+.bounty-give {
+  display: flex;
+  gap: 6px;
+  margin-top: 9px;
+  flex-wrap: wrap;
+}
+.bounty-give button {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 197, 61, 0.5);
+  background: rgba(255, 197, 61, 0.1);
+  color: var(--gold);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.bounty-give button:hover:not(:disabled) {
+  background: rgba(255, 197, 61, 0.2);
+}
+.bounty-give button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.bounty-give .bounty-fill {
+  margin-left: auto;
+}
+.bounty-note {
+  padding: 9px 12px;
+  border-radius: 8px;
+  background: rgba(120, 200, 140, 0.12);
+  border: 1px solid rgba(120, 200, 140, 0.35);
+  font-size: 13.5px;
+  margin-bottom: 10px;
+}
+.bounty-blurb {
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 2px 0 4px;
+}
+.field-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+}
+.field-label .field {
+  margin-top: 4px;
+}

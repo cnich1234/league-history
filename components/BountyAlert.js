@@ -1,9 +1,10 @@
 /**
  * Open bounties, announced on the board.
  *
- * The full board -- with the form to post one -- lives on The Action. This is
- * the announcement only, because the board is where people actually are, and a
- * bounty nobody sees is a bounty nobody collects.
+ * The full board -- with the form to start one and the buttons to fund one --
+ * lives on The Action. This is the announcement only, because the board is
+ * where people actually are, and a bounty nobody sees is a bounty nobody
+ * funds.
  *
  * The whole value of a bounty is that it is public: the target knows to buy
  * Insurance, and everyone else knows there are points on the table. Keeping it
@@ -39,16 +40,21 @@ export default function BountyAlert({ bounties = [], mine = null }) {
                       A bounty on <strong>{b.target_name.toUpperCase()}</strong>
                     </>
                   )}{' '}
-                  — <strong>{b.weaponName}</strong> pays{' '}
-                  <strong className="bounty-reward">{b.reward_points} points</strong>.{' '}
-                  <span className="dim">Posted by {b.poster_name}.</span>
+                  — <strong>{b.weaponName}</strong>,{' '}
+                  <strong className="bounty-reward">
+                    {b.raised}/{b.cost_points}
+                  </strong>{' '}
+                  funded.{' '}
+                  <span className="dim">
+                    {b.remaining} to go. Chip in on The Action.
+                  </span>
                 </span>
               </li>
             );
           })}
         </ul>
         <div className="dim bounty-alert-foot">
-          Collect it on <strong>The Action</strong> — only that exact attack pays.
+          Fund it on <strong>The Action</strong> — when it fills, the attack fires.
         </div>
       </div>
     </section>

@@ -1,6 +1,6 @@
 import { currentBettor, isGuestSlug } from '@/lib/auth';
-import { attackableBets } from '@/lib/book';
-import { getInventory, openBounties, getPoints } from '@/lib/shop';
+import { attackableBets, weeksWithMarkets } from '@/lib/book';
+import { getInventory, openBounties, getPoints, minimumStake } from '@/lib/shop';
 import { listBettors } from '@/lib/auth';
 import { byKind, BOOSTS } from '@/lib/boosts';
 import { formatMoney, formatOdds, payoutCents } from '@/lib/odds';
@@ -11,7 +11,20 @@ export const metadata = { title: 'The Action' };
 export const dynamic = 'force-dynamic';
 
 const SEASON = Number(process.env.BOOK_SEASON ?? 2026);
-const WEEK = Number(process.env.BOOK_WEEK ?? 1);
+
+/**
+ * The week this page is about.
+ *
+ * Read from the data rather than from BOOK_WEEK, which is not set in any
+ * environment -- so this page was pinned to week 1 all season while the board
+ * moved on. The latest week with markets is the one people are betting.
+ */
+async function currentWeek() {
+  const weeks = await weeksWithMarkets(SEASON);
+  if (!weeks.length) return Number(process.env.BOOK_WEEK ?? 1);
+  const live = weeks.filter((w) => w.open > 0);
+  return (live.length ? live : weeks)[live.length ? live.length - 1 : weeks.length - 1].week;
+}
 
 /**
  * Every open bet in the league, with the pick withheld.
@@ -35,6 +48,7 @@ export default async function ActionPage() {
   }
 
   const guest = isGuestSlug(slug);
+  const WEEK = await currentWeek();
   const [bets, inventory, bounties, managers, points] = await Promise.all([
     attackableBets(SEASON, WEEK),
     guest ? [] : getInventory(slug, SEASON),
@@ -48,8 +62,12 @@ export default async function ActionPage() {
     ...b,
     weaponName: byKind[b.weapon]?.name ?? b.weapon,
   }));
-  const bountyByTarget = {};
-  for (const b of named) (bountyByTarget[b.target] ??= []).push(b);
+  // Keyed by BET, not by bettor: a bounty names one bet, so only that bet
+  // should wear the pill. Keyed by person it marked every bet they had.
+  const bountyByBet = {};
+  for (const b of named) {
+    if (b.bet_id != null) (bountyByBet[String(b.bet_id)] ??= []).push(b);
+  }
 
   // Attacks you own and could fire right now.
   const attacks = inventory
@@ -65,6 +83,39 @@ export default async function ActionPage() {
     icon: b.icon,
     blurb: b.blurb,
     cost: b.cost,
+  }));
+
+  // A bounty can name ANY attack, including the two that hit a person rather
+  // than a bet -- the attack popup only offers the bet-targeted ones.
+  const bountyWeapons = BOOSTS.filter((b) => b.attack).map((b) => ({
+    kind: b.kind,
+    name: b.name,
+    icon: b.icon,
+    blurb: b.blurb,
+    cost: b.cost,
+    target: b.target,
+  }));
+  // What it costs to start each one, worked out server-side so the form and the
+  // server cannot disagree about the 20%.
+  const stakes = Object.fromEntries(bountyWeapons.map((b) => [b.kind, minimumStake(b.cost)]));
+
+  // The picker needs something to call each bet. Same withholding as the list
+  // below -- stake and price, never the pick.
+  const pickable = bets.map((b) => ({
+    id: String(b.id),
+    bettor: b.bettor,
+    bettor_name: b.bettor_name,
+    shielded: Number(b.shielded ?? 0),
+    label: b.is_parlay
+      ? `${b.leg_count}-leg parlay · ${formatMoney(Number(b.stake_cents))} at ${formatOdds(b.odds)}`
+      : `${formatMoney(Number(b.stake_cents))} at ${formatOdds(b.odds)}`,
+  }));
+
+  // A bounty names a bet; the card should say which one rather than just who.
+  const betLabels = Object.fromEntries(pickable.map((b) => [b.id, b.label]));
+  const namedWithBets = named.map((b) => ({
+    ...b,
+    betLabel: b.bet_id != null ? betLabels[String(b.bet_id)] ?? null : null,
   }));
 
   const mine = bets.filter((b) => b.bettor === slug);
@@ -95,11 +146,14 @@ export default async function ActionPage() {
 
       {!guest && (
         <BountyBoard
-          bounties={named}
-          managers={managers.filter((m) => m.slug !== slug)}
-          attacks={catalogue}
+          bounties={namedWithBets}
+          bets={pickable}
+          managers={managers}
+          attacks={bountyWeapons}
           points={points}
           week={WEEK}
+          me={slug}
+          stakes={stakes}
         />
       )}
 
@@ -125,9 +179,9 @@ export default async function ActionPage() {
                       {b.is_parlay && (
                         <span className="dim"> · {b.leg_count}-leg parlay</span>
                       )}
-                      {(bountyByTarget[b.bettor] ?? []).map((x) => (
+                      {(bountyByBet[String(b.id)] ?? []).map((x) => (
                         <span key={x.id} className="pill bounty-pill" style={{ marginLeft: 6 }}>
-                          🎯 {x.reward_points}pt
+                          🎯 {x.raised}/{x.cost_points}
                         </span>
                       ))}
                       {b.shielded > 0 && <span className="pill" style={{ marginLeft: 6 }}>🛡️</span>}

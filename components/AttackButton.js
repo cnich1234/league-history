@@ -13,7 +13,15 @@ import { useRouter } from 'next/navigation';
  * Confirmed, because it is irreversible and because it is aimed at a person who
  * will find out.
  */
-export default function AttackButton({ betId, who, attacks, catalogue = [], shielded = false }) {
+export default function AttackButton({
+  betId,
+  who,
+  attacks,
+  catalogue = [],
+  shielded = false,
+  // Already carries an attack. One per bet, so there is nothing to fire.
+  spent = false,
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -41,6 +49,14 @@ export default function AttackButton({ betId, who, attacks, catalogue = [], shie
     } finally {
       setBusy(false);
     }
+  }
+
+  if (spent) {
+    return (
+      <span className="attack-spent" title="One attack per bet">
+        Hit
+      </span>
+    );
   }
 
   if (!open) {

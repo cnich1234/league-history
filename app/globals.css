@@ -676,8 +676,27 @@ tbody tr:last-child td {
   margin-bottom: 8px;
 }
 
+/* A bet you already have.
+ *
+ * It used to be the same card at 75% opacity, which read as disabled -- the
+ * one state on the board that is actually GOOD looked like the greyed-out
+ * locked ones. Teal is the positive colour everywhere else in the app, so a
+ * placed bet now looks like a position rather than a dead market. */
 .market-placed {
-  opacity: 0.75;
+  border-color: rgba(18, 214, 172, 0.35);
+  background: linear-gradient(
+    180deg,
+    rgba(18, 214, 172, 0.07) 0%,
+    rgba(18, 214, 172, 0.02) 100%
+  );
+}
+.market-placed .market-title {
+  opacity: 0.85;
+}
+/* The "Bet placed" pill, so it reads as a status rather than a warning. */
+.market-placed .pill-on {
+  background: rgba(18, 214, 172, 0.16);
+  color: var(--positive);
 }
 
 .market-head {
@@ -831,6 +850,28 @@ tbody tr:last-child td {
 
 .row-me {
   border: 1px solid rgba(18, 214, 172, 0.3);
+  border-radius: 10px;
+  background: rgba(18, 214, 172, 0.04);
+}
+
+/* A bet's STATE, on The Action, as a colour rather than only an emoji.
+ *
+ * Three states matter when you are looking down the list for something to hit:
+ * shielded (do not bother), already hit (cannot take another attack), and a
+ * bounty riding on it (other people want this one dead). A left edge carries
+ * that without adding another pill to a row that already has several. */
+.row-shielded {
+  border-left: 3px solid rgba(18, 214, 172, 0.55);
+  padding-left: 9px;
+}
+.row-hit {
+  border-left: 3px solid rgba(140, 140, 150, 0.5);
+  padding-left: 9px;
+  opacity: 0.72;
+}
+.row-bountied {
+  border-left: 3px solid rgba(255, 92, 92, 0.6);
+  padding-left: 9px;
 }
 
 .pos {
@@ -2861,4 +2902,16 @@ a.bounty-alert {
 }
 a.bounty-alert:hover {
   background: rgba(255, 92, 92, 0.14);
+}
+
+/* A bet that has already taken its one attack. Not a button: there is nothing
+   left to fire, and a button that only ever errors is worse than a label. */
+.attack-spent {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(140, 140, 150, 0.3);
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 600;
 }

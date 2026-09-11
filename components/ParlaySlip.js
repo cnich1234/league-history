@@ -18,8 +18,11 @@ function combine(legOdds) {
   return decimal >= 2 ? Math.round((decimal - 1) * 100) : -Math.round(100 / (decimal - 1));
 }
 function payout(stake, odds) {
-  const profit = odds > 0 ? (stake * odds) / 100 : (stake * 100) / Math.abs(odds);
-  return stake + profit;
+  return stake + profitOf(stake, odds);
+}
+/** What banks on a win. The stake is consumed either way. */
+function profitOf(stake, odds) {
+  return odds > 0 ? (stake * odds) / 100 : (stake * 100) / Math.abs(odds);
 }
 const money = (n) =>
   `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -132,6 +135,7 @@ export default function ParlaySlip({ bankrollCents }) {
                 {valid ? (
                   <>
                     returns <strong>{money(payout(stakeNum, odds))}</strong>
+                    <span className="dim"> · +{money(profitOf(stakeNum, odds))} profit</span>
                   </>
                 ) : stakeNum * 100 > bankrollCents ? (
                   <span className="neg">More than your bankroll</span>

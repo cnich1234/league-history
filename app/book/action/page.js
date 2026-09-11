@@ -179,9 +179,30 @@ export default async function ActionPage() {
             {[...theirs, ...mine].map((b) => {
               const stake = Number(b.stake_cents);
               const returns = payoutCents(stake, b.odds);
+              // What a win actually banks. The stake is consumed either way,
+              // so the return overstates the gain by the stake -- and on this
+              // page the profit is also what an attacker is aiming at.
+              const profit = returns - stake;
               const isMine = b.bettor === slug;
               return (
-                <div key={b.id} className={`row ${isMine ? 'row-me' : ''}`}>
+                <div
+                  key={b.id}
+                  className={[
+                    'row',
+                    isMine ? 'row-me' : '',
+                    // Order matters: a hit bet is done with, whatever else is
+                    // true of it, so that wins over the other two.
+                    b.attacked > 0
+                      ? 'row-hit'
+                      : b.shielded > 0
+                        ? 'row-shielded'
+                        : (bountyByBet[String(b.id)] ?? []).length
+                          ? 'row-bountied'
+                          : '',
+                  ]
+                    .filter(Boolean)
+                    .join(' ')}
+                >
                   <span className="row-main">
                     <span className="row-name">
                       {b.bettor_name}
@@ -197,8 +218,10 @@ export default async function ActionPage() {
                       {b.attacked > 0 && <span className="pill" style={{ marginLeft: 4 }}>🎯</span>}
                     </span>
                     <span className="dim">
-                      {formatMoney(stake)} at {formatOdds(b.odds)} · returns{' '}
-                      {formatMoney(returns)}
+                      {formatMoney(stake)} at {formatOdds(b.odds)} ·{' '}
+                      {/* Profit leads: it is what banks, and what an attacker
+                          is actually aiming at. */}
+                      <span className="pos">+{formatMoney(profit)}</span> to win
                     </span>
                   </span>
                   {!guest && !isMine && (
@@ -206,6 +229,10 @@ export default async function ActionPage() {
                       betId={String(b.id)}
                       who={b.bettor_name}
                       shielded={b.shielded > 0}
+                      // One attack per bet, so a bet that has taken one cannot
+                      // take another. Offering the button anyway just produces
+                      // a rejection after two taps.
+                      spent={b.attacked > 0}
                       catalogue={catalogue}
                       attacks={attacks.map((a) => ({
                         id: String(a.id),

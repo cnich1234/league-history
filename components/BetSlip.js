@@ -9,8 +9,18 @@ const MAX = 250;
 
 /** Total returned on a win, stake included. Mirrors lib/odds.js payoutCents. */
 function payout(stake, odds) {
-  const profit = odds > 0 ? (stake * odds) / 100 : (stake * 100) / Math.abs(odds);
-  return stake + profit;
+  return stake + profitOf(stake, odds);
+}
+
+/**
+ * What a win actually adds to the bank.
+ *
+ * The number that matters under the weekly allowance: the stake is consumed
+ * whatever happens, so "returns $81.75" on a $25 bet overstates what you get
+ * by the $25 you already spent. Profit is the part that banks.
+ */
+function profitOf(stake, odds) {
+  return odds > 0 ? (stake * odds) / 100 : (stake * 100) / Math.abs(odds);
 }
 
 const money = (n) =>
@@ -182,8 +192,13 @@ export default function BetSlip({
         </div>
         <div className="dim">
           {placed.option_label} · {money(Number(placed.stake_cents) / 100)} at{' '}
-          {placed.odds > 0 ? `+${placed.odds}` : placed.odds} · returns{' '}
-          {money(payout(Number(placed.stake_cents) / 100, placed.odds))}
+          {placed.odds > 0 ? `+${placed.odds}` : placed.odds}
+        </div>
+        <div className="dim">
+          returns {money(payout(Number(placed.stake_cents) / 100, placed.odds))} ·{' '}
+          <strong className="pos">
+            +{money(profitOf(Number(placed.stake_cents) / 100, placed.odds))} profit
+          </strong>
         </div>
       </div>
     );
@@ -293,9 +308,15 @@ export default function BetSlip({
                 <dd className="neg">{money(stakeNum * 2)}</dd>
               </div>
             )}
-            <div className="confirm-total">
+            <div>
               <dt>Returns if it wins</dt>
               <dd>{money(payout(stakeNum, effectiveOdds))}</dd>
+            </div>
+            {/* The stake is consumed either way, so this is what actually
+                reaches the bank. */}
+            <div className="confirm-total">
+              <dt>Profit to the bank</dt>
+              <dd className="pos">+{money(profitOf(stakeNum, effectiveOdds))}</dd>
             </div>
           </dl>
           {slowDoubles && (
@@ -396,6 +417,10 @@ export default function BetSlip({
             {valid ? (
               <>
                 returns <strong>{money(payout(stakeNum, effectiveOdds))}</strong>
+                <span className="dim">
+                  {' '}
+                  · +{money(profitOf(stakeNum, effectiveOdds))} profit
+                </span>
                 {slowDoubles && (
                   <span className="neg"> · costs {money(stakeNum * 2)} 🐌</span>
                 )}

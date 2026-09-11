@@ -8,6 +8,7 @@ import {
   rideAlong,
   curseWeek,
   undoBet,
+  readReceipt,
 } from '@/lib/shop';
 
 export const dynamic = 'force-dynamic';
@@ -47,6 +48,11 @@ export async function POST(request) {
         // path -- routing it through useBoostOnBet would have treated a copy as
         // an attack on the thing it copied.
         const { byKind } = await import('@/lib/boosts');
+        // Receipt reads rather than writes: it returns WHO, and changes no money.
+        if (byKind[body.kind]?.reveals || body.receipt) {
+          const found = await readReceipt({ slug, boostId, betId: Number(body.betId) });
+          return NextResponse.json({ ok: true, attackers: found });
+        }
         // Undo voids a bet rather than modifying one, so it has its own path.
         if (byKind[body.kind]?.voids || body.undo) {
           const row = await undoBet({ slug, boostId, betId: Number(body.betId) });
@@ -73,6 +79,7 @@ export async function POST(request) {
         return NextResponse.json({ ok: true, used: { ...row, id: String(row.id) } });
       }
       if (body.week != null) {
+        // Ghost and Big Week both attach to a week with nothing to point at.
         const row = await useBoostOnWeek({ slug, boostId, week: Number(body.week) });
         return NextResponse.json({ ok: true, used: { ...row, id: String(row.id) } });
       }

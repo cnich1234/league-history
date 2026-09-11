@@ -50,7 +50,8 @@
     "test:attack": "node --env-file=.env.local scripts/attack.test.mjs",
     "test:newboosts": "node --env-file=.env.local scripts/newboosts.test.mjs",
     "test:betterprice": "node --env-file=.env.local scripts/betterprice.test.mjs",
-    "test:undo": "node --env-file=.env.local scripts/undo.test.mjs"
+    "test:undo": "node --env-file=.env.local scripts/undo.test.mjs",
+    "test:defence": "node --env-file=.env.local scripts/defence.test.mjs"
   },
   "dependencies": {
     "@neon/config": "^1.3.2",

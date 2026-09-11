@@ -20,9 +20,11 @@ const odds = (n) => (n > 0 ? `+${n}` : String(n));
  */
 // Boosts with nothing to choose. Kept here rather than read from the boost
 // definition because lib/boosts.js pulls in server-only code.
-const NO_TARGET = new Set(['boost-week']);
+const NO_TARGET = new Set(['boost-week', 'ghost']);
 
 const DESCRIPTIONS = {
+  ghost:
+    'Go dark for this week? Your bets vanish from The Action, so nobody can attack what they cannot see.',
   'boost-week':
     'Declare Big Week? Every bet you win this week pays 50% more. If nothing wins, it is gone.',
 };
@@ -65,7 +67,7 @@ export default function UseBoost({ boost, label, week }) {
     setError(null);
     try {
       const body = { action: 'use', boostId: boost.id };
-      if (boost.kind === 'boost-week') body.week = week;
+      if (boost.kind === 'boost-week' || boost.kind === 'ghost') body.week = week;
       const res = await fetch('/api/shop', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
@@ -86,7 +88,7 @@ export default function UseBoost({ boost, label, week }) {
     setBusy(true);
     setError(null);
     try {
-      const body = { action: 'use', boostId: boost.id };
+      const body = { action: 'use', boostId: boost.id, kind: boost.kind };
       if (targets.target === 'market') body.marketId = chosen.id;
       else body.betId = chosen.id;
 
@@ -97,6 +99,19 @@ export default function UseBoost({ boost, label, week }) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Could not use that.');
+
+      // A Receipt answers a question rather than changing anything, so the
+      // answer has to be shown before the dialog closes.
+      if (data.attackers) {
+        window.alert(
+          data.attackers.length === 0
+            ? 'Nobody has touched that bet.'
+            : data.attackers
+                .map((a) => `${a.icon} ${a.name} — ${a.who}`)
+                .join(String.fromCharCode(10)),
+        );
+      }
+
       setOpen(false);
       router.refresh();
     } catch (err) {

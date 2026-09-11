@@ -9,6 +9,7 @@ export const metadata = { title: 'The Action' };
 export const dynamic = 'force-dynamic';
 
 const SEASON = Number(process.env.BOOK_SEASON ?? 2026);
+const WEEK = Number(process.env.BOOK_WEEK ?? 1);
 
 /**
  * Every open bet in the league, with the pick withheld.
@@ -33,7 +34,7 @@ export default async function ActionPage() {
 
   const guest = isGuestSlug(slug);
   const [bets, inventory] = await Promise.all([
-    attackableBets(SEASON),
+    attackableBets(SEASON, WEEK),
     guest ? [] : getInventory(slug, SEASON),
   ]);
 

@@ -49,6 +49,23 @@ export default function RulesPage() {
             played. Those never really resolved, so the stake comes back into that week.
           </p>
 
+          <h2>Defending yourself</h2>
+          <p>
+            <strong>🛡️ Insurance (4)</strong> absorbs a hit — a shielded bet ignores every
+            attack. <strong>🪞 Mirror (10)</strong> returns one instead: whoever fires at a
+            mirrored bet takes the same attack on their own biggest open bet, and they are
+            told it happened.
+          </p>
+          <p>
+            <strong>👻 Ghost (5)</strong> takes a different line — your bets vanish from The
+            Action for the week, so there is nothing to aim at. Cheap, but it is a whole
+            week declared in advance, and people will notice you have gone quiet.
+          </p>
+          <p>
+            <strong>🧾 Receipt (1)</strong> names whoever attacked one of your bets. It
+            changes no money at all. It just turns a hit into a grudge.
+          </p>
+
           <h2>Getting out of a bet</h2>
           <p>
             Two ways, and they suit different moments.

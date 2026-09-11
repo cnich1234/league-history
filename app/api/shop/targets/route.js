@@ -73,13 +73,17 @@ export async function GET(request) {
 
       // Undo works on anything unsettled, live or not, so it skips the
       // state checks the other own-bet boosts run.
-      const eligible = def.voids
+      // Undo, Receipt and Mirror all work on any bet of yours regardless of
+      // market state -- they void it, read it, or shield it, none of which
+      // needs a price.
+      const anyState = def.voids || def.reveals || def.reflects;
+      const eligible = anyState
         ? !r.already
         : check.ok && !r.already && !(def.liveOnly && isParlay);
 
       let why = null;
       if (r.already) why = `Already has ${def.name}`;
-      else if (def.voids) why = null;
+      else if (anyState) why = null;
       else if (def.liveOnly && isParlay) why = 'Parlays cannot be cashed out';
       else if (!check.ok) why = check.why;
 

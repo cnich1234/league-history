@@ -14,7 +14,7 @@
  */
 import { neon } from '@neondatabase/serverless';
 import { testWeek, fundWeek, unfundWeek } from './test-helpers.mjs';
-import { placeBet, weeklyBalance } from '../lib/book.js';
+import { placeBet, placeParlay, weeklyBalance } from '../lib/book.js';
 import {
   buyBoost,
   useBoostOnBet,
@@ -76,6 +76,19 @@ async function clean() {
   const bids = ids.length
     ? (await sql`select id from bets where market_id = any(${ids})`).map((r) => r.id)
     : [];
+  // Parlay legs reference market_options, so they have to go before the
+  // options do -- and a parlay bet has no market_id, so it is not in `bids`.
+  const parlayIds = ids.length
+    ? (await sql`select distinct bet_id from parlay_legs where market_id = any(${ids})`).map(
+        (r) => r.bet_id,
+      )
+    : [];
+  if (ids.length) await sql`delete from parlay_legs where market_id = any(${ids})`;
+  if (parlayIds.length) {
+    await sql`delete from boosts where target_bet_id = any(${parlayIds})`;
+    await sql`delete from ledger where bet_id = any(${parlayIds})`;
+    await sql`delete from bets where id = any(${parlayIds})`;
+  }
   if (bids.length) {
     await sql`delete from boosts where target_bet_id = any(${bids})`;
     await sql`delete from ledger where bet_id = any(${bids})`;
@@ -132,6 +145,72 @@ try {
     // Refunding the nominal stake would quietly cost them 8000.
     ok('refunds the full cost, not the nominal stake', res.refundedCents, 16000);
     ok('the week is whole again', await weeklyBalance(B, W), before);
+  }
+
+  console.log('\na cheap bet does not wear it off');
+  {
+    const slow = await buyBoost({ slug: A, season: S, kind: 'slow-play' });
+    await slowPlay({ slug: A, boostId: Number(slow.id), target: B, week: W });
+
+    // The dodge this floor exists to close: the $10 table minimum used to
+    // discharge a 5-point attack for $10 of a $500 week.
+    const m = await mkt();
+    const before = await weeklyBalance(B, W);
+    await placeBet({ slug: B, marketId: m, optionKey: 'opt0', stakeCents: 1000 });
+    ok('a minimum bet is charged normally', before - (await weeklyBalance(B, W)), 1000);
+    ok('and the slow is still waiting', (await pendingSlowPlay(B, W)) != null, true);
+
+    // A cent under the floor is still not enough.
+    const m2 = await mkt();
+    const mid = await weeklyBalance(B, W);
+    await placeBet({ slug: B, marketId: m2, optionKey: 'opt0', stakeCents: 4999 });
+    ok('$49.99 is not enough either', mid - (await weeklyBalance(B, W)), 4999);
+    ok('still waiting', (await pendingSlowPlay(B, W)) != null, true);
+
+    // Exactly the floor does it -- the boundary is inclusive.
+    const m3 = await mkt();
+    const at = await weeklyBalance(B, W);
+    await placeBet({ slug: B, marketId: m3, optionKey: 'opt0', stakeCents: 5000 });
+    ok('exactly $50 is doubled', at - (await weeklyBalance(B, W)), 10000);
+    ok('and wears it off', await pendingSlowPlay(B, W), null);
+  }
+
+  console.log('\na parlay cannot slip past it');
+  {
+    const slow = await buyBoost({ slug: A, season: S, kind: 'slow-play' });
+    await slowPlay({ slug: A, boostId: Number(slow.id), target: B, week: W });
+
+    // placeParlay is a separate path from placeBet and never consulted Slow
+    // Play at all -- a $500 parlay at face value, boost still sitting there.
+    const legs = [
+      { marketId: await mkt(), optionKey: 'opt0' },
+      { marketId: await mkt(), optionKey: 'opt0' },
+    ];
+    const before = await weeklyBalance(B, W);
+    const par = await placeParlay({ slug: B, legs, stakeCents: 6000 });
+    ok('the parlay is the size they asked for', Number(par.stake_cents), 6000);
+    ok('but it cost double', before - (await weeklyBalance(B, W)), 12000);
+    ok('and it wore the slow off', await pendingSlowPlay(B, W), null);
+  }
+
+  console.log('\nand a cheap parlay does not wear it off either');
+  {
+    const slow = await buyBoost({ slug: A, season: S, kind: 'slow-play' });
+    await slowPlay({ slug: A, boostId: Number(slow.id), target: B, week: W });
+    const legs = [
+      { marketId: await mkt(), optionKey: 'opt0' },
+      { marketId: await mkt(), optionKey: 'opt0' },
+    ];
+    const before = await weeklyBalance(B, W);
+    await placeParlay({ slug: B, legs, stakeCents: 2000 });
+    ok('charged face value', before - (await weeklyBalance(B, W)), 2000);
+    ok('still slowed', (await pendingSlowPlay(B, W)) != null, true);
+
+    // Wear it off before the next block, which needs a clean target: only one
+    // Slow Play may be pending against someone at a time.
+    const m = await mkt();
+    await placeBet({ slug: B, marketId: m, optionKey: 'opt0', stakeCents: 5000 });
+    ok('cleared for the next case', await pendingSlowPlay(B, W), null);
   }
 
   console.log('\nSlow Play rules');

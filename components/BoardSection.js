@@ -9,7 +9,14 @@ import { LiveProvider } from './LiveProvider';
  * twice, and no obvious reason why. Each bet now carries its own lock date
  * instead, so one card holds everything and the dates do the explaining.
  */
-export default function BoardSection({ games, myByMarket, bankrollCents, week, readOnly }) {
+export default function BoardSection({
+  games,
+  myByMarket,
+  myParlayByMarket,
+  bankrollCents,
+  week,
+  readOnly,
+}) {
   return (
     <LiveProvider week={week}>
     <section className="section">
@@ -25,6 +32,7 @@ export default function BoardSection({ games, myByMarket, bankrollCents, week, r
           key={g.key}
           game={g}
           myByMarket={myByMarket}
+          myParlayByMarket={myParlayByMarket}
           bankrollCents={bankrollCents}
           week={week}
           readOnly={readOnly}

@@ -25,6 +25,7 @@ export default function LiveMarkets({
   awayRoster,
   markets,
   myByMarket,
+  myParlayByMarket = {},
   bankrollCents,
   readOnly,
 }) {
@@ -35,6 +36,7 @@ export default function LiveMarkets({
       key={m.id}
       market={m}
       existingBet={myByMarket[String(m.id)] ?? null}
+      parlayLegs={myParlayByMarket[String(m.id)] ?? null}
       bankrollCents={bankrollCents}
       livePrices={pricesFor(m, state)}
       disabled={readOnly}

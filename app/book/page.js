@@ -74,6 +74,18 @@ export default async function BookPage({ searchParams }) {
     myBets.filter((b) => !b.is_parlay).map((b) => [String(b.market_id), b]),
   );
   const myLegs = await parlayLegsFor(myBets.filter((b) => b.is_parlay).map((b) => b.id));
+
+  // Markets you are on through a PARLAY leg rather than a straight bet. Without
+  // this the board showed nothing on them: a parlay has no market_id of its
+  // own, so myByMarket above cannot see it, and a market you had already backed
+  // looked identical to one you had never touched.
+  const myParlayByMarket = {};
+  for (const legs of Object.values(myLegs)) {
+    for (const leg of legs) {
+      if (leg.market_id == null) continue;
+      (myParlayByMarket[String(leg.market_id)] ??= []).push(leg);
+    }
+  }
   const now = Date.now();
 
   const open = markets.filter((m) => new Date(m.locks_at).getTime() > now);
@@ -148,6 +160,7 @@ export default async function BookPage({ searchParams }) {
           <SpecialSection
             markets={specials}
             myByMarket={myByMarket}
+            myParlayByMarket={myParlayByMarket}
             bankrollCents={guest ? 0 : Number(me.balance_cents)}
             // Open when there is nothing else on the board, so the page is not
             // a single collapsed heading; closed when the week's games are
@@ -159,6 +172,7 @@ export default async function BookPage({ searchParams }) {
             <BoardSection
               games={games}
               myByMarket={myByMarket}
+              myParlayByMarket={myParlayByMarket}
               bankrollCents={guest ? 0 : Number(me.balance_cents)}
               week={week}
               readOnly={guest}

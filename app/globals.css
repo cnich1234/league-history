@@ -1149,6 +1149,16 @@ tbody tr:last-child td {
   cursor: pointer;
 }
 
+/* "You are already on this one." A parlay has no market_id, so a market backed
+   inside a slip showed nothing at all before this. */
+.market-mine {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--teal);
+  margin-top: 3px;
+}
+
 /* Live scoreboard: each matchup is two rows, one per team, so a season total
    can sit beside the right name. A combined "A vs B" line has nowhere to put
    two different numbers. */

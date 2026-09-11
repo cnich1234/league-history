@@ -26,6 +26,7 @@ const KIND_ORDER = ['h2h', 'spread', 'showdown', 'total', 'prop'];
 export default function MatchupCard({
   game,
   myByMarket,
+  myParlayByMarket = {},
   bankrollCents,
   defaultOpen,
   week,
@@ -73,6 +74,7 @@ export default function MatchupCard({
                       key={m.id}
                       market={{ ...m, id: String(m.id), title: m.title, subtitle: m.subtitle }}
                       existingBet={myByMarket[String(m.id)] ?? null}
+                      parlayLegs={myParlayByMarket[String(m.id)] ?? null}
                       bankrollCents={bankrollCents}
                       disabled={readOnly}
                     />
@@ -96,6 +98,7 @@ export default function MatchupCard({
                     : m.subtitle,
               }))}
               myByMarket={myByMarket}
+              myParlayByMarket={myParlayByMarket}
               bankrollCents={bankrollCents}
               readOnly={readOnly}
             />

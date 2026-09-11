@@ -40,7 +40,17 @@ function lockLabel(market) {
   return `Closes at ${day} kickoff`;
 }
 
-export default function BetSlip({ market, existingBet, disabled, bankrollCents, livePrices }) {
+export default function BetSlip({
+  market,
+  existingBet,
+  // Legs of YOUR parlays that sit on this market. A parlay has no market_id of
+  // its own, so without this a market you had already backed inside a slip
+  // looked exactly like one you had never touched.
+  parlayLegs,
+  disabled,
+  bankrollCents,
+  livePrices,
+}) {
   const slip = useSlip();
   const [selected, setSelected] = useState(null);
   const [stake, setStake] = useState('25');
@@ -135,6 +145,12 @@ export default function BetSlip({ market, existingBet, disabled, bankrollCents, 
       <div className="market-head">
         <span className="market-title">{market.title}</span>
         {market.subtitle && <span className="dim">{market.subtitle}</span>}
+        {parlayLegs?.length > 0 && (
+          <span className="market-mine">
+            In your {parlayLegs.length > 1 ? `${parlayLegs.length} parlays` : 'parlay'} ·{' '}
+            {parlayLegs.map((l) => l.option_label).join(', ')}
+          </span>
+        )}
         {market.locks_at && (
           <span
             className={

@@ -17,6 +17,7 @@ import BetSlip from './BetSlip';
 export default function SpecialSection({
   markets,
   myByMarket,
+  myParlayByMarket = {},
   bankrollCents,
   defaultOpen,
   readOnly,
@@ -51,6 +52,7 @@ export default function SpecialSection({
               key={m.id}
               market={m}
               existingBet={myByMarket[String(m.id)]}
+              parlayLegs={myParlayByMarket[String(m.id)] ?? null}
               bankrollCents={bankrollCents}
               disabled={readOnly}
             />

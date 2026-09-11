@@ -2759,3 +2759,96 @@ tbody tr:last-child td {
 .field-label .field {
   margin-top: 4px;
 }
+
+/* Condensed bounty rows. Four full cards filled a phone before a single bet
+   was visible, so these are one line of who, one bar, one row of buttons. */
+.bounty-row {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255, 92, 92, 0.07);
+  border: 1px solid rgba(255, 92, 92, 0.28);
+}
+.bounty-row + .bounty-row {
+  margin-top: 7px;
+}
+.bounty-row-mine {
+  background: rgba(255, 92, 92, 0.14);
+  border-color: rgba(255, 92, 92, 0.55);
+}
+.bounty-row-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 13.5px;
+}
+.bounty-row-who {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bounty-row .bounty-bar {
+  margin: 7px 0 5px;
+  height: 6px;
+}
+.bounty-row-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  font-size: 11.5px;
+  /* The row must not grow past its card: the text shrinks, the buttons do not. */
+  min-width: 0;
+}
+.bounty-row-foot .bounty-give {
+  margin-top: 0;
+  flex-wrap: nowrap;
+  flex: none;
+}
+.bounty-row-foot .bounty-give button {
+  padding: 3px 9px;
+  font-size: 12px;
+  /* The buttons were wrapping onto two lines when the line beside them ran
+     long. They are the point of the row, so the text yields, not them. */
+  white-space: nowrap;
+}
+.bounty-row-foot > .dim {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bounty-row,
+.bounty-row-top,
+.bounty-list {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Pointer from The Action to the Bounties tab. */
+.bounty-teaser {
+  display: block;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px dashed rgba(255, 197, 61, 0.45);
+  background: rgba(255, 197, 61, 0.07);
+  color: var(--gold);
+  font-size: 13.5px;
+  text-decoration: none;
+}
+.bounty-teaser:hover {
+  background: rgba(255, 197, 61, 0.13);
+}
+
+/* In-panel attack confirmation, replacing a window.confirm that appeared on
+   top of the already-open modal and read like an error. */
+.picker-confirm {
+  padding: 4px 2px;
+}
+.picker-confirm-head {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}

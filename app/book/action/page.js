@@ -5,7 +5,6 @@ import { listBettors } from '@/lib/auth';
 import { byKind, BOOSTS } from '@/lib/boosts';
 import { formatMoney, formatOdds, payoutCents } from '@/lib/odds';
 import AttackButton from '@/components/AttackButton';
-import BountyBoard from '@/components/BountyBoard';
 
 export const metadata = { title: 'The Action' };
 export const dynamic = 'force-dynamic';
@@ -101,7 +100,12 @@ export default async function ActionPage() {
 
   // The picker needs something to call each bet. Same withholding as the list
   // below -- stake and price, never the pick.
-  const pickable = bets.map((b) => ({
+  // Bets a bounty could actually land on. One already hit cannot take another
+  // attack, and an insured one would absorb it -- funding either is throwing
+  // points away, so they are not offered.
+  const pickable = bets
+    .filter((b) => Number(b.attacked ?? 0) === 0 && Number(b.shielded ?? 0) === 0)
+    .map((b) => ({
     id: String(b.id),
     bettor: b.bettor,
     bettor_name: b.bettor_name,
@@ -111,8 +115,16 @@ export default async function ActionPage() {
       : `${formatMoney(Number(b.stake_cents))} at ${formatOdds(b.odds)}`,
   }));
 
-  // A bounty names a bet; the card should say which one rather than just who.
-  const betLabels = Object.fromEntries(pickable.map((b) => [b.id, b.label]));
+  // Labels cover every bet, not just the pickable ones -- a bounty posted
+  // before its bet was attacked still needs a name on its card.
+  const betLabels = Object.fromEntries(
+    bets.map((b) => [
+      String(b.id),
+      b.is_parlay
+        ? `${b.leg_count}-leg parlay · ${formatMoney(Number(b.stake_cents))} at ${formatOdds(b.odds)}`
+        : `${formatMoney(Number(b.stake_cents))} at ${formatOdds(b.odds)}`,
+    ]),
+  );
   const namedWithBets = named.map((b) => ({
     ...b,
     betLabel: b.bet_id != null ? betLabels[String(b.bet_id)] ?? null : null,
@@ -144,17 +156,13 @@ export default async function ActionPage() {
         )}
       </section>
 
-      {!guest && (
-        <BountyBoard
-          bounties={namedWithBets}
-          bets={pickable}
-          managers={managers}
-          attacks={bountyWeapons}
-          points={points}
-          week={WEEK}
-          me={slug}
-          stakes={stakes}
-        />
+      {namedWithBets.length > 0 && (
+        <section className="section">
+          <a className="bounty-teaser" href="/book/bounties">
+            🎯 <strong>{namedWithBets.length}</strong> bounty
+            {namedWithBets.length === 1 ? '' : 's'} open — chip in on the Bounties tab
+          </a>
+        </section>
       )}
 
       <section className="section">

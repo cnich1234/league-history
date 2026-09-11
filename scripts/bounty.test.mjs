@@ -283,13 +283,15 @@ try {
     const bet = await placeBet({
       slug: B, marketId: await mkt(), optionKey: 'home', stakeCents: 5000,
     });
-    const shield = await buyBoost({ slug: B, season: S, kind: 'insurance' });
-    await useBoostOnBet({ slug: B, boostId: Number(shield.id), betId: Number(bet.id) });
-
+    // Posted FIRST, then shielded -- this is the target reacting to a bounty.
+    // A bounty on an ALREADY-insured bet is refused up front instead.
     const posted = await postBounty({
       slug: A, season: S, week: W, target: B, weapon: 'void',
       betId: Number(bet.id), points: 2,
     });
+    const shield = await buyBoost({ slug: B, season: S, kind: 'insurance' });
+    await useBoostOnBet({ slug: B, boostId: Number(shield.id), betId: Number(bet.id) });
+
     const aBefore = await getPoints(A, S);
     const cBefore = await getPoints(C, S);
     const res = await contributeToBounty({
@@ -347,6 +349,80 @@ try {
       'on yourself',
     );
   }
+  console.log('\nan attack beats a bounty that is still raising');
+  {
+    const bet = await placeBet({
+      slug: B, marketId: await mkt(), optionKey: 'home', stakeCents: 5000,
+    });
+    const posted = await postBounty({
+      slug: A, season: S, week: W, target: B, weapon: 'void',
+      betId: Number(bet.id), points: 2,
+    });
+    await contributeToBounty({ slug: C, season: S, bountyId: Number(posted.id), points: 4 });
+
+    const aBefore = await getPoints(A, S);
+    const cBefore = await getPoints(C, S);
+
+    // D pays out of their own pocket while the crowd is still raising.
+    const own = await buyBoost({ slug: D, season: S, kind: 'payout-cut' });
+    const res = await useBoostOnBet({
+      slug: D, boostId: Number(own.id), betId: Number(bet.id), season: S,
+    });
+
+    ok('the bounty was cancelled', res.bountiesRefunded, 1);
+    ok('the poster got their stake back', (await getPoints(A, S)) - aBefore, 2);
+    ok('and the backer theirs', (await getPoints(C, S)) - cBefore, 4);
+    // Scoped to THIS bounty: an earlier block leaves an unrelated one open.
+    const [row] = await sql`select status, closed_reason from bounties where id = ${Number(posted.id)}`;
+    ok('and it is closed', row.status, 'void');
+    ok('for the right reason', row.closed_reason, 'somebody attacked that bet first');
+  }
+
+  console.log('\nand a bet that has been hit takes no more');
+  {
+    const bet = await placeBet({
+      slug: B, marketId: await mkt(), optionKey: 'home', stakeCents: 5000,
+    });
+    const first = await buyBoost({ slug: C, season: S, kind: 'payout-cut' });
+    await useBoostOnBet({ slug: C, boostId: Number(first.id), betId: Number(bet.id), season: S });
+
+    // One attack per bet, whoever is throwing it.
+    const second = await buyBoost({ slug: D, season: S, kind: 'void' });
+    await rejects(
+      'a second attack is refused',
+      () => useBoostOnBet({ slug: D, boostId: Number(second.id), betId: Number(bet.id), season: S }),
+      'one attack per bet',
+    );
+    // And no bounty can be posted on it either -- it could never fire.
+    await rejects(
+      'and so is a bounty on it',
+      () =>
+        postBounty({
+          slug: A, season: S, week: W, target: B, weapon: 'void',
+          betId: Number(bet.id), points: 2,
+        }),
+      'already been hit',
+    );
+  }
+
+  console.log('\na bounty on an insured bet is refused up front');
+  {
+    const bet = await placeBet({
+      slug: B, marketId: await mkt(), optionKey: 'home', stakeCents: 5000,
+    });
+    const shield = await buyBoost({ slug: B, season: S, kind: 'insurance' });
+    await useBoostOnBet({ slug: B, boostId: Number(shield.id), betId: Number(bet.id) });
+    await rejects(
+      'nothing would get through',
+      () =>
+        postBounty({
+          slug: A, season: S, week: W, target: B, weapon: 'void',
+          betId: Number(bet.id), points: 2,
+        }),
+      'insured',
+    );
+  }
+
 } finally {
   await clean();
 }

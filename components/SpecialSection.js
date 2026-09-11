@@ -19,6 +19,7 @@ export default function SpecialSection({
   myByMarket,
   myParlayByMarket = {},
   oddsBoosts = [],
+  slipBoosts = [],
   slowed = null,
   bankrollCents,
   defaultOpen,
@@ -58,6 +59,7 @@ export default function SpecialSection({
               bankrollCents={bankrollCents}
               disabled={readOnly}
               oddsBoosts={oddsBoosts}
+              slipBoosts={slipBoosts}
               slowed={slowed}
             />
           ))}

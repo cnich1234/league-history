@@ -16,6 +16,7 @@ import { byKind } from '@/lib/boosts';
 import {
   getArmedBoosts,
   availableOddsBoosts,
+  slipBoosts,
   marketEffects,
   pendingSlowPlay,
   openBounties,
@@ -82,6 +83,7 @@ export default async function BookPage({ searchParams }) {
     banks,
     armed,
     oddsBoosts,
+    mySlipBoosts,
     effects,
     slowPending,
     bounties,
@@ -101,6 +103,7 @@ export default async function BookPage({ searchParams }) {
     // punt without realising it was live.
     guest ? [] : getArmedBoosts(slug, SEASON, week),
     guest ? [] : availableOddsBoosts(slug, SEASON),
+    guest ? [] : slipBoosts(slug, SEASON),
     // What is bending the board for everyone. Guests see it too -- it is
     // already public, and a read-only view of a poisoned market that does not
     // say so is just a wrong price.
@@ -265,6 +268,7 @@ export default async function BookPage({ searchParams }) {
             defaultOpen={games.length === 0}
             readOnly={guest}
             oddsBoosts={oddsBoosts}
+            slipBoosts={mySlipBoosts}
             slowed={slowed}
           />
           {games.length > 0 && (
@@ -276,6 +280,7 @@ export default async function BookPage({ searchParams }) {
               week={week}
               readOnly={guest}
               oddsBoosts={oddsBoosts}
+            slipBoosts={mySlipBoosts}
             slowed={slowed}
             />
           )}

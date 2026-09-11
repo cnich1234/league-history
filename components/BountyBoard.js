@@ -219,28 +219,18 @@ function BountyCard({ bounty, points, me, busy, onGive }) {
   // not have.
   const canGive = !mine && points > 0 && bounty.remaining > 0;
 
+  // Condensed: four of these used to fill a phone screen. One line of who and
+  // what, one line of bar, one row of buttons.
   return (
-    <div className="bounty-alert">
-      <div className="bounty-head">
-        BOUNTY ALERT
-        {mine && <span className="bounty-on-you"> · ON YOU</span>}
-      </div>
-      <div className="bounty-body">
-        {mine ? (
-          <strong>Somebody wants you hit</strong>
-        ) : (
-          <>
-            A bounty on <strong>{bounty.target_name.toUpperCase()}</strong>
-          </>
-        )}
-        <br />
-        <span className="dim">ATTACK:</span> <strong>{bounty.weaponName}</strong>
-        {bounty.betLabel && (
-          <>
-            <br />
-            <span className="dim">ON:</span> <strong>{bounty.betLabel}</strong>
-          </>
-        )}
+    <div className={`bounty-row ${mine ? 'bounty-row-mine' : ''}`}>
+      <div className="bounty-row-top">
+        <span className="bounty-row-who">
+          {bounty.weaponName} on{' '}
+          <strong>{mine ? 'YOU' : bounty.target_name.toUpperCase()}</strong>
+        </span>
+        <span className="bounty-reward">
+          {bounty.raised}/{bounty.cost_points}
+        </span>
       </div>
 
       <div
@@ -250,39 +240,34 @@ function BountyCard({ bounty, points, me, busy, onGive }) {
       >
         <div className="bounty-bar-fill" style={{ width: `${pct}%` }} />
       </div>
-      <div className="bounty-bar-text">
-        <strong className="bounty-reward">
-          {bounty.raised} / {bounty.cost_points}
-        </strong>{' '}
+
+      <div className="bounty-row-foot">
         <span className="dim">
-          · {bounty.remaining} to go · {bounty.backers} backer
-          {bounty.backers === 1 ? '' : 's'}
+          {bounty.betLabel ? `${bounty.betLabel} · ` : ''}
+          {bounty.backers} backer{bounty.backers === 1 ? '' : 's'} · by {bounty.poster_name}
         </span>
-      </div>
-
-      {canGive && (
-        <div className="bounty-give">
-          {[1, 5]
-            .filter((n) => n <= bounty.remaining && n <= points)
-            .map((n) => (
-              <button key={n} type="button" disabled={busy} onClick={() => onGive(n)}>
-                +{n}
+        {canGive && (
+          <span className="bounty-give">
+            {[1, 5]
+              .filter((n) => n <= bounty.remaining && n <= points)
+              .map((n) => (
+                <button key={n} type="button" disabled={busy} onClick={() => onGive(n)}>
+                  +{n}
+                </button>
+              ))}
+            {bounty.remaining <= points && (
+              <button
+                type="button"
+                className="bounty-fill"
+                disabled={busy}
+                onClick={() => onGive(bounty.remaining)}
+              >
+                Fill ({bounty.remaining})
               </button>
-            ))}
-          {bounty.remaining <= points && (
-            <button
-              type="button"
-              className="bounty-fill"
-              disabled={busy}
-              onClick={() => onGive(bounty.remaining)}
-            >
-              Fill it ({bounty.remaining})
-            </button>
-          )}
-        </div>
-      )}
-
-      <div className="dim bounty-poster">started by {bounty.poster_name}</div>
+            )}
+          </span>
+        )}
+      </div>
     </div>
   );
 }

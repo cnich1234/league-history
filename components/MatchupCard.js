@@ -28,6 +28,7 @@ export default function MatchupCard({
   myByMarket,
   myParlayByMarket = {},
   oddsBoosts = [],
+  slipBoosts = [],
   slowed = null,
   bankrollCents,
   defaultOpen,
@@ -80,6 +81,7 @@ export default function MatchupCard({
                       bankrollCents={bankrollCents}
                       disabled={readOnly}
                       oddsBoosts={oddsBoosts}
+                      slipBoosts={slipBoosts}
                       slowed={slowed}
                     />
                   ))}
@@ -106,6 +108,7 @@ export default function MatchupCard({
               bankrollCents={bankrollCents}
               readOnly={readOnly}
               oddsBoosts={oddsBoosts}
+              slipBoosts={slipBoosts}
               slowed={slowed}
             />
           </div>

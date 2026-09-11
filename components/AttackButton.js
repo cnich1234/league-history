@@ -33,6 +33,7 @@ export default function AttackButton({ betId, who, attacks, catalogue = [], shie
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Could not use that.');
+      setConfirming(null);
       setOpen(false);
       router.refresh();
     } catch (err) {
@@ -67,7 +68,36 @@ export default function AttackButton({ betId, who, attacks, catalogue = [], shie
           </div>
         </div>
 
-        {attacks.length > 0 ? (
+        {confirming ? (
+          <div className="picker-confirm">
+            <div className="picker-confirm-head">
+              {confirming.icon} {confirming.name} on {who}&apos;s bet?
+            </div>
+            <p className="dim">{confirming.blurb}</p>
+            <p className="confirm-warning">
+              You cannot see what they backed, and this cannot be undone.
+            </p>
+            {error && <div className="form-error">{error}</div>}
+            <div className="confirm-actions">
+              <button
+                className="btn-ghost"
+                type="button"
+                disabled={busy}
+                onClick={() => setConfirming(null)}
+              >
+                Back
+              </button>
+              <button
+                className="btn-primary btn-sm"
+                type="button"
+                disabled={busy}
+                onClick={() => fire(confirming)}
+              >
+                {busy ? 'Firing…' : 'Do it'}
+              </button>
+            </div>
+          </div>
+        ) : attacks.length > 0 ? (
           <div className="picker-list">
             {attacks.map((a) => (
               <button
@@ -75,7 +105,7 @@ export default function AttackButton({ betId, who, attacks, catalogue = [], shie
                 type="button"
                 className="picker-item"
                 disabled={busy || shielded}
-                onClick={() => fire(a)}
+                onClick={() => setConfirming(a)}
               >
                 <span className="picker-item-main">
                   <span className="picker-item-title">

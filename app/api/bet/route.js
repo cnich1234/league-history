@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { currentManager } from '@/lib/auth';
 import { placeBet } from '@/lib/book';
+import { useBoostOnBet } from '@/lib/shop';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,7 +22,7 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Guests cannot place bets.' }, { status: 403 });
   }
 
-  const { marketId, optionKey, stakeDollars, expectedOdds, oddsBoostId } =
+  const { marketId, optionKey, stakeDollars, expectedOdds, oddsBoostId, attachBoostIds } =
     await request.json().catch(() => ({}));
 
   const dollars = Number(stakeDollars);
@@ -39,8 +40,25 @@ export async function POST(request) {
       optionKey,
       stakeCents,
       expectedOdds: expectedOdds == null ? null : Number(expectedOdds),
+      // Was destructured and then never passed, so ticking Better Price took
+      // the boost off the list and changed nothing about the price.
+      oddsBoostId: oddsBoostId == null ? null : Number(oddsBoostId),
     });
-    return NextResponse.json({ ok: true, betId: String(bet.id) });
+
+    // Boosts chosen in the slip and attached to the bet the moment it exists.
+    // Doing it here rather than making people find the bet again in My Boosts
+    // is the whole point -- that second step is the one everybody forgets.
+    const attached = [];
+    for (const id of Array.isArray(attachBoostIds) ? attachBoostIds : []) {
+      try {
+        await useBoostOnBet({ slug, boostId: Number(id), betId: Number(bet.id) });
+        attached.push(String(id));
+      } catch {
+        // The bet is placed and paid for; a boost that will not attach is not
+        // a reason to fail the bet. It stays unused in their inventory.
+      }
+    }
+    return NextResponse.json({ ok: true, betId: String(bet.id), attached });
   } catch (e) {
     // These are all user-facing rule violations, not server faults.
     return NextResponse.json({ error: e.message }, { status: 400 });

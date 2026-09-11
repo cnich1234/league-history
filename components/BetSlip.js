@@ -51,6 +51,9 @@ export default function BetSlip({
   // Unused Better Price boosts. Offered here rather than armed in advance, so
   // you choose the bet AND see what it does to the price before committing.
   oddsBoosts = [],
+  // Insurance and Half Again, offered at the moment of betting rather than
+  // making people find the bet again in My Boosts afterwards.
+  slipBoosts = [],
   // Legs of YOUR parlays that sit on this market. A parlay has no market_id of
   // its own, so without this a market you had already backed inside a slip
   // looked exactly like one you had never touched.
@@ -74,6 +77,7 @@ export default function BetSlip({
   // memory from tapping "Review" cannot carry through to confirming.
   const [reviewing, setReviewing] = useState(false);
   const [useBoost, setUseBoost] = useState(false);
+  const [attach, setAttach] = useState({});
 
   // A live market keeps taking bets after its posted lock, at a price that
   // moves with the game. It only truly closes when the model suspends it.
@@ -100,6 +104,9 @@ export default function BetSlip({
   // not the payout, so +200 becomes +300 rather than +450 -- worth seeing
   // before you commit rather than discovering afterwards.
   const boostAvailable = oddsBoosts.length > 0;
+  // Better Price has its own control above -- it changes the displayed price,
+  // so it cannot be a plain tick-box like the others.
+  const extras = slipBoosts.filter((b) => b.kind !== 'odds-boost');
   const boosting = boostAvailable && useBoost;
   const effectiveOdds = selected
     ? boosting
@@ -147,6 +154,7 @@ export default function BetSlip({
           // Which boost to spend, if any. The server re-prices from this rather
           // than trusting the number above.
           oddsBoostId: boosting ? oddsBoosts[0].id : null,
+          attachBoostIds: extras.filter((b) => attach[b.kind]).map((b) => b.id),
         }),
       });
       const data = await res.json();
@@ -348,6 +356,26 @@ export default function BetSlip({
           </span>
         </label>
       )}
+
+      {/* Everything else that can go on a bet at the moment it is placed. Same
+          row as Better Price, because the decision is the same decision. */}
+      {selected &&
+        !shut &&
+        !reviewing &&
+        !inSlip &&
+        extras.map((b) => (
+          <label key={b.kind} className="boost-offer">
+            <input
+              type="checkbox"
+              checked={Boolean(attach[b.kind])}
+              onChange={(e) => setAttach((a) => ({ ...a, [b.kind]: e.target.checked }))}
+            />
+            <span>
+              {b.icon} Use <strong>{b.name}</strong>
+              <span className="dim"> — {b.blurb}</span>
+            </span>
+          </label>
+        ))}
 
       {selected && !shut && !reviewing && !inSlip && (
         <div className="stake-row">

@@ -82,6 +82,18 @@ export default function RulesPage() {
             moved. A long parlay is not a hiding place.
           </p>
 
+          <h2>One attack per bet</h2>
+          <p>
+            A bet takes <strong>one</strong> attack, whoever throws it. It used to be one
+            of each kind, so three people could pile a Skim, a Void and a theft onto the
+            same bet — which made the payout maths compose attacks that were never meant
+            to stack. First one there gets it.
+          </p>
+          <p>
+            Defences are separate: a bet can still carry an Insurance, a Mirror and a Half
+            Again at the same time. It is only attacks that are one to a customer.
+          </p>
+
           <h2>Taking a cut</h2>
           <p>
             <strong>🤝 Cut of the Action (5)</strong> is the gentle end of the shop. It
@@ -111,6 +123,13 @@ export default function RulesPage() {
             The points <strong>leave your balance the moment you post</strong>, so an
             advertised reward is always real. You cannot collect your own. If nobody takes
             it by the end of the week it is refunded — nobody did the thing you asked for.
+          </p>
+          <p>
+            An <strong>individual attack beats a bounty.</strong> If somebody pays out of
+            their own pocket while the crowd is still raising, the bet has been hit and the
+            bounty can never land — so it closes and everyone who chipped in is refunded.
+            A bet that has already been attacked, or that is insured, cannot be bountied at
+            all; it would not fire.
           </p>
           <p>
             It is <strong>public and loud</strong>, on The Action. That is the point: the

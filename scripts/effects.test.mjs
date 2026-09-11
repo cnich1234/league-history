@@ -134,9 +134,11 @@ try {
 
   console.log('\nblind attacks stay blind');
   {
-    const m = await mkt('EFF Secret');
-    const bet = await placeBet({ slug: A, marketId: m, optionKey: 'home', stakeCents: 5000 });
+    // One attack per BET now, so these go on three different bets. The point
+    // is unchanged: three attacks landed this week and the banner says nothing.
     for (const kind of ['payout-cut', 'void', 'blind-sabotage']) {
+      const m = await mkt('EFF Secret ' + kind);
+      const bet = await placeBet({ slug: A, marketId: m, optionKey: 'home', stakeCents: 5000 });
       const bst = await buyBoost({ slug: B, season: S, kind });
       await useBoostOnBet({
         slug: B,

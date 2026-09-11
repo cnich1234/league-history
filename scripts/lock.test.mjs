@@ -193,6 +193,46 @@ try {
   await lockDueMarkets([], ['NE', 'SEA']);
   check('the week has started', await statusOf(special), 'locked');
 
+  console.log('\na live market locked on bad data reopens itself');
+  // Two markets sat closed all weekend because they were locked during the
+  // window when Sleeper wrongly reported unplayed games as started. Nothing
+  // would ever have reopened them: a lock was permanent even when the game
+  // state it was based on turned out to be wrong.
+  const wronglyLocked = await makeMarket({ live: true, locked: true });
+  await sql`update markets set status = 'locked' where id = ${wronglyLocked}`;
+  check('starts locked', await statusOf(wronglyLocked), 'locked');
+  // Neither roster is finished, so the lock is not justified.
+  const scope = { season: TEST_SEASON, week: 1 };
+  await lockDueMarkets([HOME], [], scope);
+  check('reopens when its rosters are not final', await statusOf(wronglyLocked), 'open');
+
+  // And a justified lock must survive the same pass.
+  await lockDueMarkets([HOME, AWAY], [], scope);
+  check('but a real lock stays locked', await statusOf(wronglyLocked), 'locked');
+  await lockDueMarkets([HOME, AWAY], [], scope);
+  check('and is not reopened on the next pass', await statusOf(wronglyLocked), 'locked');
+
+  // Without a scope the correction is skipped entirely rather than reaching
+  // across every week in the database -- which it did on the first attempt,
+  // reopening eight real markets during a test run.
+  await sql`update markets set status = 'locked' where id = ${wronglyLocked}`;
+  await lockDueMarkets([HOME], []);
+  check('no scope means no reopen', await statusOf(wronglyLocked), 'locked');
+  await sql`update markets set status = 'open' where id = ${wronglyLocked}`;
+
+  // A prop is a one-way door: reopening it would let someone bet a player who
+  // has already scored.
+  const shutProp = await makeMarket({
+    live: false,
+    locked: true,
+    kind: 'prop',
+    meta: { playerId: '1', playerName: 'Done', nflTeam: 'NE', rosterId: HOME, line: 10.5 },
+  });
+  await lockDueMarkets([], ['NE']);
+  check('a locked prop stays locked', await statusOf(shutProp), 'locked');
+  await lockDueMarkets([], []);
+  check('even with no kickoff data at all', await statusOf(shutProp), 'locked');
+
   console.log('\nfinishedRostersIn reads live state');
   check(
     'both sides final',

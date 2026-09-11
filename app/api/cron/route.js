@@ -45,6 +45,7 @@ export async function GET(request) {
       const locked = await lockDueMarkets(
         finishedRostersIn(prior),
         await kickedOffTeams(season, priorWeek),
+        { season, week: priorWeek },
       );
       if (locked.length) log.push(`locked ${locked.length} market(s)`);
     } catch (e) {

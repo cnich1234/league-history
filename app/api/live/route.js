@@ -31,7 +31,10 @@ export async function GET(request) {
     // Failing to lock must never fail the response -- the board matters more
     // than the bookkeeping, and the next poll retries in 30 seconds.
     try {
-      await lockDueMarkets(finishedRostersIn(state), await kickedOffTeams(season, week));
+      await lockDueMarkets(finishedRostersIn(state), await kickedOffTeams(season, week), {
+        season,
+        week,
+      });
     } catch {
       // Retried on the next tick.
     }

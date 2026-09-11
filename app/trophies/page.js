@@ -120,13 +120,27 @@ function ScoringGuide() {
   const groups = [
     ['Earn points', 'good'],
     ['Bonus', 'bonus'],
-    ['Pain', 'pain'],
+    // Was "Pain", when these docked you points. Nothing here takes anything
+    // away any more -- the category pays consolation instead.
+    ['Rough week', 'pain'],
   ];
   return (
     <section className="section">
       <div className="section-head">
         <h2>How Points Work</h2>
       </div>
+
+      <p className="note" style={{ padding: '0 2px 12px' }}>
+        Points are currency. They buy <strong>boosts</strong> in The Book — insurance on a
+        bet, a better price, or something nastier aimed at everyone else. You also get{' '}
+        <strong>5 a week</strong> regardless, so trophies are roughly half of what you have
+        to spend.
+      </p>
+      <p className="note" style={{ padding: '0 2px 14px' }}>
+        Nothing here costs you points. Scoring the least in the league pays 2, and there
+        are four awards you can win while losing — a rough season on the field should not
+        lock you out of the store.
+      </p>
       {groups.map(([label, cat]) => (
         <div key={cat} className="guide-group">
           <div className="guide-label">{label}</div>

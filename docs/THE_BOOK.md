@@ -384,6 +384,65 @@ so the guest rules could not otherwise be tested with plain `node`.
 
 ---
 
+## Points and boosts
+
+The Trophy Room feeds The Book. Weekly achievements pay **trophy points**, and
+trophy points buy **boosts** that change real money.
+
+### The economy
+
+Two sources, deliberately about half and half over a season:
+
+|                              | Season | Share |
+| ---------------------------- | ------ | ----- |
+| Weekly allowance (5/wk × 14) | 70     | 51.6% |
+| Trophies                     | ~65.6  | 48.4% |
+
+The trophy figure is simulated, not guessed — `npm run sim:points` runs 4,000
+seasons against the same fitted `N(120, 28)` the betting model uses. Re-run it
+after any change to an award's value; the split is the number to keep near 50/50.
+
+There is no weekly history to replay (`data/history-dump.json` holds season-end
+standings only), so the simulation is the only calibration available until real
+weeks accumulate.
+
+### No achievement is negative
+
+Points buy boosts, so docking the manager already losing on the field would
+compound a bad season into a bad season with nothing to do about it. Scoring the
+league low pays **+2**. Four awards can be won _while losing_ — Bottom of the
+Barrel, Nice Score Still Lost, So Close, and Beat the Spread — which is the floor
+that keeps a struggling manager in the store.
+
+`Beat the Spread` is the strongest of them: a team projected to lose by 25 that
+loses by 8 earns it. Completely decoupled from record.
+
+### Two families of boost
+
+The distinction decides _when_ a boost can be used:
+
+- **PAYOUT** boosts change what a settled bet pays. Safe to use after a market
+  locks, because the money has not moved yet.
+- **PRICE** boosts change what a bet costs to place. Cannot be used after bets
+  exist at the old number — that would rewrite history.
+
+`applyBoosts` fixes the order: multiply up, then take any cut, so a skim always
+bites the number the winner expected to see. A **refund is never boosted** — a
+push is not a win. `The Void` short-circuits the chain entirely, since nothing
+applied afterwards can bring a voided bet back.
+
+### Why three attacks are not buyable
+
+Grand Theft, Blind Sabotage and The Void all need to name a specific bet or
+bettor — and bets are hidden until their market locks. Listing someone's bet in a
+picker would leak their position, which is the rule the whole book rests on. They
+are shown in the store and refused in `buyBoost`, not merely greyed out.
+
+`Poison the Well` works today because it targets a **market**, which everyone can
+already see.
+
+---
+
 ## Hiding bets — The Floor
 
 Nobody sees anyone else's picks until nobody can act on them. That is the whole

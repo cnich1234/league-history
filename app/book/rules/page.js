@@ -14,6 +14,34 @@ export default function RulesPage() {
             <strong>$200</strong> in real money.
           </p>
 
+          <h2>Points and the store</h2>
+          <p>
+            Everything you do in the Trophy Room feeds The Book. Weekly achievements pay{' '}
+            <strong>trophy points</strong>, and trophy points buy <strong>boosts</strong> —
+            which change real money in here.
+          </p>
+          <p>
+            Two sources, roughly half and half over a season: <strong>5 a week</strong>{' '}
+            just for showing up, plus whatever your trophies earn. A typical manager ends
+            the season with about <strong>135 points</strong> to spend.
+          </p>
+          <p>
+            <strong>No achievement costs you points any more.</strong> Scoring the least in
+            the league pays 2 as a consolation. There are four awards a manager who lost
+            can still collect, so a bad season on the field does not lock you out of the
+            store.
+          </p>
+          <p>
+            Boosts run from <strong>4</strong> for Insurance to <strong>22</strong> for The
+            Void. The cheap ones protect and improve your own bets; the expensive ones go
+            after everyone else. Buy them on the Store tab, use them from My Boosts.
+          </p>
+          <p>
+            Buying is instant, but <strong>using</strong> a boost asks you to pick a target
+            first — which of your bets to shield, which market to poison — and that choice
+            cannot be undone.
+          </p>
+
           <h2>Position battles</h2>
           <p>
             Your starters at one position against your opponent&apos;s, with a handicap —

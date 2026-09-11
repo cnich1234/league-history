@@ -139,5 +139,37 @@ export async function GET(request) {
     return NextResponse.json({ kind, target: 'market', week, targets });
   }
 
+  // Boosts aimed at a PERSON rather than a bet: Because, Fuck You and Slow
+  // Play. This branch did not exist, so both returned an empty list and the
+  // picker said "Nothing to use this on right now" -- with no way to fire a
+  // 16-point boost somebody had already paid for.
+  if (def.target === TARGET.BETTOR) {
+    const week = Number(searchParams.get('week') ?? process.env.BOOK_WEEK ?? 1);
+
+    // Everyone but you. One of each kind may be live against a manager at a
+    // time, so anybody already carrying this is listed but not selectable --
+    // more use than hiding them, since it says why.
+    const rows = await sql`
+      select b.slug, b.display_name,
+             (select count(*)::int from boosts bo
+                where bo.target_bettor = b.slug and bo.kind = ${kind}
+                  and bo.used_at is not null
+                  and (bo.detail->>'week')::int = ${week}
+                  and (${kind} <> 'slow-play' or bo.detail->>'spent' is null)) as already
+      from bettors b
+      where b.slug <> ${slug}
+      order by b.display_name`;
+
+    const targets = rows.map((r) => ({
+      id: r.slug,
+      title: r.display_name,
+      subtitle: null,
+      eligible: !r.already,
+      why: r.already ? `Already has ${def.name} on them` : null,
+    }));
+
+    return NextResponse.json({ kind, target: 'bettor', week, targets });
+  }
+
   return NextResponse.json({ kind, target: 'none', targets: [] });
 }

@@ -15,6 +15,7 @@
 import { neon } from '@neondatabase/serverless';
 import { testWeek, fundWeek, unfundWeek } from './test-helpers.mjs';
 import { placeBet, placeParlay, weeklyBalance } from '../lib/book.js';
+import { BOOSTS } from '../lib/boosts.js';
 import {
   buyBoost,
   useBoostOnBet,
@@ -109,8 +110,11 @@ await clean();
 await fundWeek(W);
 
 try {
-  await pts(A, 400);
-  await pts(B, 400);
+  // Enough for a dozen of the dearest boost. Seeded from the catalogue: a
+  // fixed number starves these tests the moment prices go up.
+  const PURSE = Math.max(...BOOSTS.map((b) => b.cost)) * 12;
+  await pts(A, PURSE);
+  await pts(B, PURSE);
 
   console.log('\nSlow Play doubles the next stake');
   {

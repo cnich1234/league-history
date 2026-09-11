@@ -12,7 +12,15 @@
 import { neon } from '@neondatabase/serverless';
 import { testWeek, fundWeek, unfundWeek } from './test-helpers.mjs';
 import { placeBet, settleMarket } from '../lib/book.js';
-import { buyBoost, useBoostOnBet, postBounty, contributeToBounty, getPoints } from '../lib/shop.js';
+import { BOOSTS, byKind } from '../lib/boosts.js';
+import {
+  buyBoost,
+  useBoostOnBet,
+  postBounty,
+  contributeToBounty,
+  getPoints,
+  minimumStake,
+} from '../lib/shop.js';
 
 const sql = neon(process.env.DATABASE_URL);
 const S = 9978;
@@ -73,7 +81,9 @@ await clean();
 await fundWeek(W);
 
 try {
-  for (const w of [A, B, C]) await pts(w, 200);
+  // Seeded from the catalogue -- see attacks2.test.mjs.
+  const PURSE = Math.max(...BOOSTS.map((b) => b.cost)) * 8;
+  for (const w of [A, B, C]) await pts(w, PURSE);
 
   console.log('\nhalf the PROFIT, and they keep the bet');
   {
@@ -134,41 +144,55 @@ try {
   {
     const m = await mkt();
     const bet = await placeBet({ slug: B, marketId: m, optionKey: 'home', stakeCents: 10000 });
-    // Cut of the Action costs 5: poster 1, backer 4.
+    // Poster puts in the 20% minimum, the backer covers the rest.
+    const tCost = byKind['tithe'].cost;
+    const tSeed = minimumStake(tCost);
     const posted = await postBounty({
       slug: A, season: S, week: W, target: B, weapon: 'tithe',
-      betId: Number(bet.id), points: 1,
+      betId: Number(bet.id), points: tSeed,
     });
-    const res = await contributeToBounty({ slug: C, season: S, bountyId: Number(posted.id), points: 4 });
+    const res = await contributeToBounty({
+      slug: C, season: S, bountyId: Number(posted.id), points: tCost - tSeed,
+    });
     ok('it fired', Boolean(res.fired?.fired), true);
 
     const aBefore = await banked(A), cBefore = await banked(C), bBefore = await banked(B);
     await settleMarket(m, 'home');
 
-    // Profit 10000, half is 5000, split 1:4 -> 1000 / 4000.
-    ok('the poster share', (await banked(A)) - aBefore, 1000);
-    ok('the backer share', (await banked(C)) - cBefore, 4000);
+    // Profit 10000, half of it is 5000, split by what each put in.
+    const half = 5000;
+    const pShare = Math.floor((half * tSeed) / tCost);
+    const bShare = half - pShare;
+    ok('the poster share', (await banked(A)) - aBefore, pShare);
+    ok('the backer share', (await banked(C)) - cBefore, bShare);
     ok('and the victim keeps half', (await banked(B)) - bBefore, 5000);
   }
   console.log('\na crowd-funded THEFT splits at settlement too');
   {
     const m = await mkt();
     const bet = await placeBet({ slug: B, marketId: m, optionKey: 'home', stakeCents: 10000 });
-    // Grand Theft costs 9: poster 2, backer 7.
+    const sCost = byKind['steal'].cost;
+    const sSeed = minimumStake(sCost);
     const posted = await postBounty({
       slug: A, season: S, week: W, target: B, weapon: 'steal',
-      betId: Number(bet.id), points: 2,
+      betId: Number(bet.id), points: sSeed,
     });
-    const res = await contributeToBounty({ slug: C, season: S, bountyId: Number(posted.id), points: 7 });
+    const res = await contributeToBounty({
+      slug: C, season: S, bountyId: Number(posted.id), points: sCost - sSeed,
+    });
     ok('it fired', Boolean(res.fired?.fired), true);
 
     const aBefore = await banked(A), cBefore = await banked(C), bBefore = await banked(B);
     await settleMarket(m, 'home');
 
-    // The WHOLE payout is stolen -- 20000, not the profit -- split 2:7 of 9.
-    // 20000*2/9 = 4444, 20000*7/9 = 15555, remainder 1 to the largest share.
-    ok('the backer takes the larger share', (await banked(C)) - cBefore, 15556);
-    ok('and the poster the smaller', (await banked(A)) - aBefore, 4444);
+    // The WHOLE payout is stolen -- 20000, not the profit -- split by what
+    // each put in. Derived, so a reprice does not turn this into arithmetic
+    // nobody can follow: floor each share, remainder to the largest.
+    const back = sCost - sSeed;
+    const posterShare = Math.floor((20000 * sSeed) / sCost);
+    const backerShare = 20000 - posterShare;
+    ok('the backer takes the larger share', (await banked(C)) - cBefore, backerShare);
+    ok('and the poster the smaller', (await banked(A)) - aBefore, posterShare);
     ok('the victim gets nothing at all', (await banked(B)) - bBefore, 0);
   }
 

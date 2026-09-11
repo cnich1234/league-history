@@ -17,7 +17,7 @@
 import { neon } from '@neondatabase/serverless';
 import { testWeek, fundWeek, unfundWeek } from './test-helpers.mjs';
 import { placeBet } from '../lib/book.js';
-import { byKind } from '../lib/boosts.js';
+import { BOOSTS, byKind } from '../lib/boosts.js';
 import {
   buyBoost,
   useBoostOnBet,
@@ -106,7 +106,9 @@ await clean();
 await fundWeek(W);
 
 try {
-  for (const who of [A, B, C, D]) await pts(who, 200);
+  // Seeded from the catalogue -- see attacks2.test.mjs.
+  const PURSE = Math.max(...BOOSTS.map((b) => b.cost)) * 8;
+  for (const who of [A, B, C, D]) await pts(who, PURSE);
 
   console.log('\nthe stake is 20% of the price');
   ok('a 12-point weapon needs 2', minimumStake(12), 2);
@@ -170,7 +172,7 @@ try {
       () =>
         postBounty({
           slug: A, season: S, week: W, target: A, weapon: 'void',
-          betId: Number(bet.id), points: 5,
+          betId: Number(bet.id), points: minimumStake(byKind['void'].cost),
         }),
       'on yourself',
     );
@@ -179,7 +181,7 @@ try {
       () =>
         postBounty({
           slug: A, season: S, week: W, target: B, weapon: 'insurance',
-          betId: Number(bet.id), points: 5,
+          betId: Number(bet.id), points: minimumStake(byKind['insurance'].cost),
         }),
       'name an attack',
     );
@@ -239,14 +241,19 @@ try {
     });
     const posted = await postBounty({
       slug: A, season: S, week: W, target: B, weapon: 'payout-cut',
-      betId: Number(bet.id), points: 2,
+      betId: Number(bet.id), points: minimumStake(byKind['payout-cut'].cost),
     });
     const id = Number(posted.id);
     // Skim costs 8, 2 is down, so 6 remain. Offering 50 takes only 6.
+    const skimCost = byKind['payout-cut'].cost;
+    const shortfall = skimCost - minimumStake(skimCost);
     const before = await getPoints(C, S);
-    const res = await contributeToBounty({ slug: C, season: S, bountyId: id, points: 50 });
-    ok('only the shortfall is taken', res.contributed, 6);
-    ok('and only that is charged', before - (await getPoints(C, S)), 6);
+    // Offering far more than is left takes only the shortfall, never change.
+    const res = await contributeToBounty({
+      slug: C, season: S, bountyId: id, points: skimCost * 5,
+    });
+    ok('only the shortfall is taken', res.contributed, shortfall);
+    ok('and only that is charged', before - (await getPoints(C, S)), shortfall);
     ok('which fills it', res.funded, true);
   }
 
@@ -257,9 +264,11 @@ try {
     });
     const posted = await postBounty({
       slug: A, season: S, week: W, target: B, weapon: 'switcheroo',
-      betId: Number(bet.id), points: 3,
+      betId: Number(bet.id), points: minimumStake(byKind['switcheroo'].cost),
     });
-    await contributeToBounty({ slug: C, season: S, bountyId: Number(posted.id), points: 4 });
+    const swSeed = minimumStake(byKind['switcheroo'].cost);
+    const chipped = 4;
+    await contributeToBounty({ slug: C, season: S, bountyId: Number(posted.id), points: chipped });
 
     const aBefore = await getPoints(A, S);
     const cBefore = await getPoints(C, S);
@@ -267,8 +276,8 @@ try {
     ok('one expired', n, 1);
     // Full refund, by decision: charging for an unfilled bounty would make
     // people lowball rather than post a real one.
-    ok('the poster is whole', (await getPoints(A, S)) - aBefore, 3);
-    ok('and so is the backer', (await getPoints(C, S)) - cBefore, 4);
+    ok('the poster is whole', (await getPoints(A, S)) - aBefore, swSeed);
+    ok('and so is the backer', (await getPoints(C, S)) - cBefore, chipped);
     ok('nothing left open', (await openBounties(S, W)).length, 0);
   }
 
@@ -279,7 +288,7 @@ try {
     });
     const posted = await postBounty({
       slug: A, season: S, week: W, target: B, weapon: 'void',
-      betId: Number(bet.id), points: 2,
+      betId: Number(bet.id), points: minimumStake(byKind['void'].cost),
     });
     const before = await getPoints(A, S);
 
@@ -287,7 +296,7 @@ try {
     await sql`update bets set status = 'won' where id = ${Number(bet.id)}`;
     const culled = await cullDeadBountyBets(S, W);
     ok('it was culled', culled, 1);
-    ok('and refunded', (await getPoints(A, S)) - before, 2);
+    ok('and refunded', (await getPoints(A, S)) - before, minimumStake(byKind['void'].cost));
     ok('gone from the board', (await openBounties(S, W)).length, 0);
     const [row] = await sql`select status, closed_reason from bounties where id = ${Number(posted.id)}`;
     ok('marked void', row.status, 'void');
@@ -302,21 +311,24 @@ try {
     // A bounty on an ALREADY-insured bet is refused up front instead.
     const posted = await postBounty({
       slug: A, season: S, week: W, target: B, weapon: 'void',
-      betId: Number(bet.id), points: 2,
+      betId: Number(bet.id), points: minimumStake(byKind['void'].cost),
     });
     const shield = await buyBoost({ slug: B, season: S, kind: 'insurance' });
     await useBoostOnBet({ slug: B, boostId: Number(shield.id), betId: Number(bet.id) });
 
+    const vSeed = minimumStake(byKind['void'].cost);
+    const rest = byKind['void'].cost - vSeed;
     const aBefore = await getPoints(A, S);
     const cBefore = await getPoints(C, S);
+    // Fill it completely, so it tries to fire and finds the shield.
     const res = await contributeToBounty({
-      slug: C, season: S, bountyId: Number(posted.id), points: 10,
+      slug: C, season: S, bountyId: Number(posted.id), points: rest,
     });
 
     ok('it did not land', Boolean(res.fired?.refunded), true);
     ok('because of the shield', res.fired.why, 'the bet was insured');
     // Net zero for both: charged on the way in, refunded on the way out.
-    ok('the poster is square', (await getPoints(A, S)) - aBefore, 2);
+    ok('the poster is square', (await getPoints(A, S)) - aBefore, vSeed);
     ok('and the backer too', (await getPoints(C, S)) - cBefore, 0);
   }
 
@@ -325,27 +337,32 @@ try {
     const bet = await placeBet({
       slug: B, marketId: await mkt(), optionKey: 'home', stakeCents: 5000,
     });
-    // Grand Theft costs 9. Poster 2, then 3 and 4.
+    // Three unequal stakes that add up to the price, whatever the price is.
+    const cost = byKind['steal'].cost;
+    const seed = minimumStake(cost);
+    const mid = Math.max(1, Math.floor((cost - seed) / 3));
+    const top = cost - seed - mid;
     const posted = await postBounty({
       slug: A, season: S, week: W, target: B, weapon: 'steal',
-      betId: Number(bet.id), points: 2,
+      betId: Number(bet.id), points: seed,
     });
     const id = Number(posted.id);
-    await contributeToBounty({ slug: C, season: S, bountyId: id, points: 3 });
-    const res = await contributeToBounty({ slug: D, season: S, bountyId: id, points: 4 });
+    await contributeToBounty({ slug: C, season: S, bountyId: id, points: mid });
+    const res = await contributeToBounty({ slug: D, season: S, bountyId: id, points: top });
     ok('it fired', Boolean(res.fired?.fired), true);
 
     const backers = await bountyBackers(id);
     ok('three backers', backers.length, 3);
 
-    // 10000 cents split 2:3:4 of 9 -> 2222 / 3333 / 4444, remainder 1 to the
-    // largest share so the parts add back to the payout exactly.
+    // Each share floored, remainder to the largest, so the parts add back to
+    // the payout exactly.
     const shares = await splitBountyPayout(id, 10000);
     const byWho = Object.fromEntries(shares.map((s) => [s.slug, s.cents]));
+    const floorOf = (n) => Math.floor((10000 * n) / cost);
     ok('the largest share leads', shares[0].slug, D);
-    ok('and takes the remainder', byWho[D], 4445);
-    ok('the middle share', byWho[C], 3333);
-    ok('the poster share', byWho[A], 2222);
+    ok('and takes the remainder', byWho[D], 10000 - floorOf(seed) - floorOf(mid));
+    ok('the middle share', byWho[C], floorOf(mid));
+    ok('the poster share', byWho[A], floorOf(seed));
     ok('and it all adds up', shares.reduce((n, s) => n + s.cents, 0), 10000);
   }
 
@@ -356,7 +373,7 @@ try {
     });
     const posted = await postBounty({
       slug: A, season: S, week: W, target: B, weapon: 'blind-sabotage',
-      betId: Number(bet.id), points: 1,
+      betId: Number(bet.id), points: minimumStake(byKind['blind-sabotage'].cost),
     });
     await rejects(
       'the target is refused',
@@ -371,7 +388,7 @@ try {
     });
     const posted = await postBounty({
       slug: A, season: S, week: W, target: B, weapon: 'void',
-      betId: Number(bet.id), points: 2,
+      betId: Number(bet.id), points: minimumStake(byKind['void'].cost),
     });
     await contributeToBounty({ slug: C, season: S, bountyId: Number(posted.id), points: 4 });
 
@@ -414,7 +431,7 @@ try {
       () =>
         postBounty({
           slug: A, season: S, week: W, target: B, weapon: 'void',
-          betId: Number(bet.id), points: 2,
+          betId: Number(bet.id), points: minimumStake(byKind['void'].cost),
         }),
       'already been hit',
     );
@@ -432,7 +449,7 @@ try {
       () =>
         postBounty({
           slug: A, season: S, week: W, target: B, weapon: 'void',
-          betId: Number(bet.id), points: 2,
+          betId: Number(bet.id), points: minimumStake(byKind['void'].cost),
         }),
       'insured',
     );

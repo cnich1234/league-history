@@ -90,7 +90,13 @@ export default function UseBoost({ boost, label, week }) {
     try {
       const body = { action: 'use', boostId: boost.id, kind: boost.kind };
       if (targets.target === 'market') body.marketId = chosen.id;
-      else body.betId = chosen.id;
+      // A boost aimed at a PERSON sends a slug and a week, not a bet id. This
+      // fell through to betId, so even once the picker listed managers the
+      // server had nothing to act on.
+      else if (targets.target === 'bettor') {
+        body.target = chosen.id;
+        body.week = targets.week;
+      } else body.betId = chosen.id;
 
       const res = await fetch('/api/shop', {
         method: 'POST',

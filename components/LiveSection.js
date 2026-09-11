@@ -9,7 +9,7 @@ import LiveScores from './LiveScores';
  * Fetched rather than imported so the 6 KB map is not inlined into the JS
  * bundle for every visitor -- most page views are not on a Sunday.
  */
-export default function LiveSection({ owners }) {
+export default function LiveSection({ owners, season = [] }) {
   const [players, setPlayers] = useState(null);
   const [failed, setFailed] = useState(false);
 
@@ -22,5 +22,5 @@ export default function LiveSection({ owners }) {
 
   if (failed) return <div className="empty">Could not load player data.</div>;
   if (!players) return <div className="empty">Loading…</div>;
-  return <LiveScores owners={owners} players={players} />;
+  return <LiveScores owners={owners} players={players} season={season} />;
 }

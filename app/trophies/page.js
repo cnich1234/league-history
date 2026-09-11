@@ -22,7 +22,7 @@ export default function TrophiesPage() {
           <div className="section-head">
             <h2>Live</h2>
           </div>
-          <LiveSection owners={SLEEPER_OWNERS} />
+          <LiveSection owners={SLEEPER_OWNERS} season={season} />
         </section>
         <ScoringGuide />
       </main>
@@ -42,7 +42,7 @@ export default function TrophiesPage() {
         <div className="section-head">
           <h2>Live</h2>
         </div>
-        <LiveSection owners={SLEEPER_OWNERS} />
+        <LiveSection owners={SLEEPER_OWNERS} season={season} />
       </section>
 
       {latest && (

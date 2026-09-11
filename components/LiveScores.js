@@ -14,7 +14,7 @@ const POLL_MS = 60_000;
  * and runs the same achievement definitions the build-time script uses. Nothing
  * is persisted -- Tuesday's `build-weekly` run is what makes a week official.
  */
-export default function LiveScores({ owners, players }) {
+export default function LiveScores({ owners, players, season = [] }) {
   const [state, setState] = useState({ status: 'loading' });
   const [updated, setUpdated] = useState(null);
 
@@ -148,6 +148,11 @@ export default function LiveScores({ owners, players }) {
   const ranked = Object.entries(state.totals).sort((a, b) => b[1] - a[1]);
   const nameOf = (slug) => state.teams.find((t) => t.slug === slug)?.name ?? slug;
 
+  // Points banked in previous weeks, which is a different number from the
+  // projected total above: that one is this week and still moving.
+  const bySlug = Object.fromEntries(season.map((r) => [r.slug, r.points]));
+  const seasonPoints = (slug) => (slug && bySlug[slug] != null ? bySlug[slug] : 0);
+
   return (
     <>
       <div className="live-head">
@@ -179,20 +184,29 @@ export default function LiveScores({ owners, players }) {
 
       <div className="section-head" style={{ marginTop: 18 }}>
         <h2>Scoreboard</h2>
+        <span className="dim">points earned</span>
       </div>
       <div className="rows">
-        {state.games.map((g, i) => (
-          <div key={i} className="row">
-            <span className="row-main">
-              <span className="row-name">
-                {g.winnerName} vs {g.loserName}
-              </span>
-              <span className="dim">
-                {g.winnerPoints} – {g.loserPoints}
-              </span>
-            </span>
-          </div>
-        ))}
+        {state.games.map((g, i) => {
+          // Each side gets its own row so the season total can sit beside the
+          // right name -- a combined "A vs B" row has nowhere to put two
+          // different numbers.
+          const sides = [
+            { name: g.winnerName, slug: g.winnerSlug, points: g.winnerPoints },
+            { name: g.loserName, slug: g.loserSlug, points: g.loserPoints },
+          ];
+          return (
+            <div key={i} className="scoreline">
+              {sides.map((side) => (
+                <div key={side.slug ?? side.name} className="scoreline-row">
+                  <span className="scoreline-name">{side.name}</span>
+                  <span className="scoreline-score">{side.points}</span>
+                  <span className="scoreline-season">{seasonPoints(side.slug)}</span>
+                </div>
+              ))}
+            </div>
+          );
+        })}
       </div>
 
       <p className="note">

@@ -58,6 +58,10 @@ export default function BetSlip({
   disabled,
   bankrollCents,
   livePrices,
+  // A pending Slow Play against you: { minStakeDollars }. Shown rather than
+  // sprung, now that it cannot be dodged with a cheap bet -- a stake that
+  // silently costs double reads as a bug rather than an attack.
+  slowed = null,
 }) {
   const slip = useSlip();
   const [selected, setSelected] = useState(null);
@@ -109,11 +113,20 @@ export default function BetSlip({
   // A market already in the parlay slip cannot also be bet straight -- offering
   // both is what let someone pay for a single and a parlay leg on one tap each.
   const inSlip = slip.has(market.id);
+
+  // A slowed bet only doubles once it reaches the floor -- below that it is
+  // charged normally and the slow keeps waiting.
+  const slowDoubles = Boolean(slowed) && stakeNum >= (slowed.minStakeDollars ?? Infinity);
+  // What leaves the allowance, which is what the week has to cover. Checking
+  // the nominal stake would let someone through Review on a bet the server
+  // then refuses for want of funds.
+  const costNum = slowDoubles ? stakeNum * 2 : stakeNum;
+
   const valid =
     Number.isFinite(stakeNum) &&
     stakeNum >= MIN &&
     stakeNum <= cap &&
-    stakeNum * 100 <= bankrollCents;
+    costNum * 100 <= bankrollCents;
 
   async function place() {
     if (!selected || !valid || !reviewing) return;
@@ -266,11 +279,23 @@ export default function BetSlip({
               <dt>Stake</dt>
               <dd>{money(stakeNum)}</dd>
             </div>
+            {slowDoubles && (
+              <div>
+                <dt>🐌 Costs you</dt>
+                <dd className="neg">{money(stakeNum * 2)}</dd>
+              </div>
+            )}
             <div className="confirm-total">
               <dt>Returns if it wins</dt>
               <dd>{money(payout(stakeNum, effectiveOdds))}</dd>
             </div>
           </dl>
+          {slowDoubles && (
+            <p className="confirm-warning">
+              You have been slowed: this comes out of your allowance twice. The bet itself
+              is the size you asked for, and this wears the slow off.
+            </p>
+          )}
           <p className="confirm-warning">Bets cannot be changed or cancelled.</p>
           <div className="confirm-actions">
             <button className="btn-ghost" type="button" onClick={() => setReviewing(false)}>
@@ -343,9 +368,14 @@ export default function BetSlip({
             {valid ? (
               <>
                 returns <strong>{money(payout(stakeNum, effectiveOdds))}</strong>
+                {slowDoubles && (
+                  <span className="neg"> · costs {money(stakeNum * 2)} 🐌</span>
+                )}
               </>
-            ) : stakeNum * 100 > bankrollCents ? (
-              <span className="neg">More than your bankroll</span>
+            ) : costNum * 100 > bankrollCents ? (
+              <span className="neg">
+                {slowDoubles ? `Slowed — ${money(costNum)} is more than your week` : 'More than your bankroll'}
+              </span>
             ) : capped && stakeNum > cap ? (
               <span className="neg">Max ${cap} — this one is close to decided</span>
             ) : (

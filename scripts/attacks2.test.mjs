@@ -101,6 +101,8 @@ async function clean() {
   await sql`delete from boosts where season = ${S}`;
   await sql`delete from point_ledger where season = ${S}`;
   await unfundWeek(W);
+  // The persistence case funds and bets in the following week too.
+  await unfundWeek(W + 1);
 }
 
 await clean();
@@ -213,8 +215,59 @@ try {
     ok('cleared for the next case', await pendingSlowPlay(B, W), null);
   }
 
+  console.log('\nit survives the week it was thrown in');
+  {
+    await fundWeek(W + 1);
+    const slow = await buyBoost({ slug: A, season: S, kind: 'slow-play' });
+    await slowPlay({ slug: A, boostId: Number(slow.id), target: B, week: W });
+
+    // It used to be scoped to its own week, so anyone hit late on a Sunday
+    // could wait it out for free and the attacker's 5 points bought nothing.
+    ok('still pending the following week', (await pendingSlowPlay(B, W + 1)) != null, true);
+
+    const m = await sql`
+      insert into markets (season, week, kind, title, locks_at, status, live, meta)
+      values (${S}, ${W + 1}, 'h2h', ${'A2 next ' + Math.random()},
+              ${new Date(Date.now() + 86400e3)}, 'open', false, '{}'::jsonb)
+      returning id`;
+    await sql`
+      insert into market_options (market_id, option_key, label, odds)
+      values (${m[0].id}, 'opt0', 'Option 0', 200), (${m[0].id}, 'opt1', 'Option 1', 210)`;
+
+    const before = await weeklyBalance(B, W + 1);
+    await placeBet({ slug: B, marketId: Number(m[0].id), optionKey: 'opt0', stakeCents: 20000 });
+    ok('and it bites next week', before - (await weeklyBalance(B, W + 1)), 40000);
+    ok('then it is gone', await pendingSlowPlay(B, W + 1), null);
+  }
+
+  console.log('\nand cannot be stacked across weeks');
+  {
+    const s1 = await buyBoost({ slug: A, season: S, kind: 'slow-play' });
+    await slowPlay({ slug: A, boostId: Number(s1.id), target: B, week: W });
+    const s2 = await buyBoost({ slug: A, season: S, kind: 'slow-play' });
+    // The guard used to be per-week, which with a persisting slow would let
+    // them pile up on somebody who never bets big.
+    await rejects(
+      'a second slow in a later week is refused',
+      () => slowPlay({ slug: A, boostId: Number(s2.id), target: B, week: W + 1 }),
+      'already slowed',
+    );
+
+    // Clear it so the next block starts clean.
+    const m = await mkt();
+    await placeBet({ slug: B, marketId: m, optionKey: 'opt0', stakeCents: 5000 });
+    ok('cleared for the next case', await pendingSlowPlay(B, W), null);
+  }
+
   console.log('\nSlow Play rules');
   {
+    const sNull = await buyBoost({ slug: A, season: S, kind: 'slow-play' });
+    await rejects(
+      'a slow with no week is refused',
+      () => slowPlay({ slug: A, boostId: Number(sNull.id), target: B, week: null }),
+      'not valid',
+    );
+
     const s2 = await buyBoost({ slug: A, season: S, kind: 'slow-play' });
     await rejects(
       'cannot slow yourself',

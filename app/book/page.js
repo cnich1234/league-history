@@ -12,7 +12,13 @@ import {
   weeklyBalance,
   getBanks,
 } from '@/lib/book';
-import { getArmedBoosts, availableOddsBoosts, marketEffects } from '@/lib/shop';
+import { byKind } from '@/lib/boosts';
+import {
+  getArmedBoosts,
+  availableOddsBoosts,
+  marketEffects,
+  pendingSlowPlay,
+} from '@/lib/shop';
 import { formatMoney, formatOdds } from '@/lib/odds';
 import Login from '@/components/Login';
 import BoardSection from '@/components/BoardSection';
@@ -75,6 +81,7 @@ export default async function BookPage({ searchParams }) {
     armed,
     oddsBoosts,
     effects,
+    slowPending,
   ] = await Promise.all([
     guest ? null : getBettor(slug),
     getMarketsForWeek(SEASON, week),
@@ -95,8 +102,18 @@ export default async function BookPage({ searchParams }) {
     // already public, and a read-only view of a poisoned market that does not
     // say so is just a wrong price.
     marketEffects(SEASON, week),
+    // A Slow Play waiting on you. Shown rather than sprung: it persists until
+    // a big enough bet wears it off, so springing it would just look like the
+    // stake box was broken.
+    guest ? null : pendingSlowPlay(slug, week),
   ]);
   const myBank = Number(banks.find((b) => b.slug === slug)?.bank_cents ?? 0);
+
+  // The floor comes from the catalogue, so the warning and the server rule
+  // cannot quote different numbers.
+  const slowed = slowPending
+    ? { minStakeDollars: byKind['slow-play']?.minStakeDollars ?? 0 }
+    : null;
 
   // Parlays have no market_id, so they cannot key this map -- and including
   // them would collide on the "null" key and mark unrelated markets as placed.
@@ -196,6 +213,22 @@ export default async function BookPage({ searchParams }) {
       {/* Above the markets, because it changes what the prices below mean. */}
       <EffectsBanner effects={effects} />
 
+      {slowed && (
+        <section className="section">
+          <div className="slowed-warn">
+            <span className="slowed-icon" aria-hidden="true">
+              🐌
+            </span>
+            <span>
+              <strong>You have been slowed.</strong> Your next bet of{' '}
+              <strong>${slowed.minStakeDollars} or more</strong> costs double out of this
+              week&apos;s allowance. Smaller bets are charged normally and leave it
+              waiting — it stays until a big one wears it off.
+            </span>
+          </div>
+        </section>
+      )}
+
       {!anyOpen && games.length > 0 && (
         <section className="section">
           <div className="empty">
@@ -217,6 +250,7 @@ export default async function BookPage({ searchParams }) {
             defaultOpen={games.length === 0}
             readOnly={guest}
             oddsBoosts={oddsBoosts}
+            slowed={slowed}
           />
           {games.length > 0 && (
             <BoardSection
@@ -227,6 +261,7 @@ export default async function BookPage({ searchParams }) {
               week={week}
               readOnly={guest}
               oddsBoosts={oddsBoosts}
+            slowed={slowed}
             />
           )}
           {!guest && <ParlaySlip bankrollCents={spendable} />}

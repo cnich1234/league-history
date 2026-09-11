@@ -14,6 +14,7 @@ export default function BoardSection({
   myByMarket,
   myParlayByMarket,
   oddsBoosts = [],
+  slowed = null,
   bankrollCents,
   week,
   readOnly,
@@ -38,6 +39,7 @@ export default function BoardSection({
           week={week}
           readOnly={readOnly}
           oddsBoosts={oddsBoosts}
+          slowed={slowed}
           // Open the first card so the page never looks like a list of empty
           // headers; the rest stay closed so a phone shows all five games.
           defaultOpen={i === 0}

@@ -2626,3 +2626,21 @@ tbody tr:last-child td {
 .effects-icon {
   flex: none;
 }
+
+/* Slow Play warning. Personal rather than league-wide, so it reads as a
+   different kind of notice from the effects banner above it. */
+.slowed-warn {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  border: 1px solid var(--neg-line, #8a3b3b);
+  background: var(--neg-bg, rgba(190, 60, 60, 0.09));
+  border-radius: 10px;
+  padding: 0.7rem 0.85rem;
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+.slowed-icon {
+  flex: none;
+  font-size: 1.1rem;
+}

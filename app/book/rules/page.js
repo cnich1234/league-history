@@ -64,6 +64,12 @@ export default function RulesPage() {
             just open the week with a throwaway.
           </p>
           <p>
+            It <strong>persists until it is worn off</strong>, including into the following
+            week. Bet small all you like — it waits. And you are told: a slowed board says
+            so at the top, and the bet slip shows the doubled cost before you confirm. It
+            is a tax you can see coming, not a trap.
+          </p>
+          <p>
             <strong>🔀 Switcheroo (14)</strong> moves one of their bets to a different
             option, and the price moves with it. On a two-sided market it flips. On a
             ten-way special it lands somewhere <em>random</em> — nine ways to be wrong.

@@ -27,6 +27,7 @@ export default function LiveMarkets({
   myByMarket,
   myParlayByMarket = {},
   oddsBoosts = [],
+  slowed = null,
   bankrollCents,
   readOnly,
 }) {
@@ -42,6 +43,7 @@ export default function LiveMarkets({
       livePrices={pricesFor(m, state)}
       disabled={readOnly}
       oddsBoosts={oddsBoosts}
+      slowed={slowed}
     />
   ));
 }

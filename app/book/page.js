@@ -45,9 +45,26 @@ async function signOut() {
   redirect('/book');
 }
 
+/**
+ * The week to open on when the URL does not say.
+ *
+ * Read from the data, not from BOOK_WEEK -- which is set in no environment, so
+ * the board fell through to week 1 and stayed there all season. The latest week
+ * with open markets is the one people are betting; if every week has closed,
+ * the most recent one is still the right thing to show.
+ */
+async function defaultWeek(season) {
+  const weeks = await weeksWithMarkets(season);
+  if (!weeks.length) return Number(process.env.BOOK_WEEK ?? 1);
+  const live = weeks.filter((w) => w.open > 0);
+  const list = live.length ? live : weeks;
+  return list[list.length - 1].week;
+}
+
 export default async function BookPage({ searchParams }) {
   const params = await searchParams;
-  const week = Number(params?.week ?? process.env.BOOK_WEEK ?? 1);
+  const asked = Number(params?.week);
+  const week = Number.isFinite(asked) && asked > 0 ? asked : await defaultWeek(SEASON);
 
   const [slug, pool] = await Promise.all([
     currentBettor(),

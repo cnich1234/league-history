@@ -159,8 +159,9 @@ export default async function ActionPage() {
       {namedWithBets.length > 0 && (
         <section className="section">
           <a className="bounty-teaser" href="/book/bounties">
-            🎯 <strong>{namedWithBets.length}</strong> bounty
-            {namedWithBets.length === 1 ? '' : 's'} open — chip in on the Bounties tab
+            🎯 <strong>{namedWithBets.length}</strong>{' '}
+            {namedWithBets.length === 1 ? 'bounty' : 'bounties'} open — chip in on the
+            Bounties tab
           </a>
         </section>
       )}

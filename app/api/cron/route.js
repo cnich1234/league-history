@@ -224,6 +224,29 @@ export async function GET(request) {
       log.push(`bounty cull skipped: ${e.message}`);
     }
 
+    // The MONEY allowance: $500 to bet with, for the week that is opening.
+    //
+    // Nothing granted this. lib/book.js had the function, tests called it, and
+    // the cron called only the POINTS allowance above -- the same mistake that
+    // comment describes, made a third time. Weeks 1 and 2 have allowance rows
+    // because they were inserted by hand; from week 3 every bet would have
+    // failed "Not enough left this week."
+    //
+    // Credited for the CURRENT week, unlike the points allowance, and before
+    // the board is built: it is ammunition for the week ahead, not a reward
+    // for one finished, and people need it the moment the markets appear.
+    // Idempotent via ledger_allowance_once, so a second run pays nobody twice.
+    // Logged even at zero -- a silent step is indistinguishable from one that
+    // never ran, which is exactly how this went unnoticed.
+    try {
+      const { grantWeeklyAllowance: grantMoney, WEEKLY_ALLOWANCE_CENTS } =
+        await import('@/lib/book');
+      const funded = await grantMoney(week, WEEKLY_ALLOWANCE_CENTS);
+      log.push(`money allowance to ${funded.length} for week ${week}`);
+    } catch (e) {
+      log.push(`money allowance skipped: ${e.message}`);
+    }
+
     // Build the current week's board if it does not exist yet.
     const { buildWeek } = await import('@/lib/cron');
     const built = await buildWeek(sql, season, week);

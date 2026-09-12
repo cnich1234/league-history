@@ -75,5 +75,15 @@ ok(`no guarded step operates on the live week (${offenders.length} found)`, offe
 ok('dead-bounty cull is not guarded', blocks.some((b) => /cullDeadBountyBets/.test(b) && !/priorWeek == null/.test(b)));
 ok('salaries are not guarded', blocks.some((b) => /buildSalaries/.test(b) && !/priorWeek == null/.test(b)));
 
+// The MONEY allowance is ammunition for the week opening, so it is paid for
+// the CURRENT week and never gated on a finished one. It was paid by nothing
+// at all: weeks 1 and 2 had rows only because they were inserted by hand.
+console.log('\nmoney allowance');
+const moneyBlock = blocks.find((b) => /grantMoney\(/.test(b));
+ok('cron grants the money allowance', Boolean(moneyBlock));
+ok('for the current week, not priorWeek', /grantMoney\(week, WEEKLY_ALLOWANCE_CENTS\)/.test(moneyBlock ?? ''));
+ok('not behind the completed-week guard', !/priorWeek == null/.test(moneyBlock ?? ''));
+ok('logged even when it pays nobody', /money allowance to \$\{funded\.length\}/.test(moneyBlock ?? ''));
+
 console.log(failed ? `\n${failed} check(s) failed` : '\nall checks passed');
 process.exit(failed ? 1 : 0);

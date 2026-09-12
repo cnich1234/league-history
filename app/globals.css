@@ -3325,3 +3325,24 @@ a.bounty-alert:hover {
 .dfs-matchup-even {
   color: var(--text-muted);
 }
+
+/* A filled slot is tappable to swap the player -- the whole row, not a tiny
+   target. Clearing with the x then picking again was two taps for one
+   decision. */
+.dfs-slot-swap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.dfs-slot-swap:disabled {
+  cursor: default;
+}

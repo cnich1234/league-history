@@ -24,6 +24,8 @@ import {
   contestField,
   LINEUP,
   lineupLocked,
+  saveDraft,
+  lineupFor,
   lockDueContests,
   settleWeek,
   PLACE_POINTS,
@@ -342,6 +344,42 @@ try {
     ok('an open contest is left alone', none.contests, 0);
     const [still] = await sql`select status from dfs_contests where id = ${Number(open.id)}`;
     ok('and stays open', still.status, 'open');
+  }
+
+  console.log('\na half-built lineup survives a refresh');
+  {
+    const c = await openLobby({
+      slug: A, season: S, week: W, name: 'Draft test', seats: 2, buyinPoints: 2,
+    });
+    const full = lineup(0);
+    const half = [...full.slice(0, 4), null, null, null, null, null];
+
+    // A partial lineup is NOT an entry: no cap check, no completeness check,
+    // and crucially no buy-in -- charging somebody for half a team would be
+    // the obvious wrong way to do this.
+    const before = await getPoints(A, S);
+    await saveDraft({ slug: A, contestId: Number(c.id), slots: half });
+    ok('a draft costs nothing', await getPoints(A, S), before);
+    ok('and it did not take a seat', (await contestField(Number(c.id))).length, 0);
+
+    const back = await lineupFor(A, Number(c.id));
+    ok('it comes back', back.slots.filter(Boolean).length, 4);
+    ok('marked as not entered', back.entered, false);
+
+    // Junk ids are dropped rather than stored, so a stale draft cannot fail
+    // confusingly later.
+    await saveDraft({ slug: A, contestId: Number(c.id), slots: ['nonsense', ...half.slice(1)] });
+    const cleaned = await lineupFor(A, Number(c.id));
+    ok('an unknown player is dropped', cleaned.slots[0], null);
+
+    // Submitting replaces the draft entirely.
+    await enterContest({ slug: A, contestId: Number(c.id), slots: full, season: S, week: W });
+    const after = await lineupFor(A, Number(c.id));
+    ok('the entry wins once submitted', after.entered, true);
+    ok('and it is the full lineup', after.slots.filter(Boolean).length, LINEUP.length);
+    const [left] = await sql`
+      select count(*)::int as n from dfs_drafts where contest_id = ${Number(c.id)}`;
+    ok('the draft is gone', Number(left.n), 0);
   }
 
 } finally {

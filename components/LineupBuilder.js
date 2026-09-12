@@ -116,23 +116,37 @@ export default function LineupBuilder({
       });
   }, [picking, query, pool, slots, lineup, flexPositions, budgetFor]);
 
+  /**
+   * Remembers a half-built lineup.
+   *
+   * Nine taps used to vanish on a refresh. This is deliberately fire-and-
+   * forget: a draft is a convenience, and a failed save must not interrupt
+   * somebody mid-build with an error about something they did not ask for.
+   * The real save is the button, and that one reports failure.
+   */
+  function keep(next) {
+    fetch('/api/dfs/draft', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ contestId, slots: next }),
+    }).catch(() => {});
+  }
+
   function choose(player) {
-    setSlots((s) => {
-      const next = [...s];
-      next[picking] = String(player.player_id);
-      return next;
-    });
+    const next = [...slots];
+    next[picking] = String(player.player_id);
+    setSlots(next);
+    keep(next);
     setPicking(null);
     setQuery('');
     setSaved(false);
   }
 
   function clearSlot(i) {
-    setSlots((s) => {
-      const next = [...s];
-      next[i] = null;
-      return next;
-    });
+    const next = [...slots];
+    next[i] = null;
+    setSlots(next);
+    keep(next);
     setSaved(false);
   }
 
@@ -183,13 +197,26 @@ export default function LineupBuilder({
               <span className="dfs-slot-pos">{slot}</span>
               {p ? (
                 <>
-                  <PlayerPhoto
-                    src={photo(p)}
-                    name={p.name}
-                    position={p.position}
-                    size={32}
-                  />
-                  <span className="dfs-slot-main">
+                  {/* The whole row swaps the player. Clearing it first with the
+                      x, then picking again, was two taps for what is one
+                      decision. */}
+                  <button
+                    type="button"
+                    className="dfs-slot-swap"
+                    disabled={readOnly}
+                    onClick={() => {
+                      setPicking(i);
+                      setQuery('');
+                    }}
+                    aria-label={`Change ${p.name}`}
+                  >
+                    <PlayerPhoto
+                      src={photo(p)}
+                      name={p.name}
+                      position={p.position}
+                      size={32}
+                    />
+                    <span className="dfs-slot-main">
                     <span className="dfs-slot-name">{p.name}</span>
                     <span className="dim">
                       {p.position} · {p.nfl_team ?? '—'} · {p.projection.toFixed(1)} proj
@@ -202,8 +229,9 @@ export default function LineupBuilder({
                         </>
                       )}
                     </span>
-                  </span>
-                  <span className="dfs-slot-cost">{money(p.salary)}</span>
+                    </span>
+                    <span className="dfs-slot-cost">{money(p.salary)}</span>
+                  </button>
                   {!readOnly && (
                     <button
                       type="button"

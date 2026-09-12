@@ -2,7 +2,7 @@ import { neon } from '@neondatabase/serverless';
 import { currentBettor, isGuestSlug } from '@/lib/auth';
 import {
   salaryPool,
-  myEntry,
+  lineupFor,
   contestField,
   LINEUP,
   FLEX_POSITIONS,
@@ -51,14 +51,19 @@ export default async function LobbyPage({ params }) {
   const [pool, field, entry] = await Promise.all([
     salaryPool(lobby.season, lobby.week),
     contestField(lobby.id),
-    guest ? null : myEntry(slug, lobby.id),
+    guest ? null : lineupFor(slug, lobby.id),
   ]);
 
   const taken = field.length;
   const settled = lobby.status === 'settled' || lobby.status === 'void';
   const full = taken >= Number(lobby.seats);
-  // A lineup can still be edited when the lobby is open, even once full.
-  const canEnter = !guest && !settled && lobby.status === 'open' && (entry || !full);
+  // A lineup can still be edited when the lobby is open, even once full --
+  // but only by somebody who actually holds a seat. `entry.entered` is the
+  // test, not `entry`: a DRAFT also comes back here, and a half-built lineup
+  // is not a seat. Without the distinction a full lobby would let anybody who
+  // had once opened the builder keep editing their way in.
+  const canEnter =
+    !guest && !settled && lobby.status === 'open' && (entry?.entered || !full);
 
   return (
     <>

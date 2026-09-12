@@ -3,7 +3,7 @@ import { weeksWithMarkets } from '@/lib/book';
 import {
   salaryPool,
   weeklyContest,
-  myEntry,
+  lineupFor,
   openLobbies,
   LINEUP,
   FLEX_POSITIONS,
@@ -67,7 +67,7 @@ export default async function DailyPage({ searchParams }) {
 
   const contest = await weeklyContest(SEASON, week);
   const [entry, lobbies, points] = await Promise.all([
-    guest ? null : myEntry(slug, contest.id),
+    guest ? null : lineupFor(slug, contest.id),
     openLobbies(SEASON, week),
     guest ? 0 : getPoints(slug, SEASON),
   ]);

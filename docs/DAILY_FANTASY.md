@@ -42,7 +42,7 @@ The fix is to derive them from the projections we already fetch:
 
     salary = round100(FLOOR + projection x PER_POINT)
 
-At `FLOOR = 2000`, `PER_POINT = 500`, a week of 2026 prices out roughly as:
+At `FLOOR = 2000`, `PER_POINT = 320`, a week of 2026 prices out roughly as:
 
 | Position | Priced | Most expensive | Cheapest |
 |---|---:|---|---|
@@ -161,12 +161,25 @@ FLEX still takes RB, WR or TE, so a third receiver is a decision rather than a
 requirement. Kickers stay in, priced into a narrow band -- closer to a fixed
 cost than a real choice, which is true of kickers.
 
-**The floor was too high.** At $3,000 the cheapest legal lineup ate 73% of the
-cap, leaving about $13,600 -- one good quarterback -- to upgrade anybody. Devin's
-first real lineup punted SIX slots to the floor to afford a QB and one RB, which
-is the symptom rather than a strategy. At $2,000 with a steeper $500 a point the
-minimum lineup is 55% of the cap and leaves $22,500 to spend, while the
-all-chalk lineup stays at 1.9x the cap and just as unaffordable.
+**The scale was wrong, not the floor.** Lowering the floor to $2,000 barely
+helped, because the complaint was never about cheap players -- it was that good
+ones were unreachable.
+
+The RATIO was always right: cheapest useful to dearest was 3.9x against
+DraftKings' 3.3x. What was wrong was the absolute scale against the cap. At $500
+a point the dearest player cost $13,800, so a $50,000 cap bought 3.6 of him
+where DK's buys 5.0. A lineup of merely DECENT players -- the 21st best at every
+slot -- came to $62,400 and did not fit, so the only buildable shape was one
+star and eight bodies at the floor. That is exactly what Devin's first lineup
+was: six slots punted to the minimum to afford a QB and one RB.
+
+At **$320 a point** the dearest is $9,500, the cap buys 5.3 of him, and four
+genuine stars fit in one lineup. Chalk is $65,800 -- still over, so the cap
+binds, but at 1.3x rather than an unreachable 1.9x.
+
+Worth knowing: the floor does NOT buy a usable player. About 27 of the pool
+project at or near zero and sit at $2,000, so a minimum-price slot is a wasted
+one rather than a bargain.
 
 **Salaries refresh weekly.** Each week is priced from its own projections, so a
 breakout gets dearer and a fade gets cheaper. Frozen WITHIN a week: Sleeper

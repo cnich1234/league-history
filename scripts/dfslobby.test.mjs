@@ -22,6 +22,9 @@ import {
   voidLobby,
   weeklyContest,
   contestField,
+  lineupLocked,
+  lockDueContests,
+  settleWeek,
   PLACE_POINTS,
 } from '../lib/dfs.js';
 import { getPoints } from '../lib/shop.js';
@@ -283,6 +286,62 @@ try {
       14,
     );
   }
+  console.log('\nper-player locking');
+  {
+    // A lineup is editable while every player in it is yet to play. One
+    // started player freezes the whole thing, because a swap after that is
+    // made knowing something -- a lineup is one bet, not ten.
+    const l = lineup(0);
+    ok('nothing started, nothing locked', lineupLocked(l, new Set()), false);
+    ok('one started player freezes it', lineupLocked(l, new Set([l[4]])), true);
+    ok('somebody else starting does not', lineupLocked(l, new Set(['nobody'])), false);
+    ok('an empty lineup is not locked', lineupLocked([], new Set([l[0]])), false);
+  }
+
+  console.log('\nan unfilled lobby is voided rather than locked');
+  {
+    // Three seats, two entrants. It cannot settle against the field people
+    // paid to join, so everyone is refunded instead of one of them winning a
+    // short pot.
+    const short = await openLobby({
+      slug: A, season: S, week: W, name: 'Short', seats: 3, buyinPoints: 6,
+    });
+    await enterContest({
+      slug: A, contestId: Number(short.id), slots: lineup(0), season: S, week: W,
+    });
+    await enterContest({
+      slug: B, contestId: Number(short.id), slots: lineup(1), season: S, week: W,
+    });
+    const before = { A: await getPoints(A, S), B: await getPoints(B, S) };
+
+    const n = await voidLobby(Number(short.id), 'it never filled');
+    ok('both were refunded', n, 2);
+    ok('A is whole', (await getPoints(A, S)) - before.A, 6);
+    ok('B is whole', (await getPoints(B, S)) - before.B, 6);
+    const [row] = await sql`select status from dfs_contests where id = ${Number(short.id)}`;
+    ok('and it is void, not settled', row.status, 'void');
+  }
+
+  console.log('\nsettleWeek only touches locked contests');
+  {
+    const open = await openLobby({
+      slug: A, season: S, week: W, name: 'Still open', seats: 2, buyinPoints: 3,
+    });
+    await enterContest({
+      slug: A, contestId: Number(open.id), slots: lineup(0), season: S, week: W,
+    });
+    await enterContest({
+      slug: B, contestId: Number(open.id), slots: lineup(1), season: S, week: W,
+    });
+
+    // Nothing is locked, so nothing settles -- an open contest is still being
+    // edited and settling it would pay out a lineup somebody meant to change.
+    const none = await settleWeek(S, W);
+    ok('an open contest is left alone', none.contests, 0);
+    const [still] = await sql`select status from dfs_contests where id = ${Number(open.id)}`;
+    ok('and stays open', still.status, 'open');
+  }
+
 } finally {
   await clean();
 }

@@ -107,6 +107,60 @@ export async function GET(request) {
       log.push(`allowance skipped: ${e.message}`);
     }
 
+    // Daily fantasy, in the order the week actually runs: settle what is
+    // finished, then price and open what is next.
+    //
+    // Each step is its own try. Settling needs Sleeper's final stats and can
+    // reasonably fail; pricing next week does not, and one should not take the
+    // other down -- the same reason the allowance sits outside the scoring try
+    // above.
+    try {
+      const { settleWeek } = await import('@/lib/dfs');
+      const prior = Math.max(1, week - 1);
+      const { lockDueContests } = await import('@/lib/dfs');
+      // Lock what can no longer be edited and refund lobbies that never
+      // filled, THEN settle -- settleWeek only touches locked contests, so
+      // without this nothing would ever become settleable.
+      const swept = await lockDueContests(season, prior);
+      if (swept.locked || swept.voided) {
+        log.push(`daily: locked ${swept.locked}, voided ${swept.voided}`);
+      }
+      const done = await settleWeek(season, prior);
+      log.push(`daily: settled ${done.contests} contest(s) for week ${prior}`);
+    } catch (e) {
+      log.push(`daily settle skipped: ${e.message}`);
+    }
+
+    try {
+      const { buildSalaries, weeklyContest } = await import('@/lib/dfs');
+      const { teamGameDates } = await import('@/lib/schedule');
+
+      // Salaries refresh weekly, from that week's own projections, and
+      // buildSalaries fetches them itself -- Sleeper's projection rows carry
+      // name, position and team, so this needs no player file. The full one is
+      // 15MB and cannot ship in a serverless bundle; the slim stand-in holds
+      // only rostered players and no team at all.
+      //
+      // Frozen once written, so a second run in the same week changes no price
+      // somebody has already drafted against.
+      const built = await buildSalaries(season, week);
+      // Logged even at zero: a silent step is indistinguishable from a step
+      // that never ran, which is exactly how the allowance went unnoticed for
+      // weeks. Zero here means the week was already priced, which is correct.
+      log.push(`daily: priced ${built.written} of ${built.priced} for week ${week}`);
+
+      // The weekly contest, created on demand and locking at the first kickoff
+      // of the week so the board has a deadline to show.
+      const dates = await teamGameDates(season, week).catch(() => ({}));
+      const kicks = Object.values(dates)
+        .map((d) => new Date(d).getTime())
+        .filter(Number.isFinite);
+      const first = kicks.length ? new Date(Math.min(...kicks)) : null;
+      await weeklyContest(season, week, first);
+    } catch (e) {
+      log.push(`daily salaries skipped: ${e.message}`);
+    }
+
     // Refund bounties nobody collected. Not forfeit -- nobody did the thing
     // that was asked for, so the points go home.
     try {

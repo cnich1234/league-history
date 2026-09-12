@@ -87,6 +87,9 @@ export default async function DailyPage({ searchParams }) {
   // Whether this week has defence rankings at all. Without saying so, a missing
   // matchup line looks like a bug rather than data that is not published yet.
   const ranked = pool.some((p) => p.defRank != null);
+  // If the rankings are carried over, say which week they are from rather than
+  // implying they are this week's read on a defence.
+  const staleFrom = pool.find((p) => p.defStale)?.defRankedWeek ?? null;
 
   return (
     <>
@@ -107,12 +110,18 @@ export default async function DailyPage({ searchParams }) {
           cheap whether or not he deserves to be — which is the whole game. First place
           pays <strong>{PLACE_POINTS[0]}</strong>, down to nothing for last.
         </p>
-        {!ranked && (
+        {!ranked ? (
           <p className="note dim" style={{ padding: '0 2px 10px' }}>
-            Defence rankings for week {week} are not out yet — FantasyPros only publishes
-            the current week, so the matchup line appears once they do.
+            No defence rankings yet — the matchup line appears once FantasyPros publishes
+            them.
           </p>
-        )}
+        ) : staleFrom ? (
+          <p className="note dim" style={{ padding: '0 2px 10px' }}>
+            Defence rankings are from <strong>week {staleFrom}</strong> — FantasyPros only
+            publishes the current week. The opponent shown is this week&apos;s real
+            fixture; only the ranking is carried over.
+          </p>
+        ) : null}
       </section>
 
       {guest ? (

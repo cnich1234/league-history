@@ -17,8 +17,10 @@ import {
   useBoostOnBet,
   useBoostOnWeek,
   curseWeek,
+  slowPlay,
   marketEffects,
 } from '../lib/shop.js';
+import { BOOSTS, byKind } from '../lib/boosts.js';
 
 const sql = neon(process.env.DATABASE_URL);
 const S = 9981;
@@ -132,8 +134,23 @@ try {
     ok('and who threw it', wc.by, 'Devin');
   }
 
+  console.log('\na slow play is in play too');
+  {
+    const slow = await buyBoost({ slug: A, season: S, kind: 'slow-play' });
+    await slowPlay({ slug: A, boostId: Number(slow.id), target: B, week: W });
+    const e = await marketEffects(S, W);
+    const sp = e.weekly.find((x) => x.kind === 'slow-play');
+    // It was left out of the query entirely -- week-scoped, aimed at a person,
+    // and the victim already gets told, so it belongs on the banner.
+    ok('it is listed', Boolean(sp), true);
+    ok('and names the victim', sp?.who, 'Devin');
+    ok('and who threw it', sp?.by, 'Chris');
+    ok('with the stake floor', sp?.minStake, byKind['slow-play'].minStakeDollars);
+  }
+
   console.log('\nblind attacks stay blind');
   {
+    const before = await marketEffects(S, W);
     // One attack per BET now, so these go on three different bets. The point
     // is unchanged: three attacks landed this week and the banner says nothing.
     for (const kind of ['payout-cut', 'void', 'blind-sabotage']) {
@@ -147,10 +164,11 @@ try {
         season: S,
       });
     }
-    const e = await marketEffects(S, W);
-    // Three attacks landed on a bet in this week and the banner says nothing.
-    ok('no bet-level attack leaks', e.markets.length, 1);
-    ok('and the week list is unchanged', e.weekly.length, 2);
+    const after = await marketEffects(S, W);
+    // Measured against what the banner said BEFORE, rather than a fixed count
+    // that goes stale every time a week-scoped boost is added.
+    ok('no bet-level attack leaks', after.markets.length, before.markets.length);
+    ok('and the week list is unchanged', after.weekly.length, before.weekly.length);
   }
 
   console.log('\nanother week is not this week');
@@ -160,6 +178,21 @@ try {
   }
 } finally {
   await clean();
+}
+
+console.log('\nevery week-scoped effect reaches the banner');
+{
+  // Slow Play was week-scoped, public, and simply missing from the query --
+  // nothing caught it because nothing checked the SET. This fails the moment
+  // another week- or person-scoped boost is added and not wired up.
+  const ANNOUNCED = ['boost-week', 'week-curse', 'slow-play'];
+  const weekScoped = BOOSTS.filter((b) => b.target === 'week' || b.target === 'bettor')
+    .map((b) => b.kind)
+    // Ghost hides bets rather than changing what anything is worth, and
+    // announcing it would defeat the boost.
+    .filter((k) => k !== 'ghost')
+    .sort();
+  ok('the banner covers them all', ANNOUNCED.slice().sort(), weekScoped);
 }
 
 console.log(failed ? `\n${failed} FAILED\n` : '\nall checks passed\n');

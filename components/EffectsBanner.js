@@ -33,9 +33,15 @@ export default function EffectsBanner({ effects }) {
           {weekly.map((w, i) => (
             <li key={`${w.kind}-${w.who}-${i}`}>
               <span className="effects-icon" aria-hidden="true">
-                {w.kind === 'boost-week' ? '🚀' : '💢'}
+                {w.kind === 'boost-week' ? '🚀' : w.kind === 'slow-play' ? '🐌' : '💢'}
               </span>
-              {w.kind === 'boost-week' ? (
+              {w.kind === 'slow-play' ? (
+                <span>
+                  <strong>{w.who}</strong> has been slowed — their next bet of $
+                  {w.minStake} or more costs double.{' '}
+                  <span className="dim">Thank {w.by}.</span>
+                </span>
+              ) : w.kind === 'boost-week' ? (
                 <span>
                   <strong>{w.who}</strong> declared a Big Week — every bet they win pays{' '}
                   {w.pct}% more.

@@ -1422,6 +1422,22 @@ tbody tr:last-child td {
   border: 1px solid rgba(255, 197, 61, 0.25);
 }
 
+/* On a phone this is one number and a sentence, and it was costing a fifth of
+   the screen before the first boost. Same information, one line. */
+@media (max-width: 560px) {
+  .points-card {
+    padding: 10px 12px;
+    align-items: baseline;
+  }
+  .points-card .points-amount {
+    font-size: 22px;
+  }
+  .points-card .dim {
+    font-size: 11.5px;
+    text-align: right;
+  }
+}
+
 .points-amount {
   font-size: 30px;
   font-weight: 800;
@@ -1444,10 +1460,10 @@ tbody tr:last-child td {
 .shop-item {
   background: var(--surface);
   border-radius: var(--radius);
-  padding: 14px;
+  padding: 11px 12px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
 }
 
 .shop-head {
@@ -1482,8 +1498,49 @@ tbody tr:last-child td {
 
 .shop-blurb {
   margin: 0;
-  font-size: 13.5px;
-  line-height: 1.45;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+/* The long explanation, folded away.
+ *
+ * Two boosts used to fill a phone screen, so browsing twenty-one of them was
+ * ten screens of scrolling. The detail is reference -- you read it once, when
+ * deciding what a boost even does -- so it is one tap away rather than always
+ * open. A native <details> needs no client JS. */
+.shop-more > summary {
+  cursor: pointer;
+  list-style: none;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text-dim);
+  padding: 2px 0;
+}
+.shop-more > summary::-webkit-details-marker {
+  display: none;
+}
+.shop-more > summary::after {
+  content: ' ›';
+  display: inline-block;
+  transition: transform 0.15s ease;
+}
+.shop-more[open] > summary::after {
+  transform: rotate(90deg);
+}
+.shop-more > summary:hover {
+  color: var(--text-muted);
+}
+.shop-more .shop-detail {
+  margin-top: 5px;
+}
+
+/* How many you already hold, as a small count beside the name rather than a
+   full-width pill on its own row. */
+.shop-owned {
+  font-size: 11px;
+  padding: 1px 7px;
 }
 
 .shop-detail {
@@ -1502,7 +1559,7 @@ tbody tr:last-child td {
 }
 
 .shop-buy {
-  margin-left: auto;
+  flex: none;
   padding: 8px 16px;
   border-radius: 999px;
   border: none;
@@ -2628,19 +2685,34 @@ tbody tr:last-child td {
   margin-top: 0.5rem;
 }
 .shop-group-head {
-  margin-bottom: 0.6rem;
-  padding-bottom: 0.4rem;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.3rem;
   border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 .shop-group-head h3 {
   margin: 0;
-  font-size: 1.05rem;
+  font-size: 1rem;
   font-weight: 700;
   letter-spacing: 0.01em;
+  flex: none;
 }
+/* Beside the heading rather than under it, and dropped entirely on a narrow
+   screen: it is the same sentence every visit, and on a phone it was pushing
+   the first boost of each group below the fold. */
 .shop-group-head p {
-  margin: 0.15rem 0 0;
-  font-size: 0.82rem;
+  margin: 0;
+  font-size: 0.78rem;
+  flex: 1;
+  min-width: 0;
+}
+@media (max-width: 560px) {
+  .shop-group-head p {
+    display: none;
+  }
 }
 
 /* Board effects banner. Loud enough to change a decision, quiet enough that it

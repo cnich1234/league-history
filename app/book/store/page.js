@@ -66,25 +66,32 @@ export default async function StorePage() {
                 const owned = ownedByKind[b.kind] ?? 0;
                 return (
               <div key={b.kind} className={`shop-item ${b.comingSoon ? 'shop-item-soon' : ''}`}>
+                {/* Name, price and Buy on ONE row. The card used to stack four
+                    blocks and two of them filled a phone screen, so browsing
+                    twenty-one boosts meant ten screens of scrolling. */}
                 <div className="shop-head">
                   <span className="shop-icon" aria-hidden="true">
                     {b.icon}
                   </span>
                   <span className="shop-name">{b.name}</span>
+                  {owned > 0 && <span className="pill teal shop-owned">{owned}</span>}
                   <span className={`shop-cost ${!guest && points < b.cost ? 'shop-cost-short' : ''}`}>
                     {b.cost}
                   </span>
-                </div>
-                <p className="shop-blurb">{b.blurb}</p>
-                <p className="shop-detail">{b.detail}</p>
-                <div className="shop-foot">
-                  {owned > 0 && <span className="pill teal">{owned} in stock</span>}
                   {b.comingSoon ? (
-                    <span className="shop-soon">Coming soon</span>
+                    <span className="shop-soon">Soon</span>
                   ) : (
                     !guest && <BuyButton kind={b.kind} cost={b.cost} points={points} />
                   )}
                 </div>
+                <p className="shop-blurb">{b.blurb}</p>
+                {/* The long version is the bit that made these enormous, and it
+                    is reference rather than something you read every visit.
+                    A native <details> keeps it one tap away with no client JS. */}
+                <details className="shop-more">
+                  <summary>How it works</summary>
+                  <p className="shop-detail">{b.detail}</p>
+                </details>
               </div>
                 );
               })}

@@ -224,9 +224,10 @@ export default function RulesPage() {
             which change real money in here.
           </p>
           <p>
-            Two sources, roughly half and half over a season: <strong>5 a week</strong>{' '}
-            just for showing up, plus whatever your trophies earn. A typical manager ends
-            the season with about <strong>135 points</strong> to spend.
+            Three sources now, near enough evenly: <strong>7 a week</strong> just for
+            showing up, whatever your trophies earn, and whatever you place with in{' '}
+            <strong>Daily</strong>. A typical manager ends the season with around{' '}
+            <strong>300 points</strong> to spend.
           </p>
           <p>
             <strong>No achievement costs you points any more.</strong> Scoring the least in
@@ -244,6 +245,56 @@ export default function RulesPage() {
             Buying is instant, but <strong>using</strong> a boost asks you to pick a target
             first — which of your bets to shield, which market to poison — and that choice
             cannot be undone.
+          </p>
+
+          <h2>Daily fantasy</h2>
+          <p>
+            One contest a week on the <strong>Daily</strong> tab, everybody in, no buy-in.
+            Build a lineup under a <strong>$50,000</strong> cap — QB, RB, RB, WR, WR, TE,
+            FLEX, K, DEF — and where you finish pays points into the same bank the store
+            spends from: <strong>20</strong> for first, then 17, 13, 10, 8, 5, 3, 2, 1 and
+            nothing for last.
+          </p>
+          <p>
+            You can also open a <strong>lobby</strong>: name the seats and a buy-in, and
+            the winner takes the pot. Those points are <em>recycled</em> rather than new —
+            they move between managers and nothing is created — so a lobby can be as big
+            as you like without inflating anything. If a lobby never fills, everybody gets
+            their buy-in back.
+          </p>
+          <p>
+            Lineups lock <strong>per player</strong>, not all at once. You can keep editing
+            while everybody in your lineup is still to play; the moment one of them kicks
+            off, the whole lineup is frozen. Picks save as you make them, so a refresh
+            costs you nothing.
+          </p>
+
+          <h2>Where the prices come from</h2>
+          <p>
+            Salaries are worked out from <strong>Sleeper&apos;s own projections</strong>,
+            re-scored under <em>this league&apos;s</em> rules — which matters more than it
+            sounds. We pay <strong>6 for a passing touchdown</strong> where most daily
+            fantasy sites pay 4, so pocket passers are worth more here and rushing
+            quarterbacks less.
+          </p>
+          <p>
+            That means <strong>our board will not match DraftKings</strong>, and it is not
+            meant to. Comparing week 1 quarterbacks, the two orders agree only loosely:
+            Baker Mayfield and Cam Ward sit far higher for us, Jayden Daniels and Josh
+            Allen far lower. Some of that is our scoring; most of it is Sleeper and
+            DraftKings simply disagreeing about football, and the rest is that their prices
+            fold in Vegas totals and ownership guesses that we have no access to.
+          </p>
+          <p>
+            So do not import somebody else&apos;s rankings and expect them to line up — a
+            board built on standard scoring will <strong>overrate rushing quarterbacks</strong>{' '}
+            in this league. And a price is only as good as the projection behind it, which
+            is the whole game: the edge is spotting where Sleeper has somebody wrong.
+          </p>
+          <p>
+            Anybody projected under <strong>4 points</strong> is left off the board
+            entirely. They are not cheap options, they are players who will not score, and
+            listing them only buries the real value picks.
           </p>
 
           <h2>Position battles</h2>

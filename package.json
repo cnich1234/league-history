@@ -59,7 +59,8 @@
     "test:tithe": "node --env-file=.env.local scripts/tithe.test.mjs",
     "test:dfs": "node --env-file=.env.local scripts/dfs.test.mjs",
     "test:dfslobby": "node --env-file=.env.local scripts/dfslobby.test.mjs",
-    "test:cronweek": "node scripts/cron-week.test.mjs"
+    "test:cronweek": "node scripts/cron-week.test.mjs",
+    "test:dfsledger": "node --env-file=.env.local scripts/dfsledger.test.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.125.0",

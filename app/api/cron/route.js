@@ -143,6 +143,23 @@ export async function GET(request) {
       //
       // Frozen once written, so a second run in the same week changes no price
       // somebody has already drafted against.
+      // Defence rankings for the player cards. A separate try inside the same
+      // block: a missing or rate-limited FantasyPros key must not stop
+      // salaries being priced, and a pool with no matchup line is still a
+      // playable pool -- the card just omits it.
+      try {
+        const { buildDefenseRanks } = await import('@/lib/dfs');
+        // FantasyPros only publishes rankings for the CURRENT week -- asking
+        // for a future one returns an empty list. So this fetches whatever is
+        // available now and simply keeps what earlier weeks already have.
+        const d = await buildDefenseRanks(season, week);
+        log.push(`daily: ranked ${d.written} defence(s) for week ${week}`);
+      } catch (e) {
+        // Not a failure worth stopping for: a pool with no matchup line is
+        // still playable, the card just omits it.
+        log.push(`defence ranks skipped: ${e.message}`);
+      }
+
       const built = await buildSalaries(season, week);
       // Logged even at zero: a silent step is indistinguishable from a step
       // that never ran, which is exactly how the allowance went unnoticed for

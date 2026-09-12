@@ -18,6 +18,19 @@ import PlayerPhoto from './PlayerPhoto';
  */
 const money = (n) => `$${Number(n).toLocaleString('en-US')}`;
 
+/**
+ * How hard the matchup is, as a word.
+ *
+ * A rank on its own means nothing to somebody who does not follow defences --
+ * "#3" could be third best or third worst. Split into thirds and say which.
+ */
+function matchupOf(p) {
+  if (p.defRank == null || !p.defOf) return null;
+  const share = p.defRank / p.defOf;
+  const tone = share <= 0.34 ? 'hard' : share >= 0.67 ? 'easy' : 'even';
+  return { tone, label: `vs ${p.opponent} · #${p.defRank} D` };
+}
+
 /** Sleeper hosts headshots by player id; defences get their team logo. */
 const photo = (p) =>
   p.position === 'DEF'
@@ -180,6 +193,14 @@ export default function LineupBuilder({
                     <span className="dfs-slot-name">{p.name}</span>
                     <span className="dim">
                       {p.position} · {p.nfl_team ?? '—'} · {p.projection.toFixed(1)} proj
+                      {matchupOf(p) && (
+                        <>
+                          {' · '}
+                          <span className={`dfs-matchup dfs-matchup-${matchupOf(p).tone}`}>
+                            {matchupOf(p).label}
+                          </span>
+                        </>
+                      )}
                     </span>
                   </span>
                   <span className="dfs-slot-cost">{money(p.salary)}</span>
@@ -282,6 +303,14 @@ export default function LineupBuilder({
                         <span className="dfs-slot-name">{p.name}</span>
                         <span className="dim">
                           {p.position} · {p.nfl_team ?? '—'} · {p.projection.toFixed(1)} proj
+                          {matchupOf(p) && (
+                            <>
+                              {' · '}
+                              <span className={`dfs-matchup dfs-matchup-${matchupOf(p).tone}`}>
+                                {matchupOf(p).label}
+                              </span>
+                            </>
+                          )}
                         </span>
                       </span>
                       <span className="dfs-slot-cost">{money(p.salary)}</span>

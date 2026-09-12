@@ -3298,3 +3298,23 @@ a.bounty-alert:hover {
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
+
+/* Matchup difficulty on a player card.
+ *
+ * A bare rank means nothing to somebody who does not follow defences -- "#3"
+ * could be third best or third worst -- so the colour carries the meaning and
+ * the number backs it up. Red is a hard matchup, green an easy one, which is
+ * the opposite of the usual reading and is why the word matters more than the
+ * hue. */
+.dfs-matchup {
+  font-weight: 700;
+}
+.dfs-matchup-hard {
+  color: var(--negative);
+}
+.dfs-matchup-easy {
+  color: var(--positive);
+}
+.dfs-matchup-even {
+  color: var(--text-muted);
+}

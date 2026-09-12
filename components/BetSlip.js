@@ -534,6 +534,10 @@ export default function BetSlip({
           >
             Review
           </button>
+          {/* A market you have bet straight cannot also be a parlay leg, and a
+              hedge is the one time this row shows with a straight bet already
+              on it -- so the button would only invite a refusal. */}
+          {!hedgeOpen && (
           <button
             className="btn-parlay"
             type="button"
@@ -549,6 +553,7 @@ export default function BetSlip({
           >
             + Parlay
           </button>
+          )}
         </div>
       )}
 

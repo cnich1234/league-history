@@ -61,7 +61,8 @@
     "test:dfslobby": "node --env-file=.env.local scripts/dfslobby.test.mjs",
     "test:cronweek": "node scripts/cron-week.test.mjs",
     "test:dfsledger": "node --env-file=.env.local scripts/dfsledger.test.mjs",
-    "test:review": "node --env-file=.env.local scripts/review.test.mjs"
+    "test:review": "node --env-file=.env.local scripts/review.test.mjs",
+    "test:phase": "node --env-file=.env.local scripts/phase.test.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.125.0",

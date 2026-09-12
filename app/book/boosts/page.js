@@ -67,13 +67,21 @@ export default async function BoostsPage() {
                     <span className="boost-name">{def.name}</span>
                     <span className="dim">{def.blurb}</span>
                   </span>
-                  {def.kind === 'odds-boost' ? (
+                  {def.kind === 'odds-boost' || def.kind === 'lock-in' ? (
                     // Chosen in the bet slip, not from here -- you pick it when
                     // placing a bet so you can see what it does to the price.
                     <span className="dim" style={{ fontSize: 12.5, textAlign: 'right' }}>
                       Use it on the board,
                       <br />
-                      when you place a bet
+                      {def.kind === 'lock-in' ? 'on a live market' : 'when you place a bet'}
+                    </span>
+                  ) : def.target === 'bet' ? (
+                    // Aimed at somebody else's bet: The Action is the only page
+                    // that lists those. A Use button here could only fail.
+                    <span className="dim" style={{ fontSize: 12.5, textAlign: 'right' }}>
+                      Use it on The Action,
+                      <br />
+                      from the bet you pick
                     </span>
                   ) : (
                   <UseBoost

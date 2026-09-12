@@ -1,5 +1,5 @@
 import { currentBettor, isGuestSlug } from '@/lib/auth';
-import { attackableBets, currentWeek } from '@/lib/book';
+import { attackableBets, currentWeek, phasesForBets } from '@/lib/book';
 import { getInventory, openBounties, getPoints, minimumStake } from '@/lib/shop';
 import { listBettors } from '@/lib/auth';
 import { byKind, BOOSTS } from '@/lib/boosts';
@@ -123,8 +123,22 @@ export default async function ActionPage() {
     betLabel: b.bet_id != null ? betLabels[String(b.bet_id)] ?? null : null,
   }));
 
-  const mine = bets.filter((b) => b.bettor === slug);
-  const theirs = bets.filter((b) => b.bettor !== slug);
+  // Where each bet's game stands. Read from Sleeper's game state on the
+  // server; only the word reaches the page. This is what decides whether a
+  // bet can be attacked at all -- a finished game cannot -- and whether it
+  // can still be copied, which only an unstarted one can.
+  const phases = await phasesForBets(bets.map((b) => b.id));
+  const grouped = { open: [], live: [], locked: [], closed: [] };
+  // Other people's bets first within a group, yours at the bottom.
+  for (const b of [...bets.filter((b) => b.bettor !== slug), ...bets.filter((b) => b.bettor === slug)]) {
+    (grouped[phases[Number(b.id)] ?? 'open'] ??= []).push(b);
+  }
+  const GROUPS = [
+    ['open', 'Open bets', 'games not started'],
+    ['live', 'Live bets', 'prices moving'],
+    ['locked', 'Locked bets', 'bets closed, games in play'],
+    ['closed', 'Closed bets', 'games over, waiting on settlement'],
+  ];
 
   return (
     <>
@@ -159,98 +173,112 @@ export default async function ActionPage() {
         </section>
       )}
 
-      <section className="section">
-        <div className="section-head">
-          <h2>Open bets</h2>
-          <span className="dim">{bets.length} live</span>
-        </div>
-
-        {bets.length === 0 ? (
+      {bets.length === 0 && (
+        <section className="section">
           <div className="empty">Nothing has been bet yet this week.</div>
-        ) : (
-          <div className="rows">
-            {[...theirs, ...mine].map((b) => {
-              const stake = Number(b.stake_cents);
-              const returns = payoutCents(stake, b.odds);
-              // What a win actually banks. The stake is consumed either way,
-              // so the return overstates the gain by the stake -- and on this
-              // page the profit is also what an attacker is aiming at.
-              const profit = returns - stake;
-              const isMine = b.bettor === slug;
-              return (
-                <div
-                  key={b.id}
-                  className={[
-                    'row',
-                    isMine ? 'row-me' : '',
-                    // Order matters: a hit bet is done with, whatever else is
-                    // true of it, so that wins over the other two.
-                    b.attacked > 0
-                      ? 'row-hit'
-                      : b.shielded > 0
-                        ? 'row-shielded'
-                        : (bountyByBet[String(b.id)] ?? []).length
-                          ? 'row-bountied'
-                          : '',
-                  ]
-                    .filter(Boolean)
-                    .join(' ')}
-                >
-                  <span className="row-main">
-                    <span className="row-name">
-                      {b.bettor_name}
-                      {b.is_parlay && (
-                        <span className="dim"> · {b.leg_count}-leg parlay</span>
-                      )}
-                      {(bountyByBet[String(b.id)] ?? []).map((x) => (
-                        <span key={x.id} className="pill bounty-pill" style={{ marginLeft: 6 }}>
-                          🎯 {x.raised}/{x.cost_points}
-                        </span>
-                      ))}
-                      {b.shielded > 0 && <span className="pill" style={{ marginLeft: 6 }}>🛡️</span>}
-                      {b.attacked > 0 && <span className="pill" style={{ marginLeft: 4 }}>🎯</span>}
+        </section>
+      )}
+
+      {GROUPS.map(([phase, title, note]) => {
+        const rows = grouped[phase];
+        if (!rows.length) return null;
+        return (
+          <section className="section" key={phase}>
+            <div className="section-head">
+              <h2>{title}</h2>
+              <span className="dim">
+                {rows.length} · {note}
+              </span>
+            </div>
+            <div className="rows">
+              {rows.map((b) => {
+                const stake = Number(b.stake_cents);
+                const returns = payoutCents(stake, b.odds);
+                // What a win actually banks. The stake is consumed either way,
+                // so the return overstates the gain by the stake -- and on this
+                // page the profit is also what an attacker is aiming at.
+                const profit = returns - stake;
+                const isMine = b.bettor === slug;
+                return (
+                  <div
+                    key={b.id}
+                    className={[
+                      'row',
+                      isMine ? 'row-me' : '',
+                      // Order matters: a hit bet is done with, whatever else is
+                      // true of it, so that wins over the other two.
+                      b.attacked > 0
+                        ? 'row-hit'
+                        : b.shielded > 0
+                          ? 'row-shielded'
+                          : (bountyByBet[String(b.id)] ?? []).length
+                            ? 'row-bountied'
+                            : '',
+                    ]
+                      .filter(Boolean)
+                      .join(' ')}
+                  >
+                    <span className="row-main">
+                      <span className="row-name">
+                        {b.bettor_name}
+                        {b.is_parlay && (
+                          <span className="dim"> · {b.leg_count}-leg parlay</span>
+                        )}
+                        {(bountyByBet[String(b.id)] ?? []).map((x) => (
+                          <span key={x.id} className="pill bounty-pill" style={{ marginLeft: 6 }}>
+                            🎯 {x.raised}/{x.cost_points}
+                          </span>
+                        ))}
+                        {b.shielded > 0 && <span className="pill" style={{ marginLeft: 6 }}>🛡️</span>}
+                        {b.attacked > 0 && <span className="pill" style={{ marginLeft: 4 }}>🎯</span>}
+                      </span>
+                      <span className="dim">
+                        {formatMoney(stake)} at {formatOdds(b.odds)} ·{' '}
+                        <span className="pos">+{formatMoney(profit)}</span> to win
+                      </span>
                     </span>
-                    <span className="dim">
-                      {formatMoney(stake)} at {formatOdds(b.odds)} ·{' '}
-                      {/* Profit leads: it is what banks, and what an attacker
-                          is actually aiming at. */}
-                      <span className="pos">+{formatMoney(profit)}</span> to win
-                    </span>
-                  </span>
-                  {!guest && !isMine && (
-                    <AttackButton
-                      betId={String(b.id)}
-                      who={b.bettor_name}
-                      shielded={b.shielded > 0}
-                      // One attack per bet, so a bet that has taken one cannot
-                      // take another. Offering the button anyway just produces
-                      // a rejection after two taps.
-                      spent={b.attacked > 0}
-                      catalogue={catalogue}
-                      attacks={attacks.map((a) => ({
-                        id: String(a.id),
-                        kind: a.kind,
-                        name: a.def.name,
-                        icon: a.def.icon,
-                        blurb: a.def.blurb,
-                      }))}
-                      rides={rides.map((r) => ({
-                        id: String(r.id),
-                        kind: r.kind,
-                        name: r.def.name,
-                        icon: r.def.icon,
-                        blurb: r.def.blurb,
-                      }))}
-                      stakeCents={stake}
-                    />
-                  )}
-                  {isMine && <span className="row-value dim">yours</span>}
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </section>
+                    {!guest && !isMine && phase !== 'closed' && (
+                      <AttackButton
+                        betId={String(b.id)}
+                        who={b.bettor_name}
+                        shielded={b.shielded > 0}
+                        // One attack per bet, so a bet that has taken one cannot
+                        // take another. Offering the button anyway just produces
+                        // a rejection after two taps.
+                        spent={b.attacked > 0}
+                        catalogue={catalogue}
+                        attacks={attacks.map((a) => ({
+                          id: String(a.id),
+                          kind: a.kind,
+                          name: a.def.name,
+                          icon: a.def.icon,
+                          blurb: a.def.blurb,
+                        }))}
+                        rides={rides.map((r) => ({
+                          id: String(r.id),
+                          kind: r.kind,
+                          name: r.def.name,
+                          icon: r.def.icon,
+                          blurb: r.def.blurb,
+                        }))}
+                        stakeCents={stake}
+                        // A copy is only honest before kickoff.
+                        rideable={phase === 'open' && !b.is_parlay}
+                      />
+                    )}
+                    {!guest && !isMine && phase === 'closed' && (
+                      <span className="attack-spent" title="The game is over">
+                        Closed
+                      </span>
+                    )}
+                    {isMine && <span className="row-value dim">yours</span>}
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        );
+      })}
     </>
   );
 }

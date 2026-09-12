@@ -25,6 +25,9 @@ export default function AttackButton({
   // hurting it -- so a shield does not block them and a hit bet still takes one.
   rides = [],
   stakeCents = 0,
+  // Whether the bet's market is still open. An attack lands on a locked
+  // market; a copy cannot, because the pick is public on The Floor by then.
+  rideable = true,
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -152,14 +155,16 @@ export default function AttackButton({
                 key={r.id}
                 type="button"
                 className="picker-item"
-                disabled={busy}
+                disabled={busy || !rideable}
                 onClick={() => setConfirming({ ...r, copies: true })}
               >
                 <span className="picker-item-main">
                   <span className="picker-item-title">
                     {r.icon} {r.name}
                   </span>
-                  <span className="dim">{r.blurb}</span>
+                  <span className="dim">
+                    {rideable ? r.blurb : 'Its game has started -- too late to copy it.'}
+                  </span>
                 </span>
               </button>
             ))}
@@ -188,7 +193,8 @@ export default function AttackButton({
           </>
         )}
 
-        {error && <div className="form-error">{error}</div>}
+        {/* The confirm step shows its own copy of this. */}
+        {error && !confirming && <div className="form-error">{error}</div>}
 
         <div className="picker-actions">
           <button

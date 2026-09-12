@@ -6,6 +6,7 @@ import {
   settledBets,
   parlayLegsFor,
   weeklyBalances,
+  currentWeek,
 } from '@/lib/book';
 import { formatMoney, formatOdds } from '@/lib/odds';
 
@@ -13,7 +14,6 @@ export const metadata = { title: 'Standings' };
 export const dynamic = 'force-dynamic';
 
 const SEASON = Number(process.env.BOOK_SEASON ?? 2026);
-const WEEK = Number(process.env.BOOK_WEEK ?? 1);
 
 export default async function StandingsPage() {
   const slug = await currentBettor();
@@ -25,6 +25,7 @@ export default async function StandingsPage() {
     );
   }
 
+  const WEEK = await currentWeek(SEASON);
   const [banks, weekly, pool, summary, bets] = await Promise.all([
     getBanks(),
     weeklyBalances(WEEK),
@@ -151,6 +152,7 @@ function resultLabel(bet) {
   if (bet.status === 'won') return `+${formatMoney(payout - stake)}`;
   if (bet.status === 'lost') return `−${formatMoney(stake)}`;
   if (bet.status === 'void') return 'void';
+  if (bet.status === 'cashed') return `cashed ${formatMoney(payout)}`;
   return 'push';
 }
 

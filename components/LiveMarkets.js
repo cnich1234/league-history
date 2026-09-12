@@ -29,6 +29,8 @@ export default function LiveMarkets({
   oddsBoosts = [],
   slipBoosts = [],
   slowed = null,
+  hedged = [],
+  locks = {},
   bankrollCents,
   readOnly,
 }) {
@@ -39,6 +41,8 @@ export default function LiveMarkets({
       key={m.id}
       market={m}
       existingBet={myByMarket[String(m.id)] ?? null}
+      hedged={hedged.includes(String(m.id))}
+      lock={locks[String(m.id)] ?? null}
       parlayLegs={myParlayByMarket[String(m.id)] ?? null}
       bankrollCents={bankrollCents}
       livePrices={pricesFor(m, state)}

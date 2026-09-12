@@ -21,6 +21,10 @@ export default function AttackButton({
   shielded = false,
   // Already carries an attack. One per bet, so there is nothing to fire.
   spent = false,
+  // Ride Along boosts you own. Not attacks -- they copy the bet rather than
+  // hurting it -- so a shield does not block them and a hit bet still takes one.
+  rides = [],
+  stakeCents = 0,
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -38,7 +42,9 @@ export default function AttackButton({
       const res = await fetch('/api/shop', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ action: 'use', boostId: attack.id, betId }),
+        // `kind` is what routes a Ride Along to the copy path rather than the
+        // attack path on the server.
+        body: JSON.stringify({ action: 'use', boostId: attack.id, betId, kind: attack.kind }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Could not use that.');
@@ -52,7 +58,9 @@ export default function AttackButton({
     }
   }
 
-  if (spent) {
+  const canRide = rides.length > 0;
+
+  if (spent && !canRide) {
     return (
       <span className="attack-spent" title="One attack per bet">
         Hit
@@ -63,10 +71,14 @@ export default function AttackButton({
   if (!open) {
     return (
       <button className="attack-btn" type="button" onClick={() => setOpen(true)}>
-        Attack
+        {spent ? 'Ride' : 'Attack'}
       </button>
     );
   }
+
+  const isRide = Boolean(confirming?.copies);
+  // A hit bet takes no second attack; only the rides are offered on it.
+  const weapons = spent ? [] : attacks;
 
   return (
     <div className="picker-backdrop" role="dialog" aria-modal="true">
@@ -88,11 +100,14 @@ export default function AttackButton({
         {confirming ? (
           <div className="picker-confirm">
             <div className="picker-confirm-head">
-              {confirming.icon} {confirming.name} on {who}&apos;s bet?
+              {confirming.icon} {confirming.name} {isRide ? 'with' : 'on'} {who}&apos;s bet?
             </div>
             <p className="dim">{confirming.blurb}</p>
             <p className="confirm-warning">
-              You cannot see what they backed, and this cannot be undone.
+              {isRide
+                ? `You copy it at their stake -- $${(stakeCents / 100).toFixed(2)} out of this week -- ` +
+                  'without seeing the pick. They keep their bet; you win or lose together.'
+                : 'You cannot see what they backed, and this cannot be undone.'}
             </p>
             {error && <div className="form-error">{error}</div>}
             <div className="confirm-actions">
@@ -114,9 +129,9 @@ export default function AttackButton({
               </button>
             </div>
           </div>
-        ) : attacks.length > 0 ? (
+        ) : weapons.length > 0 || rides.length > 0 ? (
           <div className="picker-list">
-            {attacks.map((a) => (
+            {weapons.map((a) => (
               <button
                 key={a.id}
                 type="button"
@@ -129,6 +144,22 @@ export default function AttackButton({
                     {a.icon} {a.name}
                   </span>
                   <span className="dim">{a.blurb}</span>
+                </span>
+              </button>
+            ))}
+            {rides.map((r) => (
+              <button
+                key={r.id}
+                type="button"
+                className="picker-item"
+                disabled={busy}
+                onClick={() => setConfirming({ ...r, copies: true })}
+              >
+                <span className="picker-item-main">
+                  <span className="picker-item-title">
+                    {r.icon} {r.name}
+                  </span>
+                  <span className="dim">{r.blurb}</span>
                 </span>
               </button>
             ))}

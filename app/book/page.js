@@ -11,6 +11,7 @@ import {
   weeksWithMarkets,
   weeklyBalance,
   getBanks,
+  currentWeek,
 } from '@/lib/book';
 import { byKind } from '@/lib/boosts';
 import {
@@ -20,6 +21,8 @@ import {
   marketEffects,
   pendingSlowPlay,
   openBounties,
+  hedgedMarkets,
+  lockedPrices,
 } from '@/lib/shop';
 import { formatMoney, formatOdds } from '@/lib/odds';
 import Login from '@/components/Login';
@@ -45,26 +48,10 @@ async function signOut() {
   redirect('/book');
 }
 
-/**
- * The week to open on when the URL does not say.
- *
- * Read from the data, not from BOOK_WEEK -- which is set in no environment, so
- * the board fell through to week 1 and stayed there all season. The latest week
- * with open markets is the one people are betting; if every week has closed,
- * the most recent one is still the right thing to show.
- */
-async function defaultWeek(season) {
-  const weeks = await weeksWithMarkets(season);
-  if (!weeks.length) return Number(process.env.BOOK_WEEK ?? 1);
-  const live = weeks.filter((w) => w.open > 0);
-  const list = live.length ? live : weeks;
-  return list[list.length - 1].week;
-}
-
 export default async function BookPage({ searchParams }) {
   const params = await searchParams;
   const asked = Number(params?.week);
-  const week = Number.isFinite(asked) && asked > 0 ? asked : await defaultWeek(SEASON);
+  const week = Number.isFinite(asked) && asked > 0 ? asked : await currentWeek(SEASON);
 
   const [slug, pool] = await Promise.all([
     currentBettor(),
@@ -104,6 +91,8 @@ export default async function BookPage({ searchParams }) {
     effects,
     slowPending,
     bounties,
+    hedged,
+    locks,
   ] = await Promise.all([
     guest ? null : getBettor(slug),
     getMarketsForWeek(SEASON, week),
@@ -132,7 +121,14 @@ export default async function BookPage({ searchParams }) {
     // Announced on the board, not just on The Action. A bounty is only worth
     // posting if people see it -- and the board is where they are.
     openBounties(SEASON, week),
+    // Markets where a Hedge has opened a second slot, so the slip lets the
+    // other side on instead of showing "Bet placed".
+    guest ? new Set() : hedgedMarkets(slug),
+    // Prices this person has frozen, so the slip shows the held number rather
+    // than the moving one.
+    guest ? {} : lockedPrices(slug),
   ]);
+  const hedgedIds = [...hedged];
   const myBank = Number(banks.find((b) => b.slug === slug)?.bank_cents ?? 0);
 
   // The floor comes from the catalogue, so the warning and the server rule
@@ -165,11 +161,10 @@ export default async function BookPage({ searchParams }) {
       (myParlayByMarket[String(leg.market_id)] ??= []).push(leg);
     }
   }
-  const now = Date.now();
-
-  const open = markets.filter((m) => new Date(m.locks_at).getTime() > now);
-  const locked = markets.filter((m) => new Date(m.locks_at).getTime() <= now);
-  const anyOpen = open.length > 0;
+  // Status, never the clock. Filtering on locks_at announced "Every market
+  // for week N has closed" every Sunday morning, above live markets that were
+  // still taking bets -- the exact mistake THE_BOOK.md warns about.
+  const anyOpen = markets.some((m) => m.status === 'open');
   // Matchup drilldown: pick the game, then how to bet it.
   //
   // Locked matchups stay on the board, greyed out. Dropping them made three of
@@ -287,6 +282,8 @@ export default async function BookPage({ searchParams }) {
             oddsBoosts={oddsBoosts}
             slipBoosts={mySlipBoosts}
             slowed={slowed}
+            hedged={hedgedIds}
+            locks={locks}
           />
           {games.length > 0 && (
             <BoardSection
@@ -299,6 +296,8 @@ export default async function BookPage({ searchParams }) {
               oddsBoosts={oddsBoosts}
             slipBoosts={mySlipBoosts}
             slowed={slowed}
+            hedged={hedgedIds}
+            locks={locks}
             />
           )}
           {!guest && <ParlaySlip bankrollCents={spendable} />}
@@ -375,6 +374,7 @@ function statusLabel(bet) {
   if (bet.status === 'won') return `+${formatMoney(Number(bet.payout_cents) - Number(bet.stake_cents))}`;
   if (bet.status === 'lost') return `-${formatMoney(bet.stake_cents)}`;
   if (bet.status === 'push') return 'push';
+  if (bet.status === 'cashed') return `cashed ${formatMoney(bet.payout_cents)}`;
   return 'pending';
 }
 

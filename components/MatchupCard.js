@@ -30,6 +30,8 @@ export default function MatchupCard({
   oddsBoosts = [],
   slipBoosts = [],
   slowed = null,
+  hedged = [],
+  locks = {},
   bankrollCents,
   defaultOpen,
   week,
@@ -77,6 +79,7 @@ export default function MatchupCard({
                       key={m.id}
                       market={{ ...m, id: String(m.id), title: m.title, subtitle: m.subtitle }}
                       existingBet={myByMarket[String(m.id)] ?? null}
+                      hedged={hedged.includes(String(m.id))}
                       parlayLegs={myParlayByMarket[String(m.id)] ?? null}
                       bankrollCents={bankrollCents}
                       disabled={readOnly}
@@ -105,6 +108,8 @@ export default function MatchupCard({
               }))}
               myByMarket={myByMarket}
               myParlayByMarket={myParlayByMarket}
+              hedged={hedged}
+              locks={locks}
               bankrollCents={bankrollCents}
               readOnly={readOnly}
               oddsBoosts={oddsBoosts}

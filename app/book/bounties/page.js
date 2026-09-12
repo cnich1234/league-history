@@ -1,5 +1,5 @@
 import { currentBettor, isGuestSlug, listBettors } from '@/lib/auth';
-import { attackableBets, weeksWithMarkets } from '@/lib/book';
+import { attackableBets, currentWeek } from '@/lib/book';
 import { openBounties, getPoints, minimumStake } from '@/lib/shop';
 import { byKind, BOOSTS } from '@/lib/boosts';
 import { formatMoney, formatOdds } from '@/lib/odds';
@@ -9,15 +9,6 @@ export const metadata = { title: 'Bounties' };
 export const dynamic = 'force-dynamic';
 
 const SEASON = Number(process.env.BOOK_SEASON ?? 2026);
-
-/** The latest week with open markets -- the one people are actually betting. */
-async function currentWeek() {
-  const weeks = await weeksWithMarkets(SEASON);
-  if (!weeks.length) return Number(process.env.BOOK_WEEK ?? 1);
-  const live = weeks.filter((w) => w.open > 0);
-  const list = live.length ? live : weeks;
-  return list[list.length - 1].week;
-}
 
 /**
  * Bounties, on their own page.
@@ -39,7 +30,7 @@ export default async function BountiesPage() {
   }
 
   const guest = isGuestSlug(slug);
-  const week = await currentWeek();
+  const week = await currentWeek(SEASON);
   const [bets, bounties, managers, points] = await Promise.all([
     attackableBets(SEASON, week),
     openBounties(SEASON, week),
@@ -52,8 +43,9 @@ export default async function BountiesPage() {
     weaponName: byKind[b.weapon]?.name ?? b.weapon,
   }));
 
-  // A bounty can name any attack, including the two that hit a person.
-  const weapons = BOOSTS.filter((b) => b.attack).map((b) => ({
+  // Any attack that hits a bet or a person. Poison hits a MARKET, which a
+  // bounty has no way to name, so it is left off rather than offered broken.
+  const weapons = BOOSTS.filter((b) => b.attack && b.target !== 'market').map((b) => ({
     kind: b.kind,
     name: b.name,
     icon: b.icon,

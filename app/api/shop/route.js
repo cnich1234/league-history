@@ -11,7 +11,12 @@ import {
   readReceipt,
   switcheroo,
   slowPlay,
+  openHedge,
+  rideAlong as ride,
+  cashOut,
+  lockInPrice,
 } from '@/lib/shop';
+import { currentWeek } from '@/lib/book';
 
 export const dynamic = 'force-dynamic';
 
@@ -66,8 +71,22 @@ export async function POST(request) {
           return NextResponse.json({ ok: true, undone: row });
         }
         if (byKind[body.kind]?.copies || body.copy) {
-          const row = await rideAlong({ slug, boostId, betId: Number(body.betId) });
+          const row = await ride({ slug, boostId, betId: Number(body.betId) });
           return NextResponse.json({ ok: true, copied: row });
+        }
+        // Hedge opens a second slot on the bet's market rather than attaching
+        // to the bet. It fell through to useBoostOnBet, which marked the boost
+        // used and opened nothing -- 24 points for a "you already have a bet
+        // on this market" on the very next tap.
+        if (byKind[body.kind]?.hedges || body.hedge) {
+          const row = await openHedge({ slug, boostId, betId: Number(body.betId) });
+          return NextResponse.json({ ok: true, hedged: row });
+        }
+        // Cash Out settles the bet now. Like Hedge it fell through to
+        // useBoostOnBet, which spent the boost and settled nothing.
+        if (byKind[body.kind]?.liveOnly || body.cashout) {
+          const row = await cashOut({ slug, boostId, betId: Number(body.betId) });
+          return NextResponse.json({ ok: true, cashed: row });
         }
         const row = await useBoostOnBet({ slug, boostId, betId: Number(body.betId) });
         return NextResponse.json({ ok: true, used: { ...row, id: String(row.id) } });
@@ -77,7 +96,7 @@ export async function POST(request) {
           slug,
           boostId,
           target: String(body.target),
-          week: Number(body.week ?? process.env.BOOK_WEEK ?? 1),
+          week: Number(body.week ?? (await currentWeek(SEASON))),
         });
         return NextResponse.json({ ok: true, slowed: row });
       }
@@ -86,9 +105,20 @@ export async function POST(request) {
           slug,
           boostId,
           target: String(body.target),
-          week: Number(body.week ?? process.env.BOOK_WEEK ?? 1),
+          week: Number(body.week ?? (await currentWeek(SEASON))),
         });
         return NextResponse.json({ ok: true, used: { ...row, id: String(row.id) } });
+      }
+      if (body.marketId != null && (byKind[body.kind]?.locksPrice || body.optionKey != null)) {
+        // Lock In freezes one side's price. useBoostOnMarket wrote no side and
+        // no expiry, so the lock existed as a used boost and nothing else.
+        const row = await lockInPrice({
+          slug,
+          boostId,
+          marketId: Number(body.marketId),
+          optionKey: String(body.optionKey ?? ''),
+        });
+        return NextResponse.json({ ok: true, locked: row });
       }
       if (body.marketId != null) {
         const row = await useBoostOnMarket({ slug, boostId, marketId: Number(body.marketId) });

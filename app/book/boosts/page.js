@@ -1,5 +1,6 @@
 import { currentBettor, isGuestSlug } from '@/lib/auth';
 import { getBoostHistory, getInventory } from '@/lib/shop';
+import { currentWeek } from '@/lib/book';
 import { byKind } from '@/lib/boosts';
 import UseBoost from '@/components/UseBoost';
 
@@ -7,7 +8,6 @@ export const metadata = { title: 'My Boosts' };
 export const dynamic = 'force-dynamic';
 
 const SEASON = Number(process.env.BOOK_SEASON ?? 2026);
-const WEEK = Number(process.env.BOOK_WEEK ?? 1);
 
 export default async function BoostsPage() {
   const slug = await currentBettor();
@@ -29,9 +29,12 @@ export default async function BoostsPage() {
     );
   }
 
-  const [inventory, history] = await Promise.all([
+  // Ghost, Big Week and the curse are declared FOR a week. This read BOOK_WEEK,
+  // which is set nowhere, so all three were being declared for week 1.
+  const [inventory, history, week] = await Promise.all([
     getInventory(slug, SEASON),
     getBoostHistory(slug, SEASON),
+    currentWeek(SEASON),
   ]);
 
   const used = history.filter((b) => b.used_at);
@@ -81,7 +84,7 @@ export default async function BoostsPage() {
                       icon: def.icon,
                       blurb: def.blurb,
                     }}
-                    week={WEEK}
+                    week={week}
                   />
                   )}
                 </div>

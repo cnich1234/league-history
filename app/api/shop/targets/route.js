@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 import { currentManager } from '@/lib/auth';
 import { byKind, TARGET, canAttach } from '@/lib/boosts';
+import { currentWeek } from '@/lib/book';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,11 +37,13 @@ export async function GET(request) {
   const def = byKind[kind];
   if (!def) return NextResponse.json({ error: 'No such boost.' }, { status: 400 });
 
-  // An attack on someone else's bet would reveal that bet by listing it. Until
-  // the league decides how visible bets should be, those have no picker.
+  // Anything aimed at somebody else's bet is used from The Action, where the
+  // target is the row you tap -- stake and price visible, the pick withheld.
+  // Listing those bets here would name them by market, which is the leak the
+  // whole book is built to prevent.
   if (def.target === TARGET.BET) {
     return NextResponse.json({
-      error: 'Attacks on individual bets are not available yet.',
+      error: `${def.name} is used from The Action -- pick the bet there.`,
     }, { status: 400 });
   }
 
@@ -58,6 +61,34 @@ export async function GET(request) {
       left join market_options o on o.market_id = b.market_id and o.option_key = b.option_key
       where b.bettor = ${slug} and b.status = 'pending'
       order by b.placed_at desc`;
+
+    // Cash Out shows its number before you commit: nobody should spend 18
+    // points to find out what the bet was worth. One live fetch per week.
+    const quotes = {};
+    if (def.liveOnly) {
+      const { liveMatchups, livePrice, stateForMarket } = await import('@/lib/live');
+      const { impliedProbability, payoutCents } = await import('@/lib/odds');
+      const byWeek = {};
+      for (const r of rows) {
+        if (r.is_parlay || !r.live || r.status !== 'open') continue;
+        const [m] = await sql`
+          select id, season, week, kind, meta from markets where id = ${r.market_id}`;
+        if (!m) continue;
+        try {
+          byWeek[m.week] ??= await liveMatchups(m.season, m.week);
+          const priced = livePrice(m, stateForMarket(m, byWeek[m.week].matchups));
+          const odds = priced?.[r.option_key];
+          if (odds != null) {
+            quotes[r.id] = Math.round(
+              payoutCents(Number(r.stake_cents), r.odds) * impliedProbability(odds),
+            );
+          }
+        } catch {
+          // No quote is shown; the server refuses the cash out on the same
+          // grounds if it is tried.
+        }
+      }
+    }
 
     const now = new Date();
     const targets = rows.map((r) => {
@@ -77,15 +108,19 @@ export async function GET(request) {
       // market state -- they void it, read it, or shield it, none of which
       // needs a price.
       const anyState = def.voids || def.reveals || def.reflects;
+      // A cash out with no live quote is not on offer: the model has suspended
+      // the market, so there is no number to settle at.
+      const noQuote = def.liveOnly && quotes[r.id] == null;
       const eligible = anyState
         ? !r.already
-        : check.ok && !r.already && !(def.liveOnly && isParlay);
+        : check.ok && !r.already && !(def.liveOnly && isParlay) && !noQuote;
 
       let why = null;
       if (r.already) why = `Already has ${def.name}`;
       else if (anyState) why = null;
       else if (def.liveOnly && isParlay) why = 'Parlays cannot be cashed out';
       else if (!check.ok) why = check.why;
+      else if (noQuote) why = 'No live price right now';
 
       return {
         id: String(r.id),
@@ -96,6 +131,7 @@ export async function GET(request) {
         week: r.week,
         eligible,
         why,
+        ...(quotes[r.id] != null ? { cashCents: quotes[r.id] } : {}),
       };
     });
 
@@ -103,7 +139,7 @@ export async function GET(request) {
   }
 
   if (def.target === TARGET.MARKET) {
-    const week = Number(searchParams.get('week') ?? process.env.BOOK_WEEK ?? 1);
+    const week = Number(searchParams.get('week') ?? (await currentWeek(SEASON)));
 
     // A week has well over a hundred open markets, most of them player props.
     // Handing all of them to a picker is not a choice, it is a scroll -- so the
@@ -144,7 +180,7 @@ export async function GET(request) {
   // picker said "Nothing to use this on right now" -- with no way to fire a
   // 16-point boost somebody had already paid for.
   if (def.target === TARGET.BETTOR) {
-    const week = Number(searchParams.get('week') ?? process.env.BOOK_WEEK ?? 1);
+    const week = Number(searchParams.get('week') ?? (await currentWeek(SEASON)));
 
     // Everyone but you. One of each kind may be live against a manager at a
     // time, so anybody already carrying this is listed but not selectable --

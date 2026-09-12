@@ -20,6 +20,7 @@ import {
   hedgedMarkets,
   lockInPrice,
   lockedPrice,
+  lockedPrices,
 } from '../lib/shop.js';
 
 const sql = neon(process.env.DATABASE_URL);
@@ -48,11 +49,13 @@ const rejects = async (label, fn, fragment) => {
   }
 };
 
-async function mkt({ live = false } = {}) {
+async function mkt({ live = false, started = false } = {}) {
+  // A live market only quotes once its posted lock has passed; `started`
+  // puts that in the past so a lock can be taken on it.
   const [m] = await sql`
     insert into markets (season, week, kind, title, locks_at, status, live, meta)
     values (${S}, ${W}, 'h2h', ${'SB ' + Math.random()},
-            ${new Date(Date.now() + 86400e3)}, 'open', ${live}, '{}'::jsonb)
+            ${new Date(Date.now() + (started ? -3600e3 : 86400e3))}, 'open', ${live}, '{}'::jsonb)
     returning id`;
   await sql`
     insert into market_options (market_id, option_key, label, odds)
@@ -133,16 +136,19 @@ try {
   );
 
   console.log('\nLock In freezes a price');
-  const m3 = await mkt({ live: true });
+  const m3 = await mkt({ live: true, started: true });
   const lock = await buyBoost({ slug: A, season: S, kind: 'lock-in' });
+  // The MODEL's price, injected. The request used to carry the odds, which
+  // would have let a client lock any number it liked.
   const locked = await lockInPrice({
     slug: A,
     boostId: Number(lock.id),
     marketId: m3,
     optionKey: 'home',
-    odds: 350,
+    priceNow: async () => ({ odds: 350, probability: 0.22 }),
   });
   ok('the price is held', locked.odds, 350);
+  ok('and listed for the board', (await lockedPrices(A))[String(m3)]?.odds, 350);
   ok('and readable back', (await lockedPrice({ slug: A, marketId: m3, optionKey: 'home' }))?.odds, 350);
 
   // Only for that option -- locking one side does not hold the other.
@@ -170,9 +176,25 @@ try {
         boostId: Number(lock2.id),
         marketId: m4,
         optionKey: 'home',
-        odds: 200,
+        priceNow: async () => ({ odds: 200, probability: 0.33 }),
       }),
     'not going anywhere',
+  );
+
+  // A live market whose games have not started has no live price to freeze.
+  const m5 = await mkt({ live: true });
+  const lock3 = await buyBoost({ slug: A, season: S, kind: 'lock-in' });
+  await rejects(
+    'nor can a live market be locked before kickoff',
+    () =>
+      lockInPrice({
+        slug: A,
+        boostId: Number(lock3.id),
+        marketId: m5,
+        optionKey: 'home',
+        priceNow: async () => ({ odds: 200, probability: 0.33 }),
+      }),
+    'not live yet',
   );
 
   // An expired lock is simply not found.

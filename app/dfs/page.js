@@ -1,5 +1,5 @@
 import { currentBettor, isGuestSlug, listBettors } from '@/lib/auth';
-import { weeksWithMarkets } from '@/lib/book';
+import { currentWeek } from '@/lib/book';
 import {
   salaryPool,
   weeklyContest,
@@ -19,15 +19,6 @@ export const metadata = { title: 'Daily' };
 export const dynamic = 'force-dynamic';
 
 const SEASON = Number(process.env.BOOK_SEASON ?? 2026);
-
-/** The week people are playing: the latest with open markets. */
-async function currentWeek() {
-  const weeks = await weeksWithMarkets(SEASON);
-  if (!weeks.length) return Number(process.env.BOOK_WEEK ?? 1);
-  const live = weeks.filter((w) => w.open > 0);
-  const list = live.length ? live : weeks;
-  return list[list.length - 1].week;
-}
 
 /**
  * Daily fantasy: the weekly contest.
@@ -50,7 +41,7 @@ export default async function DailyPage({ searchParams }) {
   // there was no way to look at another week at all.
   const params = await searchParams;
   const asked = Number(params?.week);
-  const week = Number.isFinite(asked) && asked > 0 ? asked : await currentWeek();
+  const week = Number.isFinite(asked) && asked > 0 ? asked : await currentWeek(SEASON);
   const pool = await salaryPool(SEASON, week);
 
   if (!pool.length) {

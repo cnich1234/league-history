@@ -16,6 +16,8 @@ export default function BoardSection({
   oddsBoosts = [],
   slipBoosts = [],
   slowed = null,
+  hedged = [],
+  locks = {},
   bankrollCents,
   week,
   readOnly,
@@ -42,6 +44,8 @@ export default function BoardSection({
           oddsBoosts={oddsBoosts}
           slipBoosts={slipBoosts}
           slowed={slowed}
+          hedged={hedged}
+          locks={locks}
           // Open the first card so the page never looks like a list of empty
           // headers; the rest stay closed so a phone shows all five games.
           defaultOpen={i === 0}

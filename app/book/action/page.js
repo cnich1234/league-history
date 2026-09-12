@@ -1,5 +1,5 @@
 import { currentBettor, isGuestSlug } from '@/lib/auth';
-import { attackableBets, weeksWithMarkets } from '@/lib/book';
+import { attackableBets, currentWeek } from '@/lib/book';
 import { getInventory, openBounties, getPoints, minimumStake } from '@/lib/shop';
 import { listBettors } from '@/lib/auth';
 import { byKind, BOOSTS } from '@/lib/boosts';
@@ -10,20 +10,6 @@ export const metadata = { title: 'The Action' };
 export const dynamic = 'force-dynamic';
 
 const SEASON = Number(process.env.BOOK_SEASON ?? 2026);
-
-/**
- * The week this page is about.
- *
- * Read from the data rather than from BOOK_WEEK, which is not set in any
- * environment -- so this page was pinned to week 1 all season while the board
- * moved on. The latest week with markets is the one people are betting.
- */
-async function currentWeek() {
-  const weeks = await weeksWithMarkets(SEASON);
-  if (!weeks.length) return Number(process.env.BOOK_WEEK ?? 1);
-  const live = weeks.filter((w) => w.open > 0);
-  return (live.length ? live : weeks)[live.length ? live.length - 1 : weeks.length - 1].week;
-}
 
 /**
  * Every open bet in the league, with the pick withheld.
@@ -47,7 +33,7 @@ export default async function ActionPage() {
   }
 
   const guest = isGuestSlug(slug);
-  const WEEK = await currentWeek();
+  const WEEK = await currentWeek(SEASON);
   const [bets, inventory, bounties, managers, points] = await Promise.all([
     attackableBets(SEASON, WEEK),
     guest ? [] : getInventory(slug, SEASON),
@@ -72,6 +58,13 @@ export default async function ActionPage() {
   const attacks = inventory
     .map((b) => ({ ...b, def: byKind[b.kind] }))
     .filter((b) => b.def?.attack && b.def.target === 'bet');
+
+  // Ride Along is not an attack, but it is aimed at somebody else's bet, and
+  // this is the only page that lists those. It had no way to be used at all:
+  // the generic target picker refuses anything aimed at another person's bet.
+  const rides = inventory
+    .map((b) => ({ ...b, def: byKind[b.kind] }))
+    .filter((b) => b.def?.copies);
 
   // Every attack that exists, so the popup can show what you COULD buy rather
   // than rendering nothing. Hiding the button when you own none made the page
@@ -241,6 +234,14 @@ export default async function ActionPage() {
                         icon: a.def.icon,
                         blurb: a.def.blurb,
                       }))}
+                      rides={rides.map((r) => ({
+                        id: String(r.id),
+                        kind: r.kind,
+                        name: r.def.name,
+                        icon: r.def.icon,
+                        blurb: r.def.blurb,
+                      }))}
+                      stakeCents={stake}
                     />
                   )}
                   {isMine && <span className="row-value dim">yours</span>}

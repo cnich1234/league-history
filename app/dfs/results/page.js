@@ -1,5 +1,5 @@
 import { currentBettor } from '@/lib/auth';
-import { weeksWithMarkets } from '@/lib/book';
+import { currentWeek } from '@/lib/book';
 import { weekResults, photoFor } from '@/lib/dfs';
 import PlayerPhoto from '@/components/PlayerPhoto';
 
@@ -8,24 +8,18 @@ export const dynamic = 'force-dynamic';
 
 const SEASON = Number(process.env.BOOK_SEASON ?? 2026);
 
-async function currentWeek() {
-  const weeks = await weeksWithMarkets(SEASON);
-  if (!weeks.length) return Number(process.env.BOOK_WEEK ?? 1);
-  const live = weeks.filter((w) => w.open > 0);
-  const list = live.length ? live : weeks;
-  return list[list.length - 1].week;
-}
-
 /**
  * Watch the scores and everybody's lineups.
  *
- * Only contests that have LOCKED appear. An open one is still being edited, and
- * publishing it would let the last person in copy the best lineup on the board
- * -- which is the same reason the lobby page shows salary spent rather than
- * players.
+ * A lineup appears once it is locked -- once one of its players has kicked
+ * off. Before that it is still being edited, and publishing it would let the
+ * last person in copy the best lineup on the board, which is the same reason
+ * the lobby page shows salary spent rather than players. Somebody rostering
+ * only the late game is listed by name and nothing else until then.
  *
- * A locked contest is scored live off the same endpoint the board polls, so
- * this moves while the games run. A settled one keeps the number it settled at.
+ * A locked lineup is scored live off the same endpoint the board polls, so
+ * this moves while the games run. A settled contest keeps the number it
+ * settled at.
  */
 export default async function DailyResultsPage({ searchParams }) {
   const slug = await currentBettor();
@@ -39,19 +33,19 @@ export default async function DailyResultsPage({ searchParams }) {
 
   const params = await searchParams;
   const asked = Number(params?.week);
-  const week = Number.isFinite(asked) && asked > 0 ? asked : await currentWeek();
+  const week = Number.isFinite(asked) && asked > 0 ? asked : await currentWeek(SEASON);
   const { contests } = await weekResults(SEASON, week);
 
   return (
     <>
       <p className="page-sub">
-        Every lineup, scored live. Contests appear once they lock — before that,
-        publishing them would just be handing out the answer.
+        Every lineup, scored live. A lineup appears once one of its players has kicked
+        off — before that, publishing it would just be handing out the answer.
       </p>
 
       {contests.length === 0 ? (
         <section className="section">
-          <div className="empty">Nothing has locked for week {week} yet.</div>
+          <div className="empty">No contests for week {week} yet.</div>
         </section>
       ) : (
         contests.map((c) => (
@@ -68,16 +62,22 @@ export default async function DailyResultsPage({ searchParams }) {
 
             <div className="dfs-results">
               {c.field.map((f, i) => (
-                <details key={f.bettor} className="dfs-result" open={f.bettor === slug}>
+                <details
+                  key={f.bettor}
+                  className="dfs-result"
+                  open={f.bettor === slug && !f.hidden}
+                >
                   <summary>
-                    <span className="dfs-result-place">{i + 1}</span>
+                    <span className="dfs-result-place">{f.hidden ? '·' : i + 1}</span>
                     <span className="dfs-result-who">
                       {f.display_name}
                       {f.bettor === slug && <span className="dim"> · you</span>}
+                      {f.hidden && <span className="dim"> · not locked yet</span>}
                     </span>
-                    <span className="dfs-result-pts">{f.live.toFixed(2)}</span>
+                    <span className="dfs-result-pts">{f.hidden ? '—' : f.live.toFixed(2)}</span>
                   </summary>
 
+                  {!f.hidden && (
                   <div className="dfs-result-lineup">
                     {f.players.map((p) => (
                       <div key={`${f.bettor}-${p.slot}-${p.id}`} className="dfs-result-row">
@@ -103,6 +103,7 @@ export default async function DailyResultsPage({ searchParams }) {
                       </div>
                     ))}
                   </div>
+                  )}
                 </details>
               ))}
             </div>

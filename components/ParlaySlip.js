@@ -2,9 +2,10 @@
 
 import { useState } from 'react';
 import { useSlip } from './SlipProvider';
+import { MIN_STAKE_CENTS, MAX_STAKE_CENTS } from '@/lib/odds';
 
-const MIN = 10;
-const MAX = 250;
+const MIN = MIN_STAKE_CENTS / 100;
+const MAX = MAX_STAKE_CENTS / 100;
 const MIN_LEGS = 2;
 const MAX_LEGS = 6;
 

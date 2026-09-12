@@ -3,9 +3,12 @@
 import { useState } from 'react';
 import { useSlip } from './SlipProvider';
 import { boostOdds } from '@/lib/boosts';
+import { MIN_STAKE_CENTS, MAX_STAKE_CENTS } from '@/lib/odds';
 
-const MIN = 10;
-const MAX = 250;
+// From the same constants the server enforces. A hard-coded 250 here sat
+// below the $500 allowance, so nobody could bet the whole week in one go.
+const MIN = MIN_STAKE_CENTS / 100;
+const MAX = MAX_STAKE_CENTS / 100;
 
 /** Total returned on a win, stake included. Mirrors lib/odds.js payoutCents. */
 function payout(stake, odds) {
@@ -75,6 +78,11 @@ export default function BetSlip({
   // sprung, now that it cannot be dodged with a cheap bet -- a stake that
   // silently costs double reads as a bug rather than an attack.
   slowed = null,
+  // A Hedge has opened a second slot on this market. The placed card gives
+  // way to the options again, with the side already held greyed out.
+  hedged = false,
+  // A price you have frozen on this market: { optionKey, odds, expiresAt }.
+  lock = null,
 }) {
   const slip = useSlip();
   const [selected, setSelected] = useState(null);
@@ -88,6 +96,9 @@ export default function BetSlip({
   const [reviewing, setReviewing] = useState(false);
   const [useBoost, setUseBoost] = useState(false);
   const [attach, setAttach] = useState({});
+  // A lock taken from this slip, so it shows without a page reload.
+  const [held, setHeld] = useState(lock);
+  const [locking, setLocking] = useState(false);
 
   // A live market keeps taking bets after its posted lock, at a price that
   // moves with the game. It only truly closes when the model suspends it.
@@ -115,8 +126,11 @@ export default function BetSlip({
   // before you commit rather than discovering afterwards.
   const boostAvailable = oddsBoosts.length > 0;
   // Better Price has its own control above -- it changes the displayed price,
-  // so it cannot be a plain tick-box like the others.
-  const extras = slipBoosts.filter((b) => b.kind !== 'odds-boost');
+  // so it cannot be a plain tick-box like the others. Lock In is a button on
+  // a live market, not a tick-box either.
+  const extras = slipBoosts.filter((b) => b.kind !== 'odds-boost' && b.kind !== 'lock-in');
+  const lockBoost = slipBoosts.find((b) => b.kind === 'lock-in') ?? null;
+  const lockLive = held && new Date(held.expiresAt) > new Date() ? held : null;
   const boosting = boostAvailable && useBoost;
   const effectiveOdds = selected
     ? boosting
@@ -145,6 +159,37 @@ export default function BetSlip({
     stakeNum <= cap &&
     costNum * 100 <= bankrollCents;
 
+  /**
+   * Freezes the selected side's live price for half an hour. The server reads
+   * the model itself; nothing here names a number.
+   */
+  async function lockPrice() {
+    if (!selected || !lockBoost || !liveNow) return;
+    setLocking(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/shop', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          action: 'use',
+          boostId: lockBoost.id,
+          kind: 'lock-in',
+          marketId: market.id,
+          optionKey: selected.option_key,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Could not lock that.');
+      setHeld(data.locked);
+      setSelected({ ...selected, odds: data.locked.odds });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLocking(false);
+    }
+  }
+
   async function place() {
     if (!selected || !valid || !reviewing) return;
     setBusy(true);
@@ -170,6 +215,7 @@ export default function BetSlip({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Could not place bet.');
       setPlaced({
+        option_key: selected.option_key,
         option_label: selected.label,
         stake_cents: Math.round(stakeNum * 100),
         odds: selected.odds,
@@ -183,7 +229,11 @@ export default function BetSlip({
     }
   }
 
-  if (placed) {
+  // With a hedge open the placed card is not the end of the story: the other
+  // side is bettable, at whatever it costs now.
+  const hedgeOpen = Boolean(placed) && hedged;
+
+  if (placed && !hedgeOpen) {
     return (
       <div className="market market-placed">
         <div className="market-head">
@@ -238,12 +288,25 @@ export default function BetSlip({
         )}
       </div>
 
+      {hedgeOpen && (
+        <div className="in-slip-note">
+          <span>
+            🎣 <strong>Hedge open.</strong> Your {placed.option_label} bet stands — back the
+            other side at the current price.
+          </span>
+        </div>
+      )}
+
       <div className="options">
         {market.options.map((raw) => {
+          // A held lock beats the moving price for its side -- that is the
+          // number the server will fill at.
           const o =
-            liveNow && livePrices?.[raw.option_key] != null
-              ? { ...raw, odds: livePrices[raw.option_key] }
-              : raw;
+            lockLive && lockLive.optionKey === raw.option_key
+              ? { ...raw, odds: lockLive.odds, locked: true }
+              : liveNow && livePrices?.[raw.option_key] != null
+                ? { ...raw, odds: livePrices[raw.option_key] }
+                : raw;
           return (
           <button
             key={o.option_key}
@@ -258,9 +321,12 @@ export default function BetSlip({
               setError(null);
               setSelected(selected?.option_key === o.option_key ? null : o);
             }}
-            disabled={shut}
+            disabled={shut || (hedgeOpen && o.option_key === placed.option_key)}
           >
-            <span className="option-label">{o.label}</span>
+            <span className="option-label">
+              {o.label}
+              {o.locked && <span className="dim"> 📌</span>}
+            </span>
             <span className="option-odds">{o.odds > 0 ? `+${o.odds}` : o.odds}</span>
           </button>
           );
@@ -349,6 +415,30 @@ export default function BetSlip({
           >
             Remove
           </button>
+        </div>
+      )}
+
+      {/* Lock In: a button rather than a tick-box, because it acts now and the
+          bet comes after. Live markets only -- a pregame line is not moving. */}
+      {selected && !shut && !reviewing && !inSlip && liveNow && lockBoost && !lockLive && (
+        <div className="boost-offer">
+          <button className="btn-ghost" type="button" onClick={lockPrice} disabled={locking}>
+            {locking ? 'Locking…' : `📌 Lock ${selected.odds > 0 ? `+${selected.odds}` : selected.odds} for 30 min`}
+          </button>
+          <span className="dim"> — for you only; the market keeps moving for everyone else</span>
+        </div>
+      )}
+      {lockLive && !placed && (
+        <div className="in-slip-note">
+          <span>
+            📌 <strong>Price locked</strong> at{' '}
+            {lockLive.odds > 0 ? `+${lockLive.odds}` : lockLive.odds} until{' '}
+            {new Date(lockLive.expiresAt).toLocaleTimeString('en-US', {
+              hour: 'numeric',
+              minute: '2-digit',
+            })}
+            . Bet that side before then or it expires unused.
+          </span>
         </div>
       )}
 

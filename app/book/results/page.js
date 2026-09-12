@@ -100,6 +100,7 @@ function resultLabel(bet) {
   if (bet.status === 'won') return `+${formatMoney(payout - stake)}`;
   if (bet.status === 'lost') return `−${formatMoney(stake)}`;
   if (bet.status === 'void') return 'void';
+  if (bet.status === 'cashed') return `cashed ${formatMoney(payout)}`;
   return 'push';
 }
 

@@ -43,8 +43,6 @@ export async function POST(request) {
       slug,
       contestId: Number(body.contestId),
       slots: body.slots,
-      season: SEASON,
-      week: body.week == null ? undefined : Number(body.week),
     });
     return NextResponse.json({ ok: true, ...res });
   } catch (e) {

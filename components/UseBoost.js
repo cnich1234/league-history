@@ -106,6 +106,9 @@ export default function UseBoost({ boost, label, week }) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Could not use that.');
 
+      if (data.cashed) {
+        window.alert(`Cashed out for $${(data.cashed.valueCents / 100).toFixed(2)}.`);
+      }
       // A Receipt answers a question rather than changing anything, so the
       // answer has to be shown before the dialog closes.
       if (data.attackers) {
@@ -195,6 +198,12 @@ export default function UseBoost({ boost, label, week }) {
                         <>
                           {t.subtitle ? ' · ' : ''}
                           {money(t.stakeCents)} at {odds(t.odds)}
+                        </>
+                      )}
+                      {t.cashCents != null && (
+                        <>
+                          {' · '}
+                          <strong className="pos">cash out for {money(t.cashCents)}</strong>
                         </>
                       )}
                       {!t.eligible && t.why && (

@@ -1,3 +1,14 @@
+import { byKind, BOOSTS } from '@/lib/boosts';
+
+/**
+ * Prices come from the catalogue, never typed here. Every one of the eleven
+ * on this page was stale after the shop was repriced -- Insurance read 12
+ * while the store charged 36 -- and a rules page that disagrees with the
+ * store is worse than no rules page.
+ */
+const cost = (kind) => byKind[kind].cost;
+const cheapest = [...BOOSTS].sort((a, b) => a.cost - b.cost)[0];
+const dearest = [...BOOSTS].sort((a, b) => b.cost - a.cost)[0];
 export const metadata = { title: 'House Rules' };
 
 export default function RulesPage() {
@@ -51,7 +62,7 @@ export default function RulesPage() {
 
           <h2>Two nastier attacks</h2>
           <p>
-            <strong>🐌 Slow Play (5)</strong> doubles what their next bet costs. It comes
+            <strong>🐌 Slow Play ({cost('slow-play')})</strong> doubles what their next bet costs. It comes
             out of their <em>allowance</em>, not their winnings — the only attack that
             makes someone poorer rather than shrinking a payout. They find out when they go
             to bet. Cheap, because it costs them nothing if they simply stop betting.
@@ -70,7 +81,7 @@ export default function RulesPage() {
             is a tax you can see coming, not a trap.
           </p>
           <p>
-            <strong>🔀 Switcheroo (14)</strong> moves one of their bets to a different
+            <strong>🔀 Switcheroo ({cost('switcheroo')})</strong> moves one of their bets to a different
             option, and the price moves with it. On a two-sided market it flips. On a
             ten-way special it lands somewhere <em>random</em> — nine ways to be wrong.
             Completely blind, so it is as likely to rescue a dead bet as to kill a winner.
@@ -96,7 +107,7 @@ export default function RulesPage() {
 
           <h2>Taking a cut</h2>
           <p>
-            <strong>🤝 Cut of the Action (5)</strong> is the gentle end of the shop. It
+            <strong>🤝 Cut of the Action ({cost('tithe')})</strong> is the gentle end of the shop. It
             leaves the bet exactly where it is — they still win, they still bank — and
             simply pays you <strong>half the profit</strong>. Half the profit, not half the
             payout: their stake is never touched, so a win is still a win for them.
@@ -140,38 +151,38 @@ export default function RulesPage() {
 
           <h2>Defending yourself</h2>
           <p>
-            <strong>🛡️ Insurance (12)</strong> absorbs a hit — a shielded bet ignores
+            <strong>🛡️ Insurance ({cost('insurance')})</strong> absorbs a hit — a shielded bet ignores
             every attack. It is deliberately <em>dear</em>: it costs more than almost
             everything it blocks, so it goes on the one bet you would hate to lose rather
             than on all of them. At four points it was cheaper than being attacked, and
             shielding everything was simply the right move.
           </p>
           <p>
-            <strong>🪞 Mirror (10)</strong> returns a hit instead of absorbing it: whoever
+            <strong>🪞 Mirror ({cost('mirror')})</strong> returns a hit instead of absorbing it: whoever
             fires at a mirrored bet takes the same attack on their own biggest open bet,
             and they are told it happened. Cheaper than Insurance, because it only pays off
             if somebody actually comes for you.
           </p>
           <p>
-            <strong>👻 Ghost (5)</strong> takes a different line — your bets vanish from The
+            <strong>👻 Ghost ({cost('ghost')})</strong> takes a different line — your bets vanish from The
             Action for the week, so there is nothing to aim at. Cheap, but it is a whole
             week declared in advance, and people will notice you have gone quiet.
           </p>
           <p>
-            <strong>🧾 Receipt (1)</strong> names whoever attacked one of your bets. It
+            <strong>🧾 Receipt ({cost('receipt')})</strong> names whoever attacked one of your bets. It
             changes no money at all. It just turns a hit into a grudge.
           </p>
 
           <h2>Managing a position</h2>
           <p>
-            <strong>🎣 Hedge (8)</strong> lets you back the other side of a market you are
+            <strong>🎣 Hedge ({cost('hedge')})</strong> lets you back the other side of a market you are
             already on — normally one bet per market. The second one pays whatever the
             market costs <em>now</em>, which on a live market is a very different number
             from the one you got, so squaring off is never free. Both bets settle on their
             own merits.
           </p>
           <p>
-            <strong>📌 Lock In (7)</strong> freezes a live price for you for half an hour.
+            <strong>📌 Lock In ({cost('lock-in')})</strong> freezes a live price for you for half an hour.
             The number stops moving while you decide — for you only; everyone else is still
             betting the live market. Claim it by betting before the clock runs out or it
             expires unused. No real sportsbook offers this.
@@ -182,11 +193,11 @@ export default function RulesPage() {
             Two ways, and they suit different moments.
           </p>
           <p>
-            <strong>💸 Cash Out (6)</strong> settles a live bet early at whatever it is
+            <strong>💸 Cash Out ({cost('cash-out')})</strong> settles a live bet early at whatever it is
             currently worth. Up on a position and want it banked before it turns? This.
           </p>
           <p>
-            <strong>⏮️ Undo (25)</strong> voids the bet entirely and hands the whole stake
+            <strong>⏮️ Undo ({cost('undo')})</strong> voids the bet entirely and hands the whole stake
             back — any bet that has not settled, live ones included. Watching one die and
             want out? This. It is the dearest thing in the shop because it removes the
             risk completely, and an undone bet pays nothing even if the side you had
@@ -236,8 +247,8 @@ export default function RulesPage() {
             store.
           </p>
           <p>
-            Boosts run from <strong>3</strong> for a Receipt to <strong>75</strong> for an
-            Undo. The cheap ones protect and improve your own bets; the expensive ones go
+            Boosts run from <strong>{cheapest.cost}</strong> for {cheapest.name} to{' '}
+            <strong>{dearest.cost}</strong> for {dearest.name}. The cheap ones protect and improve your own bets; the expensive ones go
             after everyone else, or undo your own mistakes. Buy them on the Store tab, use
             them from My Boosts.
           </p>

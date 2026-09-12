@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { currentManager } from '@/lib/auth';
 import { postBounty, contributeToBounty } from '@/lib/shop';
+import { currentWeek } from '@/lib/book';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,7 +37,7 @@ export async function POST(request) {
     const bounty = await postBounty({
       slug,
       season: SEASON,
-      week: Number(body.week ?? process.env.BOOK_WEEK ?? 1),
+      week: Number(body.week ?? (await currentWeek(SEASON))),
       target: String(body.target ?? ''),
       weapon: String(body.weapon ?? ''),
       betId: body.betId ?? null,

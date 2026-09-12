@@ -21,6 +21,8 @@ export default function SpecialSection({
   oddsBoosts = [],
   slipBoosts = [],
   slowed = null,
+  hedged = [],
+  locks = {},
   bankrollCents,
   defaultOpen,
   readOnly,
@@ -55,6 +57,7 @@ export default function SpecialSection({
               key={m.id}
               market={m}
               existingBet={myByMarket[String(m.id)]}
+              hedged={hedged.includes(String(m.id))}
               parlayLegs={myParlayByMarket[String(m.id)] ?? null}
               bankrollCents={bankrollCents}
               disabled={readOnly}

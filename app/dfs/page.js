@@ -34,7 +34,7 @@ async function currentWeek() {
  * One game a week, everybody in, no buy-in. Where you finish mints points that
  * spend in the same shop as trophies and the allowance.
  */
-export default async function DailyPage() {
+export default async function DailyPage({ searchParams }) {
   const slug = await currentBettor();
   if (!slug) {
     return (
@@ -45,7 +45,11 @@ export default async function DailyPage() {
   }
 
   const guest = isGuestSlug(slug);
-  const week = await currentWeek();
+  // An explicit ?week= wins, the way the board's switcher works. Without it
+  // there was no way to look at another week at all.
+  const params = await searchParams;
+  const asked = Number(params?.week);
+  const week = Number.isFinite(asked) && asked > 0 ? asked : await currentWeek();
   const pool = await salaryPool(SEASON, week);
 
   if (!pool.length) {
@@ -80,6 +84,10 @@ export default async function DailyPage() {
       ).map((r) => String(r.contest_id));
   const withMine = lobbies.map((l) => ({ ...l, entered: mine.includes(String(l.id)) }));
 
+  // Whether this week has defence rankings at all. Without saying so, a missing
+  // matchup line looks like a bug rather than data that is not published yet.
+  const ranked = pool.some((p) => p.defRank != null);
+
   return (
     <>
       <p className="page-sub">
@@ -99,6 +107,12 @@ export default async function DailyPage() {
           cheap whether or not he deserves to be — which is the whole game. First place
           pays <strong>{PLACE_POINTS[0]}</strong>, down to nothing for last.
         </p>
+        {!ranked && (
+          <p className="note dim" style={{ padding: '0 2px 10px' }}>
+            Defence rankings for week {week} are not out yet — FantasyPros only publishes
+            the current week, so the matchup line appears once they do.
+          </p>
+        )}
       </section>
 
       {guest ? (

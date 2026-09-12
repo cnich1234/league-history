@@ -56,7 +56,8 @@
     "test:attacks2": "node --env-file=.env.local scripts/attacks2.test.mjs",
     "test:bounty": "node --env-file=.env.local scripts/bounty.test.mjs",
     "test:effects": "node --env-file=.env.local scripts/effects.test.mjs",
-    "test:tithe": "node --env-file=.env.local scripts/tithe.test.mjs"
+    "test:tithe": "node --env-file=.env.local scripts/tithe.test.mjs",
+    "test:dfs": "node --env-file=.env.local scripts/dfs.test.mjs"
   },
   "dependencies": {
     "@neon/config": "^1.3.2",

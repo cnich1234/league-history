@@ -1,7 +1,10 @@
 # Daily Fantasy
 
-**Status: designed, not built.** This records how it would work, what already
-exists, what does not, and the four decisions needed before writing code.
+**Status: all four decisions settled. Salaries are built; contests are not.**
+
+`db/019_dfs_salaries.sql`, `lib/dfs.js` and `scripts/dfs.test.mjs` exist and
+week 1 of 2026 is priced -- 444 players across all six positions. Everything
+from section 4 onwards is still design.
 
 Two modes, both feeding the same points economy as the Trophy Room and The Book:
 
@@ -126,19 +129,39 @@ Reuses what The Book already does:
 - Live scores from the same endpoint the board polls
 - Settled by the Tuesday cron, after Sleeper's numbers are final
 
-## 6. The four decisions
+## 6. Decisions
 
-1. **The payout curve.** Full decaying 1st = 20 mints 1,106 points a season and
-   makes DFS the biggest earner in the app. Top-3-only mints 70 per manager.
-   Which?
-2. **Roster limits.** Can two managers both roster Gibbs? Standard DFS says yes.
-   Unlimited duplication makes the chalk lineup the safe play; a cap of 3-4
-   entries per player forces differentiation in a 10-person field.
-3. **Lineup shape.** The league lineup above, or something shorter? Nine slots
-   from a 411-player pool is a real weekly chore, and this has to stay fun.
-4. **Salary refresh.** Recompute every week from that week's projections
-   (prices chase form), or set once in preseason (prices go stale but a breakout
-   stays cheap and rewards whoever spotted it)?
+### Settled
+
+**The payout curve: the full decaying 1st = 20.**
+
+    1st  2nd  3rd  4th  5th  6th  7th  8th  9th  10th
+     20   17   13   10    8    5    3    2    1    0
+
+79 points a week across the league, 1,106 a season. Chris took the inflation
+point and accepted it: DFS becomes the largest single source of points in the
+app, and boost prices fall by roughly a third in real terms. That is the
+intended shape, not a side effect -- the shop was repriced upward on the
+assumption of a 197-point season, and this is a deliberate loosening of it.
+
+**Roster limits: none.** Anyone can roster anyone, standard DFS. The chalk
+lineup is unaffordable anyway -- $100,100 against a $50,000 cap -- so
+differentiation comes from the budget rather than from a rule.
+
+**Lineup: the league's own Sleeper roster**, read from the league API rather
+than invented:
+
+    QB, RB, RB, WR, WR, WR, TE, FLEX, K, DEF     cap $50,000
+
+FLEX takes RB, WR or TE. This puts kickers back in the pool -- they were
+excluded as "too random" until the lineup was settled. They price into a narrow
+band, about $3,100 to $6,400 against $13,200 for the top quarterback, so a
+kicker is closer to a fixed cost than a real decision. Which is true of kickers.
+
+**Salaries refresh weekly.** Each week is priced from its own projections, so a
+breakout gets dearer and a fade gets cheaper. Frozen WITHIN a week: Sleeper
+revises projections right up to kickoff, and a lineup that was legal when it was
+built has to stay legal.
 
 ## 7. Build order, once those are settled
 
@@ -149,5 +172,6 @@ Reuses what The Book already does:
 4. Locking, live scoring, settlement into `point_ledger`.
 5. Its own nav icon, as discussed.
 
-Nothing here is built. The salary model in §2 was run against real week-1 2026
-data to confirm the numbers, but no table, endpoint or page exists yet.
+Built so far: the salary table, the price curve, the pool reader and their
+tests. Week 1 of 2026 is priced and in the database. Contests, entries, the
+lineup builder, locking and settlement are not.

@@ -22,9 +22,13 @@ import {
   salaryPool,
   salaryFor,
   nameOf,
+  validateLineup,
+  placePoints,
   SALARY_CAP,
   SALARY_FLOOR,
   DFS_POSITIONS,
+  LINEUP,
+  PLACE_POINTS,
 } from '../lib/dfs.js';
 
 const sql = neon(process.env.DATABASE_URL);
@@ -130,6 +134,85 @@ try {
     ok('six premium players cost real money', cost > SALARY_CAP / 2, true);
     ok('and the cheapest is nowhere near the dearest', best('QB')[0].salary > best('QB')[1].salary, true);
   }
+  console.log('\nthe placement curve');
+  ok('first pays the most', placePoints(1), PLACE_POINTS[0]);
+  ok('last pays nothing', placePoints(LINEUP.length), 0);
+  ok('and an impossible place pays nothing', placePoints(0), 0);
+  ok('79 a week across ten managers', PLACE_POINTS.reduce((a, b) => a + b, 0), 79);
+
+  console.log('\nlineup rules');
+  {
+    // A bigger synthetic pool: enough at each position to fill all ten slots.
+    const many = {};
+    const proj = {};
+    // Eight deep at every position, projections running 20 down to 1.
+    //
+    // Two earlier versions of this fixture were too thin and failed for their
+    // own reasons rather than the code's: three-deep positions meant the
+    // "cheapest" QB was still $8,000, so a deliberately cheap lineup came out
+    // over the cap; and a step of 4 hit zero, which the builder correctly
+    // refuses to price, so a position asking for six got five.
+    for (const pos of ['QB', 'RB', 'WR', 'TE', 'K', 'DEF']) {
+      for (let i = 0; i < 8; i++) {
+        const id = `${pos}${i}`;
+        many[id] = pos === 'DEF'
+          ? { position: 'DEF', team: 'JAX' }
+          : { first_name: pos, last_name: String(i), position: pos, team: 'KC' };
+        proj[id] = Math.max(1, 20 - i * 2.7);
+      }
+    }
+    const W2 = 2;
+    await buildSalaries(S, W2, { players: many, projections: proj });
+    const pool = await salaryPool(S, W2);
+    const cheapAt = (pos) =>
+      pool.filter((p) => p.position === pos).sort((a, b) => a.salary - b.salary);
+    const dearAt = (pos) =>
+      pool.filter((p) => p.position === pos).sort((a, b) => b.salary - a.salary);
+    const idsOf = (arr) => arr.map((p) => p.player_id);
+
+    const legal = idsOf([
+      cheapAt('QB')[0], cheapAt('RB')[0], cheapAt('RB')[1],
+      cheapAt('WR')[0], cheapAt('WR')[1], cheapAt('WR')[2],
+      cheapAt('TE')[0], cheapAt('RB')[2], cheapAt('K')[0], cheapAt('DEF')[0],
+    ]);
+    ok('a cheap lineup is legal', validateLineup(legal, pool).ok, true);
+
+    // Ten slots, so nine is not a lineup.
+    ok('too few players', validateLineup(legal.slice(0, 9), pool).ok, false);
+    ok('an empty slot', validateLineup([null, ...legal.slice(1)], pool).ok, false);
+
+    // The same player twice would be a free way to double up on a good week.
+    const dupe = [...legal];
+    dupe[7] = dupe[1];
+    ok('the same player twice', validateLineup(dupe, pool).ok, false);
+
+    // FLEX takes RB, WR or TE -- and nothing else.
+    const flexQb = [...legal];
+    flexQb[7] = dearAt('QB')[0].player_id;
+    ok('a QB cannot fill the FLEX', validateLineup(flexQb, pool).ok, false);
+    const flexTe = [...legal];
+    flexTe[7] = cheapAt('TE')[1].player_id;
+    ok('but a TE can', validateLineup(flexTe, pool).ok, true);
+
+    // The wrong position in a named slot.
+    const wrong = [...legal];
+    wrong[0] = cheapAt('RB')[0].player_id;
+    ok('a RB cannot fill the QB slot', validateLineup(wrong, pool).ok, false);
+
+    // Somebody who is not in this week's pool at all.
+    ok('an unknown player', validateLineup(['nobody', ...legal.slice(1)], pool).ok, false);
+
+    // And the cap, which is the whole point.
+    const chalk = idsOf([
+      dearAt('QB')[0], dearAt('RB')[0], dearAt('RB')[1],
+      dearAt('WR')[0], dearAt('WR')[1], dearAt('WR')[2],
+      dearAt('TE')[0], dearAt('RB')[2], dearAt('K')[0], dearAt('DEF')[0],
+    ]);
+    const capped = validateLineup(chalk, pool);
+    ok('all the best players is over the cap', capped.ok, false);
+    ok('and it says by how much', capped.why.includes('over the cap'), true);
+  }
+
 } finally {
   await clean();
 }

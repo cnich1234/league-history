@@ -4,12 +4,15 @@ import {
   salaryPool,
   weeklyContest,
   myEntry,
+  openLobbies,
   LINEUP,
   FLEX_POSITIONS,
   SALARY_CAP,
   PLACE_POINTS,
 } from '@/lib/dfs';
+import { getPoints } from '@/lib/shop';
 import LineupBuilder from '@/components/LineupBuilder';
+import LobbyList from '@/components/LobbyList';
 
 export const metadata = { title: 'Daily' };
 export const dynamic = 'force-dynamic';
@@ -59,7 +62,23 @@ export default async function DailyPage() {
   }
 
   const contest = await weeklyContest(SEASON, week);
-  const entry = guest ? null : await myEntry(slug, contest.id);
+  const [entry, lobbies, points] = await Promise.all([
+    guest ? null : myEntry(slug, contest.id),
+    openLobbies(SEASON, week),
+    guest ? 0 : getPoints(slug, SEASON),
+  ]);
+
+  // Which lobbies you are already sitting in, so the list can say so.
+  const { neon } = await import('@neondatabase/serverless');
+  const sql = neon(process.env.DATABASE_URL);
+  const mine = guest
+    ? []
+    : (
+        await sql`
+          select contest_id from dfs_entries
+          where bettor = ${slug} and season = ${SEASON} and week = ${week}`
+      ).map((r) => String(r.contest_id));
+  const withMine = lobbies.map((l) => ({ ...l, entered: mine.includes(String(l.id)) }));
 
   return (
     <>
@@ -94,6 +113,16 @@ export default async function DailyPage() {
           pool={pool}
           initialSlots={entry?.slots ?? null}
           readOnly={contest.status !== 'open'}
+        />
+      )}
+
+      {!guest && (
+        <LobbyList
+          lobbies={withMine}
+          week={week}
+          points={points}
+          me={slug}
+          cap={SALARY_CAP}
         />
       )}
     </>

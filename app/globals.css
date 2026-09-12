@@ -3143,3 +3143,67 @@ a.bounty-alert:hover {
   padding: 6px 2px;
   text-align: center;
 }
+
+/* Lobbies. */
+.dfs-lobbies {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.dfs-lobby {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--surface);
+  text-decoration: none;
+  color: inherit;
+  min-width: 0;
+}
+.dfs-lobby:hover {
+  border: 1px solid rgba(18, 214, 172, 0.3);
+  padding: 9px 11px;
+}
+.dfs-lobby-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.dfs-lobby-name {
+  font-size: 14px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dfs-lobby-in {
+  margin-left: 6px;
+  font-size: 10px;
+}
+.dfs-lobby-main .dim {
+  font-size: 11.5px;
+}
+.dfs-lobby-pot {
+  flex: none;
+  text-align: right;
+  line-height: 1.2;
+}
+.dfs-lobby-pot-n {
+  display: block;
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--gold);
+  font-variant-numeric: tabular-nums;
+}
+.dfs-lobby-pot .dim {
+  font-size: 10.5px;
+}
+.dfs-lobby-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+}

@@ -1,5 +1,6 @@
 import './globals.css';
 import Nav from '@/components/Nav';
+import Assistant from '@/components/Assistant';
 import { getLeague } from '@/lib/data';
 
 const league = getLeague();
@@ -44,6 +45,9 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         <div className="shell">{children}</div>
+        {/* Follows you around: the question is usually about whatever is on
+            screen, so making somebody navigate away to ask it is backwards. */}
+        <Assistant />
         <Nav />
       </body>
     </html>

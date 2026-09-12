@@ -24,6 +24,9 @@ import {
   bountyTotal,
   getPoints,
   cashOut,
+  undoBet,
+  minimumStake,
+  readReceipt,
 } from '../lib/shop.js';
 import { payoutCents } from '../lib/odds.js';
 
@@ -415,6 +418,77 @@ try {
     );
     const [unused] = await sql`select used_at from boosts where id = ${Number(co3.id)}`;
     ok('a refused cash out is not spent', unused.used_at, null);
+
+    // Attacks stick: a stolen bet cannot be cashed out from under the thief.
+    const m5 = await mkt({ live: true });
+    const bet5 = await placeBet({ slug: B, marketId: m5, optionKey: 'home', stakeCents: 2000 });
+    const steal = await buyBoost({ slug: A, season: S, kind: 'steal' });
+    await useBoostOnBet({ slug: A, boostId: Number(steal.id), betId: Number(bet5.id) });
+    await sql`update markets set locks_at = now() - interval '1 hour' where id = ${m5}`;
+    await rejects(
+      'refused on a bet that has been hit',
+      () => cashOut({ slug: B, boostId: Number(co3.id), betId: Number(bet5.id),
+                      priceNow: async () => ({ odds: -150, probability: 0.6 }) }),
+      'rides to settlement',
+    );
+  }
+
+  console.log('\na bounty still raising is refunded the moment its bet is gone');
+  {
+    const m = await mkt();
+    const bet = await placeBet({ slug: B, marketId: m, optionKey: 'home', stakeCents: 2000 });
+    const posted = await postBounty({
+      slug: A, season: S, week: W, target: B, weapon: 'void', betId: Number(bet.id),
+    });
+    const before = await getPoints(A, S);
+    // The victim undoes the bet.
+    const undo = await buyBoost({ slug: B, season: S, kind: 'undo' });
+    await undoBet({ slug: B, boostId: Number(undo.id), betId: Number(bet.id) });
+    const [row] = await sql`select status, closed_reason from bounties where id = ${Number(posted.id)}`;
+    ok('undo closes the bounty', row.status, 'void');
+    ok('and the poster has their stake back', (await getPoints(A, S)) - before, minimumStake(byKind['void'].cost));
+
+    // The market settles under another one.
+    const m2 = await mkt();
+    const bet2 = await placeBet({ slug: B, marketId: m2, optionKey: 'home', stakeCents: 2000 });
+    const posted2 = await postBounty({
+      slug: A, season: S, week: W, target: B, weapon: 'void', betId: Number(bet2.id),
+    });
+    const before2 = await getPoints(A, S);
+    await settleMarket(m2, 'away');
+    const [row2] = await sql`select status from bounties where id = ${Number(posted2.id)}`;
+    ok('settlement closes the bounty', row2.status, 'void');
+    ok('and refunds the backers', (await getPoints(A, S)) - before2, minimumStake(byKind['void'].cost));
+  }
+
+  console.log('\nUndo beats an attack -- by decision');
+  {
+    const m = await mkt();
+    const bet = await placeBet({ slug: B, marketId: m, optionKey: 'home', stakeCents: 2000 });
+    const steal = await buyBoost({ slug: A, season: S, kind: 'steal' });
+    await useBoostOnBet({ slug: A, boostId: Number(steal.id), betId: Number(bet.id) });
+    const undo = await buyBoost({ slug: B, season: S, kind: 'undo' });
+    const res = await undoBet({ slug: B, boostId: Number(undo.id), betId: Number(bet.id) });
+    ok('the whole stake comes back despite the theft', res.refundedCents, 2000);
+  }
+
+  console.log('\na Receipt names every backer of a crowd-funded hit');
+  {
+    const m = await mkt();
+    const bet = await placeBet({ slug: B, marketId: m, optionKey: 'home', stakeCents: 2000 });
+    const cost = byKind['blind-sabotage'].cost;
+    const posted = await postBounty({
+      slug: A, season: S, week: W, target: B, weapon: 'blind-sabotage', betId: Number(bet.id),
+    });
+    const seed = minimumStake(cost);
+    await contributeToBounty({ slug: C, season: S, bountyId: Number(posted.id), points: cost - seed });
+    const receipt = await buyBoost({ slug: B, season: S, kind: 'receipt' });
+    const found = await readReceipt({ slug: B, boostId: Number(receipt.id), betId: Number(bet.id) });
+    ok('two names, not one', found.length, 2);
+    ok('each with what they put in',
+      found.map((f) => [f.who, f.points]).sort(),
+      [['Brandon', cost - seed], ['Chris', seed]].sort());
+    ok('flagged as a bounty', found.every((f) => f.bounty === true), true);
   }
 } finally {
   await clean();

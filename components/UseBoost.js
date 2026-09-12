@@ -116,7 +116,11 @@ export default function UseBoost({ boost, label, week }) {
           data.attackers.length === 0
             ? 'Nobody has touched that bet.'
             : data.attackers
-                .map((a) => `${a.icon} ${a.name} — ${a.who}`)
+                .map((a) =>
+                  a.bounty
+                    ? `${a.icon} ${a.name} — ${a.who} (bounty, put in ${a.points})`
+                    : `${a.icon} ${a.name} — ${a.who}`,
+                )
                 .join(String.fromCharCode(10)),
         );
       }

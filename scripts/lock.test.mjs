@@ -76,6 +76,32 @@ try {
   check('a prop past its posted time stays open', await statusOf(plainDue), 'open');
   check('and one still to come stays open', await statusOf(plainFuture), 'open');
 
+  console.log('\nbut a showdown past its deadline DOES close');
+  {
+    // Showdowns and blowout spreads carry homeRoster/awayRoster rather than an
+    // nflTeam, and no `special` flag -- so the kickoff clause could never match
+    // them and they stayed open indefinitely. Twenty-four were still taking
+    // bets three days after kickoff, including position battles whose QBs had
+    // both already played.
+    const [m] = await sql`
+      insert into markets (season, week, kind, title, locks_at, status, live, meta)
+      values (${TEST_SEASON}, 1, 'showdown', ${'LOCK showdown ' + Math.random()},
+              ${new Date(Date.now() - 3600e3)}, 'open', false,
+              ${JSON.stringify({ homeRoster: HOME, awayRoster: AWAY, position: 'QB' })}::jsonb)
+      returning id`;
+    const [future] = await sql`
+      insert into markets (season, week, kind, title, locks_at, status, live, meta)
+      values (${TEST_SEASON}, 1, 'showdown', ${'LOCK future ' + Math.random()},
+              ${new Date(Date.now() + 86400e3)}, 'open', false,
+              ${JSON.stringify({ homeRoster: HOME, awayRoster: AWAY, position: 'RB' })}::jsonb)
+      returning id`;
+
+    await lockDueMarkets([], [], { season: TEST_SEASON, week: 1 });
+    check('past its deadline, it closes', await statusOf(Number(m.id)), 'locked');
+    // The deadline is the rule, not merely "is it old".
+    check('one still to come stays open', await statusOf(Number(future.id)), 'open');
+  }
+
   console.log('\na live market does NOT lock on its posted time');
   // The whole point of a live market. Closing it here would shut every in-play
   // market the moment kickoff passed -- and a matchup with one Thursday starter

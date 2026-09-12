@@ -415,16 +415,28 @@ trophy points buy **boosts** that change real money.
 
 ### The economy
 
-Two sources, deliberately about half and half over a season:
+Three sources. The first two were set to split about half and half; daily
+fantasy was added on top and is the largest of the three by design:
 
-|                              | Season | Share |
-| ---------------------------- | ------ | ----- |
-| Weekly allowance (5/wk × 14) | 70     | 51.6% |
-| Trophies                     | ~65.6  | 48.4% |
+|                               | Season | Ledger reason |
+| ----------------------------- | ------ | ------------- |
+| Weekly allowance (7/wk × 14)  | 98     | `allowance`   |
+| Trophies                      | ~99    | `trophies`    |
+| Daily fantasy (average place) | ~111   | `daily`       |
 
 The trophy figure is simulated, not guessed — `npm run sim:points` runs 4,000
 seasons against the same fitted `N(120, 28)` the betting model uses. Re-run it
-after any change to an award's value; the split is the number to keep near 50/50.
+after any change to an award's value.
+
+The three reasons matter. Trophy points are granted once per (bettor, season,
+week) by a unique index; daily fantasy used to write under the same reason and
+was silently swallowed by it every week. Each source has its own word now.
+
+Both the trophy grant and the points allowance are paid for the week that has
+FINISHED, once Sleeper has moved on — scores move all through Sunday, so
+anything keyed to a live week is provisional. The $500 money allowance is the
+opposite: it is paid for the week that is OPENING, in the same cron run that
+builds the board, because it is ammunition rather than a reward.
 
 There is no weekly history to replay (`data/history-dump.json` holds season-end
 standings only), so the simulation is the only calibration available until real
@@ -455,15 +467,29 @@ bites the number the winner expected to see. A **refund is never boosted** — a
 push is not a win. `The Void` short-circuits the chain entirely, since nothing
 applied afterwards can bring a voided bet back.
 
-### Why three attacks are not buyable
+### Where each boost is used from
 
-Grand Theft, Blind Sabotage and The Void all need to name a specific bet or
-bettor — and bets are hidden until their market locks. Listing someone's bet in a
-picker would leak their position, which is the rule the whole book rests on. They
-are shown in the store and refused in `buyBoost`, not merely greyed out.
+Anything aimed at somebody else's bet — every attack, and Ride Along — is
+used from **The Action**, where the target is the row you tap: stake and
+price visible, the pick withheld. The generic target picker on My Boosts
+refuses those kinds, because listing another person's bets by market is the
+leak the whole book is built to prevent.
 
-`Poison the Well` works today because it targets a **market**, which everyone can
-already see.
+Everything else goes through the picker or the bet slip: Insurance, Half
+Again and Lock In are offered in the slip at the moment of betting; Cash Out,
+Hedge, Undo, Mirror and Receipt pick one of your own bets; Ghost and Big Week
+declare a week; Poison the Well picks a market, which everyone can see.
+
+Two rules that were promised and, for a while, not kept:
+
+- **A shield goes on before the hit or not at all.** Insurance and Mirror are
+  refused on a bet that already carries an attack.
+- **Only an attack marks a bet as hit.** Better Price, Half Again, Mirror and
+  a Receipt attached to your own bet do not make it read as attacked on The
+  Action, and do not keep it out of the bounty picker.
+
+Attacks apply to parlays exactly as they do to straight bets — Grand Theft,
+Cut of the Action, Big Week and the curse included. They did not, once.
 
 ---
 
@@ -554,7 +580,7 @@ components/
 
 ### Database
 
-Neon Postgres, 9 migrations in `db/`. The ones that matter:
+Neon Postgres, 23 migrations in `db/`, applied by `npm run db:migrate` and recorded in `_migrations`. The ones that matter:
 
 |       |                                                                                              |
 | ----- | -------------------------------------------------------------------------------------------- |
@@ -562,6 +588,10 @@ Neon Postgres, 9 migrations in `db/`. The ones that matter:
 | `005` | individual passwords (scrypt + per-user salt), so league mates cannot read each other's bets |
 | `007` | parlays — `market_id` and `option_key` become nullable                                       |
 | `008` | `markets.live`                                                                               |
+| `012` | points, boosts, and the unique-per-week indexes on the point ledger                          |
+| `017` | payouts can be split between several people, so the one-payout-per-bet index gains a bettor  |
+| `018` | one ATTACK per bet, not one of each kind                                                     |
+| `023` | `cashed`: a bet settled early by Cash Out is neither won, lost nor pushed                    |
 
 `008` also creates a `live_quotes` table that nothing reads or writes — prices are
 computed on demand rather than stored. It is harmless but dead.
@@ -570,7 +600,7 @@ computed on demand rather than stored. It is harmless but dead.
 
 ## Tests
 
-Sixteen suites, run individually:
+39 suites, run individually (`npm run test:<name>`; `npm test` is the achievements suite). A few of them:
 
 ```bash
 npm run test:lock      # what closes, and when — the rule above
@@ -580,6 +610,9 @@ npm run test:floor     # the hiding rule
 npm run test:odds      # probabilities, parlay math, stake taper
 npm run test:parlay    # parlay settlement
 npm run test:book      # placement rules end to end
+npm run test:review    # the rules a code review found promised and not kept
+npm run test:cronweek  # the cron never pays out on a week still being played
+npm run test:dfsledger # daily fantasy points survive the trophy index
 ```
 
 Ones against the real database use a **sentinel season** (9995–9999) and clean up

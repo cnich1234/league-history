@@ -1,9 +1,9 @@
-# Bounties: how they work, and why they don't
+# Bounties: how they work, and why the first version didn't
 
-**Status: being replaced.** The shipped mechanic runs and is tested, but its
-economics do not work (§3). **§7 — collective bounties — is the agreed
-replacement, and every open question is now settled.** Sections 1-6 describe
-what exists today and why it is going away.
+**Status: built.** The collective model in §7 is what runs. Sections 1-6 are
+the history: the original hunter-and-reward mechanic, why it could not be
+priced, and the options considered before §7 replaced it. Kept for the
+reasoning.
 
 Written from the source (`lib/shop.js`, `lib/boosts.js`, `db/015_bounties.sql`),
 not from memory.
@@ -193,9 +193,21 @@ is the behaviour we want. Post 10, nobody bites, get 8 back.
 
 ---
 
-## 7. Option D — collective bounties (the likely direction)
+## 7. Collective bounties — what is built
 
-Proposed by Chris, 11 Sep. Supersedes A/B/C. **This is what we are building.**
+Proposed by Chris, 11 Sep. Supersedes A/B/C. **This is what runs.**
+
+Two rules that arrived after the first build:
+
+- **A bounty cannot name Poison the Well.** Poison hits a market, and a bounty
+  names a person and maybe a bet — there is nothing for it to land on.
+- **A Mirror sends a crowd attack back at the poster**, onto their own biggest
+  open bet, exactly as it sends a bought attack back at its attacker. With
+  nothing of the poster's to land on, the bounty is refunded.
+
+A crowd-funded Switcheroo moves the bet the moment it fills. A contribution is
+capped at what is left, and one that races past the price is handed straight
+back to its contributor.
 
 **Nobody buys a boost.** A bounty names a target and a weapon, and its cost *is*
 the weapon's list price. Anyone can contribute. When contributions reach the

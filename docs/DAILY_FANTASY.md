@@ -218,6 +218,12 @@ rate limit, keyed by player id, with team logos standing in for defences. A
 player without one returns 403 rather than a placeholder, so the component
 falls back to initials.
 
-The results page shows every lineup scored live, and appears only once a
-contest has LOCKED: publishing an open one would let the last person in copy
-the best lineup on the board.
+The results page shows every lineup scored live. A lineup appears once it is
+LOCKED -- once one of its players has kicked off -- and is listed by name only
+before that: publishing it would let the last person in copy the best lineup
+on the board. This is per lineup, not per contest; a contest only leaves
+'open' in the Tuesday cron, and gating on that meant the page was empty all
+weekend.
+
+Placement points are written under their own ledger reason, `daily`. They
+were written as `trophies` and swallowed by the once-per-week trophy index.

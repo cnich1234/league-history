@@ -412,7 +412,7 @@ try {
       stakeCents: 3000,
     });
     const mirror = await buyBoost({ slug: B, season: S, kind: 'mirror' });
-    await useBoostOnBet({ slug: B, boostId: Number(mirror.id), betId: Number(guarded.id) });
+    await useBoostOnBet({ slug: B, boostId: Number(mirror.id), betId: Number(guarded.id) , atPlacement: true });
 
     const sw = await buyBoost({ slug: A, season: S, kind: 'switcheroo' });
     const res = await switcheroo({ slug: A, boostId: Number(sw.id), betId: Number(guarded.id) });
@@ -442,7 +442,7 @@ try {
     const m2 = await mkt();
     const safe = await placeBet({ slug: B, marketId: m2, optionKey: 'opt0', stakeCents: 4000 });
     const shield = await buyBoost({ slug: B, season: S, kind: 'insurance' });
-    await useBoostOnBet({ slug: B, boostId: Number(shield.id), betId: Number(safe.id) });
+    await useBoostOnBet({ slug: B, boostId: Number(shield.id), betId: Number(safe.id) , atPlacement: true });
     await rejects(
       'insurance blocks it',
       () => switcheroo({ slug: A, boostId: Number(sw.id), betId: Number(safe.id) }),

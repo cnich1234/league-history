@@ -118,7 +118,7 @@ try {
     const m = await mkt();
     const bet = await placeBet({ slug: B, marketId: m, optionKey: 'home', stakeCents: 10000 });
     const shield = await buyBoost({ slug: B, season: S, kind: 'insurance' });
-    await useBoostOnBet({ slug: B, boostId: Number(shield.id), betId: Number(bet.id) });
+    await useBoostOnBet({ slug: B, boostId: Number(shield.id), betId: Number(bet.id) , atPlacement: true });
     const t = await buyBoost({ slug: A, season: S, kind: 'tithe' });
     await useBoostOnBet({ slug: A, boostId: Number(t.id), betId: Number(bet.id), season: S });
 

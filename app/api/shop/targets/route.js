@@ -48,6 +48,12 @@ export async function GET(request) {
   }
 
   if (def.target === TARGET.OWN_BET) {
+    // The slip-only three have no picker: they are chosen with the bet.
+    if (def.slipOnly) {
+      return NextResponse.json({
+        error: `${def.name} goes on when you place a bet -- tick it in the slip.`,
+      }, { status: 400 });
+    }
     const rows = await sql`
       select b.id, b.stake_cents, b.odds, b.option_key, b.placed_at,
              m.id as market_id, m.title, m.kind, m.week, m.live, m.locks_at, m.status,

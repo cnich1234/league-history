@@ -67,7 +67,7 @@ export default async function BoostsPage() {
                     <span className="boost-name">{def.name}</span>
                     <span className="dim">{def.blurb}</span>
                   </span>
-                  {def.kind === 'odds-boost' || def.kind === 'lock-in' ? (
+                  {def.kind === 'odds-boost' || def.kind === 'lock-in' || def.slipOnly ? (
                     // Chosen in the bet slip, not from here -- you pick it when
                     // placing a bet so you can see what it does to the price.
                     <span className="dim" style={{ fontSize: 12.5, textAlign: 'right' }}>

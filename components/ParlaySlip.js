@@ -35,7 +35,7 @@ const fmtOdds = (o) => (o > 0 ? `+${o}` : String(o));
  * Fixed to the bottom above the nav so it is reachable without scrolling back
  * up, which matters when the legs are spread across five matchup cards.
  */
-export default function ParlaySlip({ bankrollCents }) {
+export default function ParlaySlip({ bankrollCents, slipBoosts = [] }) {
   const { legs, remove, clear } = useSlip();
   const [stake, setStake] = useState('25');
   const [open, setOpen] = useState(false);
@@ -44,6 +44,11 @@ export default function ParlaySlip({ bankrollCents }) {
   // Same reasoning as a straight bet: a parlay cannot be cancelled, and the
   // stakes are higher because it is several legs at once.
   const [reviewing, setReviewing] = useState(false);
+  const [attach, setAttach] = useState({});
+
+  // Insurance, Half Again and Mirror: chosen here or not at all, same as a
+  // straight bet. Better Price and Lock In are per-market and do not apply.
+  const extras = slipBoosts.filter((b) => !['odds-boost', 'lock-in'].includes(b.kind));
 
   if (legs.length === 0) return null;
 
@@ -70,6 +75,7 @@ export default function ParlaySlip({ bankrollCents }) {
         body: JSON.stringify({
           stakeDollars: stakeNum,
           legs: legs.map((l) => ({ marketId: l.marketId, optionKey: l.optionKey })),
+          attachBoostIds: extras.filter((b) => attach[b.kind]).map((b) => b.id),
         }),
       });
       const data = await res.json();
@@ -116,6 +122,21 @@ export default function ParlaySlip({ bankrollCents }) {
 
           {!enough && <p className="slip-note">Pick at least one more leg.</p>}
           {tooMany && <p className="slip-note neg">Maximum {MAX_LEGS} legs.</p>}
+
+          {enough && !tooMany && !reviewing &&
+            extras.map((b) => (
+              <label key={b.kind} className="boost-offer">
+                <input
+                  type="checkbox"
+                  checked={Boolean(attach[b.kind])}
+                  onChange={(e) => setAttach((a) => ({ ...a, [b.kind]: e.target.checked }))}
+                />
+                <span>
+                  {b.icon} Use <strong>{b.name}</strong>
+                  <span className="dim"> — {b.blurb}</span>
+                </span>
+              </label>
+            ))}
 
           {enough && !tooMany && (
             <div className="slip-place">
@@ -176,6 +197,12 @@ export default function ParlaySlip({ bankrollCents }) {
                   <dt>Returns if it wins</dt>
                   <dd>{money(payout(stakeNum, odds))}</dd>
                 </div>
+                {extras.filter((b) => attach[b.kind]).length > 0 && (
+                  <div>
+                    <dt>With</dt>
+                    <dd>{extras.filter((b) => attach[b.kind]).map((b) => `${b.icon} ${b.name}`).join(', ')}</dd>
+                  </div>
+                )}
               </dl>
               <p className="confirm-warning">Bets cannot be changed or cancelled.</p>
               <div className="confirm-actions">

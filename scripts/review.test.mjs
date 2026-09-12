@@ -126,12 +126,12 @@ try {
     const ins = await buyBoost({ slug: B, season: S, kind: 'insurance' });
     await rejects(
       'Insurance refused after a Skim has landed',
-      () => useBoostOnBet({ slug: B, boostId: Number(ins.id), betId: Number(bet.id) }),
+      () => useBoostOnBet({ slug: B, boostId: Number(ins.id), betId: Number(bet.id) , atPlacement: true }),
       'too late',
     );
     const m2 = await mkt();
     const bet2 = await placeBet({ slug: B, marketId: m2, optionKey: 'home', stakeCents: 2000 });
-    await useBoostOnBet({ slug: B, boostId: Number(ins.id), betId: Number(bet2.id) });
+    await useBoostOnBet({ slug: B, boostId: Number(ins.id), betId: Number(bet2.id) , atPlacement: true });
     ok('but still attaches to an untouched bet', true, true);
   }
 
@@ -140,7 +140,7 @@ try {
     const m = await mkt();
     const bet = await placeBet({ slug: B, marketId: m, optionKey: 'home', stakeCents: 2000 });
     const half = await buyBoost({ slug: B, season: S, kind: 'boost-50' });
-    await useBoostOnBet({ slug: B, boostId: Number(half.id), betId: Number(bet.id) });
+    await useBoostOnBet({ slug: B, boostId: Number(half.id), betId: Number(bet.id) , atPlacement: true });
     const rows = await attackableBets(S, W);
     const row = rows.find((r) => Number(r.id) === Number(bet.id));
     ok('Half Again does not read as attacked', Number(row?.attacked), 0);
@@ -238,23 +238,45 @@ try {
     const m = await mkt();
     const bet = await placeBet({ slug: B, marketId: m, optionKey: 'home', stakeCents: 2000 });
     const mirror = await buyBoost({ slug: B, season: S, kind: 'mirror' });
-    await useBoostOnBet({ slug: B, boostId: Number(mirror.id), betId: Number(bet.id) });
+    await useBoostOnBet({ slug: B, boostId: Number(mirror.id), betId: Number(bet.id) , atPlacement: true });
     // The poster has an open bet of their own for it to land on.
     const mine = await mkt();
     const own = await placeBet({ slug: A, marketId: mine, optionKey: 'home', stakeCents: 3000 });
     const posted = await postBounty({
       slug: A, season: S, week: W, target: B, weapon: 'payout-cut', betId: Number(bet.id),
     });
+    const cBefore = await getPoints(C, S);
     const state = await contributeToBounty({
       slug: C, season: S, bountyId: Number(posted.id), points: byKind['payout-cut'].cost,
     });
     ok('it fired, reflected', [state.fired?.fired, state.fired?.reflected], [true, true]);
-    const [landed] = await sql`
-      select target_bet_id from boosts where id = ${Number(state.fired.boostId)}`;
-    ok("and landed on the poster's own biggest bet", Number(landed.target_bet_id), Number(own.id));
+    // Every backer takes the hit. A had an open bet: the Skim lands on it, as
+    // A's own row. C had none: C is refunded rather than let off.
+    ok("it landed on the poster's own biggest bet", state.fired.landedOn, [{ slug: A, betId: String(own.id) }]);
+    const [onA] = await sql`
+      select owner, detail from boosts where target_bet_id = ${Number(own.id)} and kind = 'payout-cut'`;
+    ok('as their own attack, with no bounty marker', [onA.owner, onA.detail.bounty ?? null, onA.detail.reflected], [A, null, true]);
+    ok('the backer with nothing to rebound onto was refunded', state.fired.refunded, [C]);
+    ok('to the point', await getPoints(C, S), cBefore);
     const [victim] = await sql`
       select count(*)::int as n from boosts where target_bet_id = ${Number(bet.id)} and kind = 'payout-cut'`;
-    ok('not on the mirrored one', victim.n, 0);
+    ok('nothing on the mirrored bet', victim.n, 0);
+  }
+
+  console.log('\nInsurance, Half Again and Mirror are slip-only');
+  {
+    const m = await mkt();
+    const bet = await placeBet({ slug: B, marketId: m, optionKey: 'home', stakeCents: 2000 });
+    for (const kind of ['insurance', 'boost-50', 'mirror']) {
+      const b = await buyBoost({ slug: B, season: S, kind });
+      await rejects(
+        `${kind} refused after placement`,
+        () => useBoostOnBet({ slug: B, boostId: Number(b.id), betId: Number(bet.id) }),
+        'when you place the bet',
+      );
+      await useBoostOnBet({ slug: B, boostId: Number(b.id), betId: Number(bet.id), atPlacement: true });
+      ok(`${kind} attaches at placement`, true, true);
+    }
   }
 
   console.log('\nGrand Theft reaches a parlay');

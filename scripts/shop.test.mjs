@@ -191,20 +191,20 @@ try {
   console.log('\nusing a boost on a bet');
   const market = await makeMarket();
   const myBet = await makeBet(A, market);
-  await useBoostOnBet({ slug: A, boostId: Number(bought.id), betId: myBet });
+  await useBoostOnBet({ slug: A, boostId: Number(bought.id), betId: myBet , atPlacement: true });
   const held = await boostsForBets([myBet]);
   check('the bet carries it', held[myBet], ['insurance']);
 
   await rejects(
     'cannot use the same boost twice',
-    () => useBoostOnBet({ slug: A, boostId: Number(bought.id), betId: myBet }),
+    () => useBoostOnBet({ slug: A, boostId: Number(bought.id), betId: myBet , atPlacement: true }),
     'already been used',
   );
 
   const second = await buyBoost({ slug: A, season: TEST_SEASON, kind: 'insurance' });
   await rejects(
     'cannot stack two of a kind on one bet',
-    () => useBoostOnBet({ slug: A, boostId: Number(second.id), betId: myBet }),
+    () => useBoostOnBet({ slug: A, boostId: Number(second.id), betId: myBet , atPlacement: true }),
     'already has',
   );
 
@@ -212,12 +212,12 @@ try {
   const theirBet = await makeBet(B, market);
   await rejects(
     'cannot use a boost you do not own',
-    () => useBoostOnBet({ slug: B, boostId: Number(second.id), betId: theirBet }),
+    () => useBoostOnBet({ slug: B, boostId: Number(second.id), betId: theirBet , atPlacement: true }),
     'not yours',
   );
   await rejects(
     'insurance cannot be put on someone else',
-    () => useBoostOnBet({ slug: A, boostId: Number(second.id), betId: theirBet }),
+    () => useBoostOnBet({ slug: A, boostId: Number(second.id), betId: theirBet , atPlacement: true }),
     'your own bet',
   );
 

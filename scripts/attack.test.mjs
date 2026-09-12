@@ -170,7 +170,7 @@ try {
     const safe = await placeBet({ slug: B, marketId: m4, optionKey: 'home', stakeCents: 15000 });
     await givePoints(B, 100);
     const shield = await buyBoost({ slug: B, season: TEST_SEASON, kind: 'insurance' });
-    await useBoostOnBet({ slug: B, boostId: Number(shield.id), betId: Number(safe.id) });
+    await useBoostOnBet({ slug: B, boostId: Number(shield.id), betId: Number(safe.id) , atPlacement: true });
     const theft = await buyBoost({ slug: A, season: TEST_SEASON, kind: 'steal' });
     await useBoostOnBet({ slug: A, boostId: Number(theft.id), betId: Number(safe.id) });
 

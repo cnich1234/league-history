@@ -51,7 +51,7 @@ export async function POST(request) {
     const attached = [];
     for (const id of Array.isArray(attachBoostIds) ? attachBoostIds : []) {
       try {
-        await useBoostOnBet({ slug, boostId: Number(id), betId: Number(bet.id) });
+        await useBoostOnBet({ slug, boostId: Number(id), betId: Number(bet.id), atPlacement: true });
         attached.push(String(id));
       } catch {
         // The bet is placed and paid for; a boost that will not attach is not

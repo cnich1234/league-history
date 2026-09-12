@@ -314,7 +314,7 @@ try {
       betId: Number(bet.id), points: minimumStake(byKind['void'].cost),
     });
     const shield = await buyBoost({ slug: B, season: S, kind: 'insurance' });
-    await useBoostOnBet({ slug: B, boostId: Number(shield.id), betId: Number(bet.id) });
+    await useBoostOnBet({ slug: B, boostId: Number(shield.id), betId: Number(bet.id) , atPlacement: true });
 
     const vSeed = minimumStake(byKind['void'].cost);
     const rest = byKind['void'].cost - vSeed;
@@ -445,7 +445,7 @@ try {
       slug: B, marketId: await mkt(), optionKey: 'home', stakeCents: 5000,
     });
     const shield = await buyBoost({ slug: B, season: S, kind: 'insurance' });
-    await useBoostOnBet({ slug: B, boostId: Number(shield.id), betId: Number(bet.id) });
+    await useBoostOnBet({ slug: B, boostId: Number(shield.id), betId: Number(bet.id) , atPlacement: true });
     await rejects(
       'nothing would get through',
       () =>

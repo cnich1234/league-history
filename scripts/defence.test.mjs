@@ -96,7 +96,7 @@ try {
     });
 
     const mirror = await buyBoost({ slug: B, season: S, kind: 'mirror' });
-    await useBoostOnBet({ slug: B, boostId: Number(mirror.id), betId: Number(guarded.id) });
+    await useBoostOnBet({ slug: B, boostId: Number(mirror.id), betId: Number(guarded.id) , atPlacement: true });
     ok('the bet is mirrored', await mirroredBets([Number(guarded.id)]), {
       [guarded.id]: true,
     });
@@ -127,7 +127,7 @@ try {
 
     const guarded = await placeBet({ slug: B, marketId: target, optionKey: 'home', stakeCents: 6000 });
     const mirror = await buyBoost({ slug: B, season: S, kind: 'mirror' });
-    await useBoostOnBet({ slug: B, boostId: Number(mirror.id), betId: Number(guarded.id) });
+    await useBoostOnBet({ slug: B, boostId: Number(mirror.id), betId: Number(guarded.id) , atPlacement: true });
 
     const void_ = await buyBoost({ slug: A, season: S, kind: 'void' });
     await useBoostOnBet({

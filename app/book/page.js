@@ -300,7 +300,7 @@ export default async function BookPage({ searchParams }) {
             locks={locks}
             />
           )}
-          {!guest && <ParlaySlip bankrollCents={spendable} />}
+          {!guest && <ParlaySlip bankrollCents={spendable} slipBoosts={mySlipBoosts} />}
         </SlipProvider>
       ) : (
         <section className="section">

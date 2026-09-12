@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import PlayerPhoto from './PlayerPhoto';
 
 /**
  * Builds a daily fantasy lineup.
@@ -16,6 +17,12 @@ import { useRouter } from 'next/navigation';
  * not the authoritative one.
  */
 const money = (n) => `$${Number(n).toLocaleString('en-US')}`;
+
+/** Sleeper hosts headshots by player id; defences get their team logo. */
+const photo = (p) =>
+  p.position === 'DEF'
+    ? `https://sleepercdn.com/images/team_logos/nfl/${String(p.nfl_team ?? p.player_id).toLowerCase()}.png`
+    : `https://sleepercdn.com/content/nfl/players/${p.player_id}.jpg`;
 
 export default function LineupBuilder({
   contestId,
@@ -163,6 +170,12 @@ export default function LineupBuilder({
               <span className="dfs-slot-pos">{slot}</span>
               {p ? (
                 <>
+                  <PlayerPhoto
+                    src={photo(p)}
+                    name={p.name}
+                    position={p.position}
+                    size={32}
+                  />
                   <span className="dfs-slot-main">
                     <span className="dfs-slot-name">{p.name}</span>
                     <span className="dim">
@@ -259,6 +272,12 @@ export default function LineupBuilder({
                       disabled={tooDear}
                       onClick={() => choose(p)}
                     >
+                      <PlayerPhoto
+                        src={photo(p)}
+                        name={p.name}
+                        position={p.position}
+                        size={30}
+                      />
                       <span className="dfs-slot-main">
                         <span className="dfs-slot-name">{p.name}</span>
                         <span className="dim">

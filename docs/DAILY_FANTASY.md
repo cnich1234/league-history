@@ -1,10 +1,13 @@
 # Daily Fantasy
 
-**Status: all four decisions settled. Salaries are built; contests are not.**
+**Status: built and running.**
 
-`db/019_dfs_salaries.sql`, `lib/dfs.js` and `scripts/dfs.test.mjs` exist and
-week 1 of 2026 is priced -- 444 players across all six positions. Everything
-from section 4 onwards is still design.
+Salaries, contests, lobbies, the lineup builder, per-player locking, scoring,
+settlement, the cron wiring and a live results page all exist. Weeks 1-3 of
+2026 are priced.
+
+Not built: push notifications, and any view of DFS history beyond the current
+week.
 
 Two modes, both feeding the same points economy as the Trophy Room and The Book:
 
@@ -172,6 +175,11 @@ built has to stay legal.
 4. Locking, live scoring, settlement into `point_ledger`.
 5. Its own nav icon, as discussed.
 
-Built so far: the salary table, the price curve, the pool reader and their
-tests. Week 1 of 2026 is priced and in the database. Contests, entries, the
-lineup builder, locking and settlement are not.
+All of the above is built. Player photos come from Sleeper's CDN -- no key, no
+rate limit, keyed by player id, with team logos standing in for defences. A
+player without one returns 403 rather than a placeholder, so the component
+falls back to initials.
+
+The results page shows every lineup scored live, and appears only once a
+contest has LOCKED: publishing an open one would let the last person in copy
+the best lineup on the board.

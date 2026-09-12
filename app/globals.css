@@ -3207,3 +3207,94 @@ a.bounty-alert:hover {
   grid-template-columns: 1fr 1fr;
   gap: 9px;
 }
+
+/* Player headshots. Sleeper hosts these; a missing one 403s, so PlayerPhoto
+   falls back to initials rather than a broken image. */
+.player-photo {
+  flex: none;
+  border-radius: 50%;
+  object-fit: cover;
+  background: rgba(255, 255, 255, 0.06);
+}
+/* A team logo is not a face -- it wants padding and no crop. */
+.player-photo-def {
+  object-fit: contain;
+  padding: 3px;
+}
+.player-photo-fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: var(--text-dim);
+}
+
+/* Daily results: every lineup, scored live. Collapsed by default because ten
+   lineups of ten players is a hundred rows -- your own opens automatically. */
+.dfs-results {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.dfs-result {
+  background: var(--surface);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.dfs-result > summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 12px;
+  cursor: pointer;
+  list-style: none;
+}
+.dfs-result > summary::-webkit-details-marker {
+  display: none;
+}
+.dfs-result[open] > summary {
+  border-bottom: 1px solid var(--line);
+}
+.dfs-result-place {
+  flex: none;
+  width: 22px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+.dfs-result-who {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dfs-result-pts {
+  flex: none;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--positive);
+  font-variant-numeric: tabular-nums;
+}
+.dfs-result-lineup {
+  padding: 6px 10px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.dfs-result-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+.dfs-result-row-pts {
+  flex: none;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}

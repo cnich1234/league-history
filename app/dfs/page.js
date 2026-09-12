@@ -90,7 +90,9 @@ export default async function DailyPage() {
       <section className="section">
         <div className="section-head">
           <h2>Week {week}</h2>
-          <span className="dim">{pool.length} players</span>
+          <a className="dim" href="/dfs/results">
+            Results &rsaquo;
+          </a>
         </div>
         <p className="note" style={{ padding: '0 2px 10px' }}>
           Salaries come from Sleeper&apos;s own projections, so a player they rate low is

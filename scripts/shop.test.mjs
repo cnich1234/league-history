@@ -101,6 +101,21 @@ try {
   console.log('\nthe weekly allowance');
   const granted = await grantWeeklyAllowance(TEST_SEASON, 1);
   check('everyone gets it', granted.length > 0, true);
+
+  // The function worked all along; nothing CALLED it. It was written, tested
+  // here, and wired into no cron for weeks -- so the only points anybody had
+  // were an opening balance. Testing the behaviour was not enough, so this
+  // checks the caller exists.
+  {
+    const { readFileSync } = await import('node:fs');
+    const cron = readFileSync(new URL('../app/api/cron/route.js', import.meta.url), 'utf8');
+    check('the cron actually grants it', cron.includes('grantWeeklyAllowance'), true);
+    check(
+      'and grants trophy points too',
+      cron.includes('grantTrophyPoints'),
+      true,
+    );
+  }
   const after = await sql`
     select coalesce(sum(amount),0)::int as n from point_ledger
     where bettor = ${A} and season = ${TEST_SEASON}`;

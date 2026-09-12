@@ -87,6 +87,26 @@ export async function GET(request) {
       log.push(`scoring skipped: ${e.message}`);
     }
 
+    // The SHOP allowance, which is points rather than money. Written, tested,
+    // and called by nothing outside its own test since the day it was added --
+    // exactly the mistake the comment above describes, made a second time.
+    // Without it the only points anybody ever has are the opening balance and
+    // whatever trophies pay, and the shop slowly empties.
+    //
+    // Deliberately OUTSIDE the scoring try: scoring depends on Sleeper having
+    // final stats and can reasonably fail, and paying the allowance does not.
+    // One should not take the other down.
+    //
+    // Once-only per (bettor, week), enforced by an index, so a second cron run
+    // in the same week cannot double-pay.
+    try {
+      const { grantWeeklyAllowance } = await import('@/lib/shop');
+      const paid = await grantWeeklyAllowance(season, week);
+      if (paid.length) log.push(`allowance to ${paid.length} for week ${week}`);
+    } catch (e) {
+      log.push(`allowance skipped: ${e.message}`);
+    }
+
     // Refund bounties nobody collected. Not forfeit -- nobody did the thing
     // that was asked for, so the points go home.
     try {

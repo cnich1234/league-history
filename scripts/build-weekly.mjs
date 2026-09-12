@@ -13,7 +13,16 @@ import { ACHIEVEMENTS } from './achievements.mjs';
 const LEAGUE_ID = process.env.SLEEPER_LEAGUE_ID ?? '1389735198932877312';
 const SEASON = Number(process.env.BOOK_SEASON ?? 2026);
 const OUT = 'data/weekly.json';
-const PLAYERS = 'C:/Users/chris/fantasy/draft-tool/data/sleeper-players.json';
+/**
+ * There is no player file. Name and position come from the projections payload
+ * fetched below, which carries both for every player who is projected -- and
+ * every player who can score is projected.
+ *
+ * A 15MB local file used to be read here, by a hard-coded path on one laptop.
+ * On Vercel `readFileSync` threw ENOENT, the cron's scoring try caught it, and
+ * the deployed cron never scored a week. Scoring with and without that file
+ * produced identical awards, so it is gone rather than made optional.
+ */
 
 const api = async (p) => {
   const r = await fetch(`https://api.sleeper.app/v1${p}`);
@@ -78,12 +87,23 @@ async function loadWeekExtras(season, week) {
 
   const projections = {};
   const stats = {};
+  // Name and position, from the `player` block each projection row carries.
+  // This is what the 15MB player file used to be read for.
+  const players = {};
   try {
     const [pRes, sRes] = await Promise.all([fetch(url), fetch(statsUrl)]);
     if (pRes.ok) {
       for (const r of await pRes.json()) {
-        if (r.player_id && typeof r?.stats?.pts_ppr === 'number') {
+        if (!r.player_id) continue;
+        if (typeof r?.stats?.pts_ppr === 'number') {
           projections[r.player_id] = r.stats.pts_ppr;
+        }
+        if (r.player) {
+          players[r.player_id] = {
+            first_name: r.player.first_name,
+            last_name: r.player.last_name,
+            position: r.player.position,
+          };
         }
       }
     }
@@ -97,9 +117,9 @@ async function loadWeekExtras(season, week) {
       }
     }
   } catch {
-    // Leave both empty; the awards that need them simply find no winner.
+    // Leave them empty; the awards that need them simply find no winner.
   }
-  return { projections, stats };
+  return { projections, stats, players };
 }
 
 export async function buildWeek(week) {
@@ -115,9 +135,9 @@ export async function buildWeek(week) {
     throw new Error(`Week ${week} has no scores yet.`);
   }
 
-  const players = JSON.parse(readFileSync(PLAYERS, 'utf8'));
   const prior = await recordsBefore(week);
-  const { projections, stats } = await loadWeekExtras(SEASON, week);
+  const { projections, stats, players: projected } = await loadWeekExtras(SEASON, week);
+  const players = projected;
   const userById = Object.fromEntries(users.map((u) => [u.user_id, u]));
   const rosterById = Object.fromEntries(rosters.map((r) => [r.roster_id, r]));
 

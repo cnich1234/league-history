@@ -104,8 +104,8 @@ export default async function ActionPage() {
     bettor_name: b.bettor_name,
     shielded: Number(b.shielded ?? 0),
     label: b.is_parlay
-      ? `${b.leg_count}-leg parlay · ${formatMoney(Number(b.stake_cents))} at ${formatOdds(b.odds)}`
-      : `${formatMoney(Number(b.stake_cents))} at ${formatOdds(b.odds)}`,
+      ? `${b.leg_count}-leg parlay · ${formatMoney(Number(b.stake_cents))} at ${formatOdds(b.odds)} · +${formatMoney(payoutCents(Number(b.stake_cents), b.odds) - Number(b.stake_cents))} to win`
+      : `${formatMoney(Number(b.stake_cents))} at ${formatOdds(b.odds)} · +${formatMoney(payoutCents(Number(b.stake_cents), b.odds) - Number(b.stake_cents))} to win`,
   }));
 
   // Labels cover every bet, not just the pickable ones -- a bounty posted
@@ -114,8 +114,8 @@ export default async function ActionPage() {
     bets.map((b) => [
       String(b.id),
       b.is_parlay
-        ? `${b.leg_count}-leg parlay · ${formatMoney(Number(b.stake_cents))} at ${formatOdds(b.odds)}`
-        : `${formatMoney(Number(b.stake_cents))} at ${formatOdds(b.odds)}`,
+        ? `${b.leg_count}-leg parlay · ${formatMoney(Number(b.stake_cents))} at ${formatOdds(b.odds)} · +${formatMoney(payoutCents(Number(b.stake_cents), b.odds) - Number(b.stake_cents))} to win`
+        : `${formatMoney(Number(b.stake_cents))} at ${formatOdds(b.odds)} · +${formatMoney(payoutCents(Number(b.stake_cents), b.odds) - Number(b.stake_cents))} to win`,
     ]),
   );
   const namedWithBets = named.map((b) => ({

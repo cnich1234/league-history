@@ -61,7 +61,8 @@ export default function AttackButton({
     }
   }
 
-  const canRide = rides.length > 0;
+  // A ride you own is only an option while the game has not started.
+  const canRide = rides.length > 0 && rideable;
 
   if (spent && !canRide) {
     return (

@@ -2,7 +2,7 @@ import { currentBettor, isGuestSlug, listBettors } from '@/lib/auth';
 import { attackableBets, currentWeek } from '@/lib/book';
 import { openBounties, getPoints, minimumStake } from '@/lib/shop';
 import { byKind, BOOSTS } from '@/lib/boosts';
-import { formatMoney, formatOdds } from '@/lib/odds';
+import { formatMoney, formatOdds, payoutCents } from '@/lib/odds';
 import BountyBoard from '@/components/BountyBoard';
 
 export const metadata = { title: 'Bounties' };
@@ -55,10 +55,14 @@ export default async function BountiesPage() {
   }));
   const stakes = Object.fromEntries(weapons.map((b) => [b.kind, minimumStake(b.cost)]));
 
-  const label = (b) =>
-    b.is_parlay
-      ? `${b.leg_count}-leg parlay · ${formatMoney(Number(b.stake_cents))} at ${formatOdds(b.odds)}`
-      : `${formatMoney(Number(b.stake_cents))} at ${formatOdds(b.odds)}`;
+  // Same words as The Action, profit included -- it is what a bounty is
+  // aiming at.
+  const label = (b) => {
+    const stake = Number(b.stake_cents);
+    const profit = payoutCents(stake, b.odds) - stake;
+    const money = `${formatMoney(stake)} at ${formatOdds(b.odds)} · +${formatMoney(profit)} to win`;
+    return b.is_parlay ? `${b.leg_count}-leg parlay · ${money}` : money;
+  };
 
   // Only bets a bounty could actually land on: one already hit cannot take
   // another attack, and an insured one would absorb it.
@@ -75,9 +79,15 @@ export default async function BountiesPage() {
   // Labels cover every bet, so a bounty posted before its bet was hit still
   // has a name on its card.
   const betLabels = Object.fromEntries(bets.map((b) => [String(b.id), label(b)]));
+  // A bet insured AFTER the bounty went up will absorb it when it fires --
+  // worth a shield on the card before anyone puts more in.
+  const betShielded = Object.fromEntries(
+    bets.map((b) => [String(b.id), Number(b.shielded ?? 0) > 0]),
+  );
   const withBets = named.map((b) => ({
     ...b,
     betLabel: b.bet_id != null ? (betLabels[String(b.bet_id)] ?? null) : null,
+    betShielded: b.bet_id != null ? Boolean(betShielded[String(b.bet_id)]) : false,
   }));
 
   return (

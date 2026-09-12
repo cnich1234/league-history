@@ -243,6 +243,11 @@ function BountyCard({ bounty, points, me, busy, onGive }) {
 
       <div className="bounty-row-foot">
         <span className="dim">
+          {bounty.betShielded && (
+            <span className="pill" title="This bet is insured" style={{ marginRight: 6 }}>
+              🛡️
+            </span>
+          )}
           {bounty.betLabel ? `${bounty.betLabel} · ` : ''}
           {bounty.backers} backer{bounty.backers === 1 ? '' : 's'} · by {bounty.poster_name}
         </span>

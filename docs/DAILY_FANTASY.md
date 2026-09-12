@@ -42,7 +42,7 @@ The fix is to derive them from the projections we already fetch:
 
     salary = round100(FLOOR + projection x PER_POINT)
 
-At `FLOOR = 3000`, `PER_POINT = 450`, week 1 of 2026 prices out as:
+At `FLOOR = 2000`, `PER_POINT = 500`, a week of 2026 prices out roughly as:
 
 | Position | Priced | Most expensive | Cheapest |
 |---|---:|---|---|
@@ -74,7 +74,7 @@ One contest, everyone entered, scored on Sleeper's numbers for that NFL week.
 
 Standard DFS shape, matching the league's own lineup so it reads as familiar:
 
-    QB, RB, RB, WR, WR, WR, TE, FLEX (RB/WR/TE), DEF     cap $50,000
+    QB, RB, RB, WR, WR, TE, FLEX (RB/WR/TE), K, DEF     cap $50,000
 
 ### Payouts — the open question
 
@@ -151,15 +151,22 @@ assumption of a 197-point season, and this is a deliberate loosening of it.
 lineup is unaffordable anyway -- $100,100 against a $50,000 cap -- so
 differentiation comes from the budget rather than from a rule.
 
-**Lineup: the league's own Sleeper roster**, read from the league API rather
-than invented:
+**Lineup: nine slots.** Started as the league's own Sleeper roster, which
+carries three WRs -- ten slots with the kicker, and ten of eleven positions
+filled before any choice was made. Dropped to two WRs to match traditional DFS:
 
-    QB, RB, RB, WR, WR, WR, TE, FLEX, K, DEF     cap $50,000
+    QB, RB, RB, WR, WR, TE, FLEX (RB/WR/TE), K, DEF     cap $50,000
 
-FLEX takes RB, WR or TE. This puts kickers back in the pool -- they were
-excluded as "too random" until the lineup was settled. They price into a narrow
-band, about $3,100 to $6,400 against $13,200 for the top quarterback, so a
-kicker is closer to a fixed cost than a real decision. Which is true of kickers.
+FLEX still takes RB, WR or TE, so a third receiver is a decision rather than a
+requirement. Kickers stay in, priced into a narrow band -- closer to a fixed
+cost than a real choice, which is true of kickers.
+
+**The floor was too high.** At $3,000 the cheapest legal lineup ate 73% of the
+cap, leaving about $13,600 -- one good quarterback -- to upgrade anybody. Devin's
+first real lineup punted SIX slots to the floor to afford a QB and one RB, which
+is the symptom rather than a strategy. At $2,000 with a steeper $500 a point the
+minimum lineup is 55% of the cap and leaves $22,500 to spend, while the
+all-chalk lineup stays at 1.9x the cap and just as unaffordable.
 
 **Salaries refresh weekly.** Each week is priced from its own projections, so a
 breakout gets dearer and a fade gets cheaper. Frozen WITHIN a week: Sleeper

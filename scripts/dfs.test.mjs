@@ -136,7 +136,10 @@ try {
   }
   console.log('\nthe placement curve');
   ok('first pays the most', placePoints(1), PLACE_POINTS[0]);
-  ok('last pays nothing', placePoints(LINEUP.length), 0);
+  // Last place in a TEN-manager league. This used LINEUP.length, which only
+  // worked while a lineup happened to be ten slots too -- two unrelated numbers
+  // that were briefly equal.
+  ok('last pays nothing', placePoints(PLACE_POINTS.length), 0);
   ok('and an impossible place pays nothing', placePoints(0), 0);
   ok('79 a week across ten managers', PLACE_POINTS.reduce((a, b) => a + b, 0), 79);
 
@@ -170,28 +173,36 @@ try {
       pool.filter((p) => p.position === pos).sort((a, b) => b.salary - a.salary);
     const idsOf = (arr) => arr.map((p) => p.player_id);
 
-    const legal = idsOf([
-      cheapAt('QB')[0], cheapAt('RB')[0], cheapAt('RB')[1],
-      cheapAt('WR')[0], cheapAt('WR')[1], cheapAt('WR')[2],
-      cheapAt('TE')[0], cheapAt('RB')[2], cheapAt('K')[0], cheapAt('DEF')[0],
-    ]);
+    // Built FROM the lineup shape, so changing it does not break the test for
+    // reasons that have nothing to do with what is being checked.
+    const fill = (at) => {
+      const used = {};
+      return LINEUP.map((slot) => {
+        const pos = slot === 'FLEX' ? 'RB' : slot;
+        const i = used[pos] ?? 0;
+        used[pos] = i + 1;
+        return at(pos)[i];
+      });
+    };
+    const legal = idsOf(fill(cheapAt));
+    const FLEX_AT = LINEUP.indexOf('FLEX');
     ok('a cheap lineup is legal', validateLineup(legal, pool).ok, true);
 
     // Ten slots, so nine is not a lineup.
-    ok('too few players', validateLineup(legal.slice(0, 9), pool).ok, false);
+    ok('too few players', validateLineup(legal.slice(0, LINEUP.length - 1), pool).ok, false);
     ok('an empty slot', validateLineup([null, ...legal.slice(1)], pool).ok, false);
 
     // The same player twice would be a free way to double up on a good week.
     const dupe = [...legal];
-    dupe[7] = dupe[1];
+    dupe[FLEX_AT] = dupe[1];
     ok('the same player twice', validateLineup(dupe, pool).ok, false);
 
     // FLEX takes RB, WR or TE -- and nothing else.
     const flexQb = [...legal];
-    flexQb[7] = dearAt('QB')[0].player_id;
+    flexQb[FLEX_AT] = dearAt('QB')[0].player_id;
     ok('a QB cannot fill the FLEX', validateLineup(flexQb, pool).ok, false);
     const flexTe = [...legal];
-    flexTe[7] = cheapAt('TE')[1].player_id;
+    flexTe[FLEX_AT] = cheapAt('TE')[1].player_id;
     ok('but a TE can', validateLineup(flexTe, pool).ok, true);
 
     // The wrong position in a named slot.
@@ -203,11 +214,7 @@ try {
     ok('an unknown player', validateLineup(['nobody', ...legal.slice(1)], pool).ok, false);
 
     // And the cap, which is the whole point.
-    const chalk = idsOf([
-      dearAt('QB')[0], dearAt('RB')[0], dearAt('RB')[1],
-      dearAt('WR')[0], dearAt('WR')[1], dearAt('WR')[2],
-      dearAt('TE')[0], dearAt('RB')[2], dearAt('K')[0], dearAt('DEF')[0],
-    ]);
+    const chalk = idsOf(fill(dearAt));
     const capped = validateLineup(chalk, pool);
     ok('all the best players is over the cap', capped.ok, false);
     ok('and it says by how much', capped.why.includes('over the cap'), true);

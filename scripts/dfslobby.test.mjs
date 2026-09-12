@@ -22,6 +22,7 @@ import {
   voidLobby,
   weeklyContest,
   contestField,
+  LINEUP,
   lineupLocked,
   lockDueContests,
   settleWeek,
@@ -95,18 +96,19 @@ try {
   // progressively dearer until they broke the cap, which failed the test for
   // the fixture's reasons rather than the code's. One swapped player is enough
   // to make the scores differ.
-  const lineup = (n) => [
-    cheap('QB')[n].player_id,
-    cheap('RB')[0].player_id,
-    cheap('RB')[1].player_id,
-    cheap('WR')[0].player_id,
-    cheap('WR')[1].player_id,
-    cheap('WR')[2].player_id,
-    cheap('TE')[0].player_id,
-    cheap('RB')[2].player_id,
-    cheap('K')[0].player_id,
-    cheap('DEF')[0].player_id,
-  ];
+  // Built FROM the lineup shape rather than a fixed list of ten, so changing
+  // the shape does not break these for reasons unrelated to lobbies. Only the
+  // QB varies, which is enough to make the scores differ while every variant
+  // stays under the cap.
+  const lineup = (n) => {
+    const used = {};
+    return LINEUP.map((slot) => {
+      const pos = slot === 'FLEX' ? 'RB' : slot;
+      const i = pos === 'QB' ? n : (used[pos] ?? 0);
+      used[pos] = (used[pos] ?? 0) + 1;
+      return cheap(pos)[i].player_id;
+    });
+  };
 
   console.log('\nopening a lobby');
   const lobby = await openLobby({

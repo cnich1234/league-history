@@ -33,6 +33,17 @@ export async function GET(request) {
     const season = Number(state.season);
     const week = Number(state.week);
 
+    // The last week that is actually FINISHED, or null when none is.
+    //
+    // Sleeper advances `week` once a week's games are done, so `week - 1` is
+    // complete -- but only when there IS a previous week. This used to read
+    // `Math.max(1, week - 1)`, and during week 1 that floor collapsed to week 1
+    // itself: the cron scored trophies, settled daily fantasy and expired
+    // bounties against a week still being played, paying out on partial scores.
+    // A floor is the wrong shape here. "No completed week yet" is not week 1,
+    // it is nothing, and every step below has to skip rather than guess.
+    const priorWeek = week > 1 ? week - 1 : null;
+
     // Backstop for locking, which normally happens on the live poll. If nobody
     // opened the app all weekend, markets would still be 'open' here -- and
     // settlement below only touches markets, not the betting window, so a stale
@@ -40,7 +51,7 @@ export async function GET(request) {
     const { lockDueMarkets } = await import('@/lib/book');
     const { liveMatchups, finishedRostersIn, kickedOffTeams } = await import('@/lib/live');
     try {
-      const priorWeek = Math.max(1, week - 1);
+      if (priorWeek == null) throw new Error('no completed week yet');
       const prior = await liveMatchups(season, priorWeek);
       const locked = await lockDueMarkets(
         finishedRostersIn(prior),
@@ -73,7 +84,7 @@ export async function GET(request) {
       const { saveWeek, weekPointsBySlug } = await import('@/lib/trophies');
       const { grantTrophyPoints } = await import('@/lib/shop');
 
-      const priorWeek = Math.max(1, week - 1);
+      if (priorWeek == null) throw new Error('no completed week yet');
       const scored = await scoreWeek(priorWeek);
       await saveWeek(season, scored);
       log.push(`week ${priorWeek}: ${scored.awards.length} award(s)`);
@@ -99,10 +110,16 @@ export async function GET(request) {
     //
     // Once-only per (bettor, week), enforced by an index, so a second cron run
     // in the same week cannot double-pay.
+    //
+    // Paid for the week that FINISHED, not the one being played. Scores move
+    // all through Sunday, so anything keyed to a live week is provisional --
+    // and paying on entry to a week meant week 1's allowance landed before a
+    // single game was final.
     try {
+      if (priorWeek == null) throw new Error('no completed week yet');
       const { grantWeeklyAllowance } = await import('@/lib/shop');
-      const paid = await grantWeeklyAllowance(season, week);
-      if (paid.length) log.push(`allowance to ${paid.length} for week ${week}`);
+      const paid = await grantWeeklyAllowance(season, priorWeek);
+      if (paid.length) log.push(`allowance to ${paid.length} for week ${priorWeek}`);
     } catch (e) {
       log.push(`allowance skipped: ${e.message}`);
     }
@@ -116,7 +133,8 @@ export async function GET(request) {
     // above.
     try {
       const { settleWeek } = await import('@/lib/dfs');
-      const prior = Math.max(1, week - 1);
+      if (priorWeek == null) throw new Error('no completed week yet');
+      const prior = priorWeek;
       const { lockDueContests } = await import('@/lib/dfs');
       // Lock what can no longer be edited and refund lobbies that never
       // filled, THEN settle -- settleWeek only touches locked contests, so
@@ -180,17 +198,30 @@ export async function GET(request) {
 
     // Refund bounties nobody collected. Not forfeit -- nobody did the thing
     // that was asked for, so the points go home.
+    //
+    // Two different questions, so two separate steps. Expiry asks whether a
+    // WEEK is over; culling asks whether a BET has settled, which happens all
+    // through a live week. Guarding both on priorWeek would hold people's
+    // points on dead bounties for the whole of week 1.
     try {
-      const { expireBounties, cullDeadBountyBets } = await import('@/lib/shop');
-      const expired = await expireBounties(season, Math.max(1, week - 1));
+      if (priorWeek == null) throw new Error('no completed week yet');
+      const { expireBounties } = await import('@/lib/shop');
+      const expired = await expireBounties(season, priorWeek);
       if (expired) log.push(`refunded ${expired} unfilled bounty(s)`);
-      // A bounty tied to a bet that has settled can never fire, so it is
-      // refunded now rather than holding everyone's points until the week
-      // rolls over.
+    } catch (e) {
+      log.push(`bounty expiry skipped: ${e.message}`);
+    }
+
+    // A bounty tied to a bet that has settled can never fire, so it is
+    // refunded now rather than holding everyone's points until the week rolls
+    // over. This is about the CURRENT week and runs whether or not any week
+    // has finished.
+    try {
+      const { cullDeadBountyBets } = await import('@/lib/shop');
       const dead = await cullDeadBountyBets(season, week);
       if (dead) log.push(`refunded ${dead} bounty(s) whose bet had settled`);
     } catch (e) {
-      log.push(`bounty expiry skipped: ${e.message}`);
+      log.push(`bounty cull skipped: ${e.message}`);
     }
 
     // Build the current week's board if it does not exist yet.

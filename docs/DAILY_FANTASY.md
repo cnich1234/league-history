@@ -26,12 +26,30 @@ scoring engine and a settlement path, and all three are here:
 | Need | Status |
 |---|---|
 | Player pool | `sleeper-players.json`, ~1,000 players with position and team |
-| Weekly projections | `api.sleeper.com/projections/nfl/{season}/{week}` |
+| Weekly projections | `api.sleeper.com/projections/nfl/{season}/{week}`, re-scored under the league's own rules |
 | Actual scoring | `api.sleeper.com/stats/nfl/{season}/{week}`, already used for props |
 | Points ledger | `point_ledger`, append-only, balances derived |
 | Kickoff times | `lib/schedule.js` — `teamGameDates`, `lockTimeFor` |
 | Live game state | `lib/live.js` — `hasKickedOff`, `fractionRemaining` |
 | A weekly cron | `/api/cron`, Tuesdays 09:00 UTC |
+
+### Scoring: the league's rules, not Sleeper's packaged totals
+
+Sleeper's projection and stat rows carry `pts_half_ppr`, `pts_ppr` and
+`pts_std`. **None of them is this league's game.** Passing touchdowns are worth
+6 here rather than 4, interceptions -2, receptions a full point, and there are
+bonuses at 100/200 rushing and 300/400 passing yards.
+
+It showed up as Jalen Hurts projecting 22.15 on a DFS card and 25.02 in the
+Sleeper app. Both were Sleeper's numbers; the app applies league scoring and the
+API does not. Recomputing the stat line under `scoring_settings` gives 25.02
+exactly.
+
+Both projections AND actual results are now scored this way. Getting only one
+right would be worse than getting both wrong: salaries would be priced for one
+game and settled on another. Every weighted stat is applied rather than a
+hand-written formula, so a scoring change the league makes is picked up without
+touching code.
 
 ## 2. What does not exist: salaries
 

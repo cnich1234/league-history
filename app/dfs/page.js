@@ -1,10 +1,11 @@
-import { currentBettor, isGuestSlug } from '@/lib/auth';
+import { currentBettor, isGuestSlug, listBettors } from '@/lib/auth';
 import { weeksWithMarkets } from '@/lib/book';
 import {
   salaryPool,
   weeklyContest,
   lineupFor,
   openLobbies,
+  contestField,
   LINEUP,
   FLEX_POSITIONS,
   SALARY_CAP,
@@ -66,11 +67,23 @@ export default async function DailyPage({ searchParams }) {
   }
 
   const contest = await weeklyContest(SEASON, week);
-  const [entry, lobbies, points] = await Promise.all([
+  const [entry, lobbies, points, field] = await Promise.all([
     guest ? null : lineupFor(slug, contest.id),
     openLobbies(SEASON, week),
     guest ? 0 : getPoints(slug, SEASON),
+    // Names and salary spent only. Lineups stay withheld until the contest
+    // locks -- contestField defaults to that, and asking for them here would
+    // let the last person in copy the best team on the board.
+    contestField(contest.id),
   ]);
+
+  // Everyone who has NOT submitted. A list of who is in only answers half the
+  // question -- the useful half on a Sunday morning is who still has to do it.
+  const inIt = new Set(field.map((f) => f.bettor));
+  const missing = (await listBettors()).filter((b) => !inIt.has(b.slug) && !isGuestSlug(b.slug));
+  // Once the contest locks nobody CAN submit, so chasing them is wrong -- they
+  // missed it. Same list, different sentence.
+  const stillOpen = contest.status === 'open';
 
   // Which lobbies you are already sitting in, so the list can say so.
   const { neon } = await import('@neondatabase/serverless');
@@ -122,6 +135,45 @@ export default async function DailyPage({ searchParams }) {
             fixture; only the ranking is carried over.
           </p>
         ) : null}
+      </section>
+
+      <section className="section">
+        <div className="section-head">
+          <h2>Who is in</h2>
+          <span className="dim">
+            {field.length} of {field.length + missing.length}
+          </span>
+        </div>
+        {field.length === 0 ? (
+          <div className="empty">Nobody has submitted a lineup yet.</div>
+        ) : (
+          <div className="rows">
+            {field.map((f) => (
+              <div key={f.bettor} className={`row ${f.bettor === slug ? 'row-me' : ''}`}>
+                <span className="row-main">
+                  <span className="row-name">{f.display_name}</span>
+                  {/* Salary spent, never the players. The contest is still
+                      open, so naming picks would turn it into a copying
+                      exercise -- the same rule the lobby field follows. */}
+                  <span className="dim">
+                    ${f.salary_used.toLocaleString('en-US')} spent
+                    {f.points != null && ` · ${f.points.toFixed(2)} pts`}
+                  </span>
+                </span>
+                <span className="row-value pill teal">in</span>
+              </div>
+            ))}
+          </div>
+        )}
+        {missing.length > 0 && (
+          <p className="note dim" style={{ padding: '10px 2px 0' }}>
+            {/* A half-built lineup is not an entry. Somebody who filled every
+                slot and never pressed the button is still out, and this is the
+                only place that says so. */}
+            {stillOpen ? 'Still to submit: ' : 'Did not enter: '}
+            {missing.map((b) => b.display_name).join(', ')}
+          </p>
+        )}
       </section>
 
       {guest ? (

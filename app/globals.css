@@ -3057,6 +3057,11 @@ a.bounty-alert:hover {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  /* Explicit, because the picker rows are <button>s and a button inherits the
+     browser's own text colour rather than the page's -- so every name in the
+     search list came out muted grey while the same markup in a filled slot was
+     white. */
+  color: var(--text);
 }
 .dfs-slot-main .dim {
   font-size: 11.5px;
@@ -3127,6 +3132,8 @@ a.bounty-alert:hover {
   background: var(--surface);
   cursor: pointer;
   font-family: inherit;
+  /* A button does not inherit page colour on its own. */
+  color: var(--text);
   min-width: 0;
 }
 .dfs-candidate:hover:not(:disabled) {

@@ -26,11 +26,12 @@ export default function AttackButton({
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
+  // The weapon awaiting confirmation. The panel swaps to a confirm step rather
+  // than raising a browser alert -- an alert sits outside the app styling and
+  // cannot show the blurb properly.
+  const [confirming, setConfirming] = useState(null);
 
   async function fire(attack) {
-    if (!window.confirm(`${attack.name} on ${who}'s bet?\n\n${attack.blurb}\n\nYou cannot see what they backed, and this cannot be undone.`)) {
-      return;
-    }
     setBusy(true);
     setError(null);
     try {

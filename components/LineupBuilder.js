@@ -66,22 +66,39 @@ export default function LineupBuilder({
   const empties = lineup.length - filled;
   const perSlot = empties > 0 ? Math.floor(left / empties) : left;
 
-  // What this slot can cost without making the rest unfillable. Every other
-  // empty slot needs at least the cheapest player at its own position.
-  const budgetFor = useMemo(() => {
-    if (picking == null) return cap;
-    const cheapest = (slot) => {
+  // The cheapest player who could fill a slot -- what an empty slot costs at
+  // minimum, which is what "can the rest still be filled" is measured in.
+  const cheapest = useMemo(() => {
+    const out = {};
+    for (const slot of new Set(lineup)) {
       const allowed = slot === 'FLEX' ? flexPositions : [slot];
       const cs = pool.filter((p) => allowed.includes(p.position)).map((p) => Number(p.salary));
-      return cs.length ? Math.min(...cs) : 0;
-    };
+      out[slot] = cs.length ? Math.min(...cs) : 0;
+    }
+    return out;
+  }, [lineup, pool, flexPositions]);
+
+  // What the OTHER empty slots need at minimum, and what is left after them.
+  // ADVICE, not a gate. This used to disable every player above `budgetFor`,
+  // which greyed out the entire top of a position while thousands were still
+  // unspent -- correct, and it read as broken. You can spend the cap however
+  // you like; the builder says when a pick has left the rest unfillable and
+  // will not submit until that is fixed.
+  const reservedFor = (skip) => {
     let reserved = 0;
     for (const [i, slot] of lineup.entries()) {
-      if (i === picking || slots[i]) continue;
-      reserved += cheapest(slot);
+      if (i === skip || slots[i]) continue;
+      reserved += cheapest[slot] ?? 0;
     }
-    return left + Number(byId.get(String(slots[picking]))?.salary ?? 0) - reserved;
-  }, [picking, left, slots, lineup, pool, flexPositions, byId, cap]);
+    return reserved;
+  };
+  // What can actually be spent on the slot being picked: the remainder plus
+  // whoever is being replaced.
+  const affordable =
+    picking == null ? cap : left + Number(byId.get(String(slots[picking]))?.salary ?? 0);
+  const budgetFor = picking == null ? cap : affordable - reservedFor(picking);
+  // The lineup as it stands: can the empty slots still be filled?
+  const shortBy = Math.max(0, reservedFor(null) - left);
 
   /** Candidates for the slot being filled, searched and cheapest-first-affordable. */
   const candidates = useMemo(() => {
@@ -101,20 +118,16 @@ export default function LineupBuilder({
           (p.nfl_team ?? '').toLowerCase().includes(q) ||
           p.position.toLowerCase() === q,
       )
-      // Affordable first, dearest within each group.
-      //
-      // Sorting purely by price and then cutting at 60 hid the entire cheap end
-      // of a big position: the FLEX picker offered sixty players from $7,500 up
-      // when the budget was $4,200, so every visible row was disabled and the
-      // slot looked unfillable. What somebody can actually pick has to be on
-      // screen.
+      // Three bands, dearest first within each: leaves the rest fillable,
+      // affordable but tight, out of reach. Sorting purely by price and then
+      // cutting at 60 hid the entire cheap end of a big position, so what
+      // somebody can actually pick has to be on screen.
       .sort((a, b) => {
-        const aFits = Number(a.salary) <= budgetFor;
-        const bFits = Number(b.salary) <= budgetFor;
-        if (aFits !== bFits) return aFits ? -1 : 1;
-        return b.salary - a.salary;
+        const band = (p) =>
+          Number(p.salary) <= budgetFor ? 0 : Number(p.salary) <= affordable ? 1 : 2;
+        return band(a) - band(b) || b.salary - a.salary;
       });
-  }, [picking, query, pool, slots, lineup, flexPositions, budgetFor]);
+  }, [picking, query, pool, slots, lineup, flexPositions, budgetFor, affordable]);
 
   /**
    * Remembers a half-built lineup.
@@ -184,7 +197,14 @@ export default function LineupBuilder({
             {filled} of {lineup.length} filled
           </div>
           {empties > 0 && (
-            <div className="dim">{money(perSlot)} per empty slot</div>
+            <>
+              <div className="dim">{money(perSlot)} per empty slot</div>
+              {shortBy > 0 && (
+                <div className="dfs-short">
+                  {money(shortBy)} short of filling the rest — swap someone cheaper in
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -291,7 +311,10 @@ export default function LineupBuilder({
                   {lineup[picking] === 'FLEX' ? 'FLEX — RB, WR or TE' : lineup[picking]}
                 </div>
                 <div className="dim">
-                  {money(Math.max(0, budgetFor))} to spend here and still fill the rest
+                  {money(Math.max(0, affordable))} left for this slot
+                  {reservedFor(picking) > 0 && (
+                    <> · {money(Math.max(0, budgetFor))} keeps the rest fillable</>
+                  )}
                 </div>
               </div>
             </div>
@@ -312,12 +335,15 @@ export default function LineupBuilder({
                 <div className="empty">Nobody matches that.</div>
               ) : (
                 candidates.slice(0, 60).map((p) => {
-                  const tooDear = Number(p.salary) > budgetFor;
+                  // Out of reach: more than is left. Tight: affordable, but the
+                  // remaining slots could not all be filled afterwards.
+                  const tooDear = Number(p.salary) > affordable;
+                  const tight = !tooDear && Number(p.salary) > budgetFor;
                   return (
                     <button
                       key={p.player_id}
                       type="button"
-                      className={`dfs-candidate ${tooDear ? 'dfs-candidate-dear' : ''}`}
+                      className={`dfs-candidate ${tooDear ? 'dfs-candidate-dear' : ''} ${tight ? 'dfs-candidate-tight' : ''}`}
                       disabled={tooDear}
                       onClick={() => choose(p)}
                     >
@@ -341,7 +367,10 @@ export default function LineupBuilder({
                           )}
                         </span>
                       </span>
-                      <span className="dfs-slot-cost">{money(p.salary)}</span>
+                      <span className="dfs-slot-cost">
+                        {money(p.salary)}
+                        {tight && <span className="dfs-tight-note">leaves too little for the rest</span>}
+                      </span>
                     </button>
                   );
                 })

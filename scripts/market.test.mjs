@@ -208,7 +208,7 @@ console.log('\nwhy did it move');
   ok('newest first', moves[0].t, 8 - 1);
   ok('quiet ticks kept on request', explainTrack(track, { includeQuiet: true }).length, 7);
 
-  const csv = trackCsv([pre, td]).split('\n');
+  const csv = trackCsv([kick, td]).split('\n');
   ok('csv has a header and a row per tick', csv.length, 3);
   ok('csv first row is the first tick', csv[1].includes(',80,0,"first"'), true);
   ok('csv names the reason', csv[2].includes('"scored"'), true);

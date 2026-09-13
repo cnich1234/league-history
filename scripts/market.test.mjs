@@ -192,7 +192,7 @@ console.log('\nwhy did it move');
   ok('kickoff is a status change', explainMove(pre, kick).reason, 'kickoff');
   const scored = explainMove(kick, td);
   ok('scoring beats the clock', scored.reason, 'scored');
-  ok('with the points and the clock in the detail', scored.detail, '+6 pts (0 to 6) · 93% of game left');
+  ok('with the points and the clock in the detail', scored.detail, '+6 pts (0 to 6) · 100.0% → 93.0% of game left');
   ok('a quiet minute is the clock', explainMove(td, clock).reason, 'clock');
   ok('points going down is a stat correction', explainMove(clock, fix).reason, 'stat correction');
   const final = explainMove(fix, done);

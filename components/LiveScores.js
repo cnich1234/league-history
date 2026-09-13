@@ -1,7 +1,9 @@
 'use client';
 
+import Badge from './Badge';
+
 import { useEffect, useState, useCallback } from 'react';
-import { ACHIEVEMENTS, byId } from '@/lib/achievements-client';
+import { ACHIEVEMENTS, byId, inTheRunning } from '@/lib/achievements-client';
 
 const LEAGUE_ID = '1389735198932877312';
 const POLL_MS = 60_000;
@@ -120,7 +122,10 @@ export default function LiveScores({ owners, players, season = [] }) {
       const mid = Math.floor(scores.length / 2);
       const median = scores.length % 2 ? scores[mid] : (scores[mid - 1] + scores[mid]) / 2;
 
-      const ctx = { teams, games, allStarters, median };
+      // Not started means not in the running: a team with nobody played is
+      // not a candidate, a game with an unstarted side is not a game yet, and
+      // an unplayed starter is not the best or worst at anything.
+      const ctx = inTheRunning({ teams, games, allStarters, median });
       // One award per manager per achievement, as the scorer and the database
       // both enforce. A tie across two of one manager's starters used to show
       // the same badge twice in the strip.
@@ -137,7 +142,7 @@ export default function LiveScores({ owners, players, season = [] }) {
       const totals = {};
       for (const a of awards) totals[a.slug] = (totals[a.slug] ?? 0) + a.points;
 
-      setState({ status: 'ok', week, teams, games, awards, totals, median });
+      setState({ status: 'ok', week, teams, games, awards, totals, median: ctx.median });
       setUpdated(new Date());
     } catch (e) {
       setState({ status: 'error', message: e.message });
@@ -206,15 +211,15 @@ export default function LiveScores({ owners, players, season = [] }) {
                   .map((a, j) => {
                     const def = byId[a.achievement];
                     return (
-                      <span
+                      <Badge
                         key={`${a.achievement}-${j}`}
-                        className="badge"
-                        // Hover (or long-press) says what it is. A strip of
-                        // twelve emoji is a puzzle otherwise.
-                        title={def ? `${def.name} (+${def.points}) — ${def.blurb}${a.detail ? ` · ${a.detail}` : ''}` : a.achievement}
-                      >
-                        {def?.icon}{' '}
-                      </span>
+                        icon={def?.icon ?? '🏅'}
+                        label={
+                          def
+                            ? `${def.name} (+${def.points}) — ${def.blurb}${a.detail ? ` · ${a.detail}` : ''}`
+                            : a.achievement
+                        }
+                      />
                     );
                   })}
               </span>

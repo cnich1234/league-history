@@ -8,7 +8,7 @@
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { SLEEPER_OWNERS } from './sleeper-owners.mjs';
-import { ACHIEVEMENTS } from './achievements.mjs';
+import { ACHIEVEMENTS, inTheRunning } from './achievements.mjs';
 
 const LEAGUE_ID = process.env.SLEEPER_LEAGUE_ID ?? '1389735198932877312';
 const SEASON = Number(process.env.BOOK_SEASON ?? 2026);
@@ -313,8 +313,10 @@ export async function buildWeek(week) {
   // points actually paid -- said 27. Collapsed here, so the two agree.
   const awards = [];
   const seen = new Set();
+  // Not started means not in the running -- see inTheRunning.
+  const running = inTheRunning(ctx);
   for (const a of ACHIEVEMENTS) {
-    for (const win of a.compute(ctx)) {
+    for (const win of a.compute(running)) {
       const key = `${win.slug}|${a.id}`;
       if (seen.has(key)) continue;
       seen.add(key);

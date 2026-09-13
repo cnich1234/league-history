@@ -3,7 +3,7 @@
  * are known. Week 1 has no scores yet, so without this the scoring engine would
  * first run for real on Tuesday with nobody having checked the math.
  */
-import { ACHIEVEMENTS, byId } from './achievements.mjs';
+import { ACHIEVEMENTS, byId, inTheRunning } from './achievements.mjs';
 
 let failed = 0;
 const check = (label, actual, expected) => {
@@ -96,6 +96,45 @@ check(
 );
 check('empty starters yields no player award', run('top-player', { ...ctx, allStarters: [] }), []);
 check('no position match yields no award', run('top-qb', { ...ctx, allStarters: allStarters.filter((p) => p.position !== 'QB') }), []);
+
+console.log('\nnot started means not in the running');
+{
+  // Thursday night: a and d have played, everyone else is at zero.
+  const live = {
+    teams: [
+      { slug: 'a', points: 30, missedPoints: 0, projected: 140 },
+      { slug: 'd', points: 20, missedPoints: 0, projected: 110 },
+      { slug: 'b', points: 0, missedPoints: 0, projected: 130 },
+      { slug: 'c', points: 0, missedPoints: 0, projected: 95 },
+    ],
+    games: [
+      { winnerSlug: 'a', loserSlug: 'd', winnerPoints: 30, loserPoints: 20, margin: 10, upset: false, loserName: 'D' },
+      // b "beats" c 0-0 only because neither has started.
+      { winnerSlug: 'b', loserSlug: 'c', winnerPoints: 0, loserPoints: 0, margin: 0, upset: false, loserName: 'C' },
+    ],
+    allStarters: [
+      { slug: 'a', name: 'QB1', position: 'QB', points: 30, played: true },
+      { slug: 'd', name: 'QB4', position: 'QB', points: 20, played: true },
+      { slug: 'a', name: 'TE1', position: 'TE', points: 0, played: false },
+      { slug: 'b', name: 'QB2', position: 'QB', points: 0, played: false },
+      { slug: 'b', name: 'TE2', position: 'TE', points: 0, played: false },
+      { slug: 'c', name: 'TE3', position: 'TE', points: 0, played: false },
+    ],
+    median: 10,
+  };
+  const r = inTheRunning(live);
+  check('only started teams are candidates', r.teams.map((t) => t.slug), ['a', 'd']);
+  check('a game with an unstarted side is not a game', r.games.map((g) => g.winnerSlug), ['a']);
+  check('the median is of started teams', r.median, 25);
+  check('an unstarted team is bottom of nothing', run('low-score', r), ['d']);
+  check('no ugly win for a 0-0 "winner"', run('lucky-win', r), ['a']);
+  check('no perfect lineup for a lineup nobody played', run('perfect-lineup', r), ['a', 'd']);
+  check('no Best TE while no TE has played', run('top-te', r), []);
+  check('Best QB among the QBs who have played', run('top-qb', r), ['a']);
+  // A finished week is untouched: everyone has started.
+  const done = { ...ctx, allStarters: ctx.allStarters.map((p) => ({ ...p, played: true })) };
+  check('a finished week keeps every team', inTheRunning(done).teams.length, ctx.teams.length);
+}
 
 console.log('\npoint values');
 check('lineup decision outranks raw high score', byId['manager-of-week'].points > byId['top-score'].points, true);

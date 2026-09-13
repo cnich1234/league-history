@@ -3170,6 +3170,62 @@ a.bounty-alert:hover {
   text-align: center;
 }
 
+/* Award badges: tap to explain. */
+.badge {
+  position: relative;
+  display: inline-block;
+  margin-right: 4px;
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 1px 2px;
+  line-height: 1.4;
+}
+.badge:focus-visible {
+  outline: 1px solid rgba(18, 214, 172, 0.6);
+}
+.badge-tip {
+  display: none;
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 8px);
+  z-index: 30;
+  width: max-content;
+  max-width: min(260px, 78vw);
+  white-space: normal;
+  padding: 8px 10px;
+  border-radius: 9px;
+  background: var(--surface);
+  border: 1px solid rgba(18, 214, 172, 0.35);
+  color: var(--text);
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1.35;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  cursor: default;
+}
+.badge-tip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  /* Slides with the bubble so it keeps pointing at the badge; see Badge.js. */
+  left: var(--arrow, 10px);
+  border: 6px solid transparent;
+  border-top-color: rgba(18, 214, 172, 0.35);
+}
+.badge-open .badge-tip {
+  display: block;
+}
+@media (hover: hover) {
+  .badge:hover .badge-tip {
+    display: block;
+  }
+}
+/* Rows that hold badges must not clip the bubble. */
+.row-main,
+.row {
+  overflow: visible;
+}
+
 /* Lobbies. */
 .dfs-lobbies {
   display: flex;

@@ -4,6 +4,7 @@ import { WEEKLY_ALLOWANCE } from '@/lib/boosts';
 import { getOwners } from '@/lib/data';
 import { SLEEPER_OWNERS } from '@/scripts/sleeper-owners.mjs';
 import LiveSection from '@/components/LiveSection';
+import Badge from '@/components/Badge';
 
 export const dynamic = 'force-dynamic';
 
@@ -128,14 +129,11 @@ function topBadges(badges = {}) {
     .map(([id, n]) => {
       const def = byId[id];
       return (
-        <span
+        <Badge
           key={id}
-          className="badge"
-          title={def ? `${def.name} (+${def.points}) — ${def.blurb}` : id}
-        >
-          {def?.icon ?? ''}
-          {n > 1 ? `×${n}` : ''}{' '}
-        </span>
+          icon={`${def?.icon ?? '🏅'}${n > 1 ? `×${n}` : ''}`}
+          label={def ? `${def.name} (+${def.points}) — ${def.blurb}${n > 1 ? ` · earned ${n} times` : ''}` : id}
+        />
       );
     });
 }

@@ -60,6 +60,7 @@
     "test:dfs": "node --env-file=.env.local scripts/dfs.test.mjs",
     "test:dfslobby": "node --env-file=.env.local scripts/dfslobby.test.mjs",
     "test:cronweek": "node scripts/cron-week.test.mjs",
+    "test:market": "node scripts/market.test.mjs",
     "test:dfsledger": "node --env-file=.env.local scripts/dfsledger.test.mjs",
     "test:review": "node --env-file=.env.local scripts/review.test.mjs",
     "test:phase": "node --env-file=.env.local scripts/phase.test.mjs"

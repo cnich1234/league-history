@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import MarketTab from './market/MarketTab';
 
 const TABS = [
   { href: '/', label: 'Home', icon: '🏈' },
@@ -29,6 +30,8 @@ export default function Nav() {
           </Link>
         );
       })}
+      {/* Hidden feature: renders nothing unless this person is on its list. */}
+      <MarketTab />
     </nav>
   );
 }

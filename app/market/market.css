@@ -1,0 +1,400 @@
+/*
+ * The Market. Every class is prefixed mk- and this file is imported only by
+ * app/market/layout.js, so nothing here can restyle the rest of the app.
+ * Colours come from the theme tokens in globals.css.
+ */
+
+.mk-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 2px 12px;
+}
+.mk-title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+.mk-sub {
+  color: var(--text-muted);
+  font-size: 12.5px;
+  font-weight: 600;
+  margin-top: 2px;
+}
+.mk-note {
+  color: var(--text-dim);
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 0 2px 12px;
+}
+
+/* Mock | Live */
+.mk-seg {
+  display: inline-flex;
+  flex: none;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+.mk-seg button {
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.mk-seg .mk-seg-on {
+  background: var(--teal-ghost);
+  color: var(--teal);
+}
+
+.mk-search {
+  width: 100%;
+  padding: 11px 14px;
+  margin-bottom: 10px;
+  border-radius: var(--radius);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+}
+.mk-search::placeholder {
+  color: var(--text-dim);
+}
+
+.mk-chips {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 0 2px 8px;
+  scrollbar-width: none;
+}
+.mk-chips::-webkit-scrollbar {
+  display: none;
+}
+.mk-chip {
+  flex: none;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: var(--surface);
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 6px 11px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.mk-chip-on {
+  background: var(--teal-ghost);
+  border-color: rgba(18, 214, 172, 0.35);
+  color: var(--teal);
+}
+
+/* The list */
+.mk-rows {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-top: 4px;
+}
+.mk-rows > * + * {
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+.mk-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  color: inherit;
+  text-decoration: none;
+}
+.mk-row:active {
+  background: var(--surface-hover);
+}
+.mk-row-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.mk-sym {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+}
+.mk-pos {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--text-dim);
+  letter-spacing: 0.4px;
+}
+.mk-name {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mk-row-right {
+  text-align: right;
+  flex: none;
+}
+.mk-price {
+  font-size: 15px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.mk-chg {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.mk-up {
+  color: var(--positive);
+}
+.mk-down {
+  color: var(--negative);
+}
+
+.mk-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 6px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  color: var(--negative);
+}
+.mk-live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--negative);
+  animation: mk-pulse 1.4s ease-in-out infinite;
+}
+@keyframes mk-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+
+/* The stock page */
+.mk-stock-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 2px 6px;
+}
+.mk-stock-name {
+  font-size: 18px;
+  font-weight: 800;
+}
+.mk-quote {
+  padding: 4px 2px 10px;
+}
+.mk-big {
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+.mk-unit {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0;
+}
+.mk-chg-big {
+  font-size: 15px;
+  margin-top: 4px;
+}
+.mk-chg-big .mk-sub {
+  margin-left: 6px;
+  font-weight: 600;
+}
+.mk-ohlc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.mk-chart {
+  width: 100%;
+  min-height: 300px;
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.mk-chart svg {
+  display: block;
+  /* Press and drag reads a candle; the page must not scroll under it. */
+  touch-action: none;
+  user-select: none;
+  cursor: crosshair;
+}
+.mk-chart-empty {
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+  color: var(--text-dim);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.mk-grid {
+  stroke: rgba(255, 255, 255, 0.05);
+  stroke-width: 1;
+}
+.mk-axis {
+  fill: var(--text-dim);
+  font-size: 10px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.mk-axis-prev {
+  fill: var(--text-muted);
+}
+.mk-prev {
+  stroke: rgba(255, 255, 255, 0.35);
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+}
+.mk-candle-up line,
+.mk-candle-up rect {
+  stroke: var(--positive);
+  fill: var(--positive);
+}
+.mk-candle-down line,
+.mk-candle-down rect {
+  stroke: var(--negative);
+  fill: var(--negative);
+}
+.mk-candle-up line,
+.mk-candle-down line {
+  stroke-width: 1;
+}
+.mk-line {
+  fill: none;
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.mk-line-up .mk-line {
+  stroke: var(--positive);
+}
+.mk-line-down .mk-line {
+  stroke: var(--negative);
+}
+.mk-area {
+  fill: url(#mk-fill);
+  stroke: none;
+}
+.mk-vol-up {
+  fill: var(--positive);
+  opacity: 0.35;
+}
+.mk-vol-down {
+  fill: var(--negative);
+  opacity: 0.35;
+}
+.mk-cross line {
+  stroke: rgba(255, 255, 255, 0.5);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+.mk-cross circle {
+  fill: var(--text);
+  stroke: var(--bg);
+  stroke-width: 2;
+}
+
+.mk-ranges {
+  display: flex;
+  gap: 4px;
+  padding: 10px 0 4px;
+}
+.mk-range {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 800;
+  padding: 8px 0;
+  border-radius: 9px;
+  cursor: pointer;
+}
+.mk-range-on {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+.mk-mode {
+  flex: 0 0 44px;
+  font-size: 14px;
+}
+
+.mk-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 10px 0 14px;
+}
+.mk-stats > div {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 9px 11px;
+  font-size: 14px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.mk-stats span {
+  display: block;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--text-dim);
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.mk-trade {
+  width: 100%;
+  padding: 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--text);
+  color: var(--bg);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 800;
+}
+.mk-trade:disabled {
+  opacity: 0.35;
+}

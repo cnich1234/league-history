@@ -146,17 +146,17 @@ console.log('\nbucketing recorded ticks');
 
 console.log('\nthe live price');
 {
-  ok('a 20-point projection is an 80 stock', basePrice(20), 80);
-  ok('before kickoff the price is the base', livePrice({ projection: 20 }), 80);
-  ok('at the final whistle it is the points', livePrice({ projection: 20, points: 27.5, remaining: 0 }), 110);
+  ok('a 20-point projection is a 10-point share', basePrice(20), 10);
+  ok('before kickoff the price is the base', livePrice({ projection: 20 }), 10);
+  ok('at the final whistle it is the points', livePrice({ projection: 20, points: 27.5, remaining: 0 }), 13.75);
   const hot = livePrice({ projection: 15, points: 12, remaining: 0.5 });
-  truthy('running hot at halftime is worth more than the projection says', hot > (12 + 7.5) * 4, `${hot}`);
-  truthy('but not the full pace', hot < 24 * 4, `${hot}`);
+  truthy('running hot at halftime is worth more than the projection says', hot > (12 + 7.5) * 0.5, `${hot}`);
+  truthy('but not the full pace', hot < 24 * 0.5, `${hot}`);
   const cold = livePrice({ projection: 15, points: 2, remaining: 0.5 });
-  truthy('running cold is worth less', cold < (2 + 7.5) * 4, `${cold}`);
-  ok('a goose egg still has a floor', livePrice({ projection: 0, points: 0, remaining: 0 }), 1);
+  truthy('running cold is worth less', cold < (2 + 7.5) * 0.5, `${cold}`);
+  ok('a goose egg still has a floor', livePrice({ projection: 0, points: 0, remaining: 0 }), 0.25);
   // Ten percent in, pace is not yet trusted, so both estimates are the projection's.
-  ok('early in the game pace is ignored', livePrice({ projection: 20, points: 9, remaining: 0.9 }), 108);
+  ok('early in the game pace is ignored', livePrice({ projection: 20, points: 9, remaining: 0.9 }), 13.5);
 }
 
 console.log('\nthe game clock');
@@ -180,14 +180,14 @@ console.log('\nthe game clock');
 console.log('\nwhy did it move');
 {
   const tick = (t, price, points, remaining, projection, status) => ({ t, price, points, remaining, projection, status });
-  const pre = tick(1, 80, 0, 1, 20, 'pre');
-  const kick = tick(2, 80, 0, 1, 20, 'live');
-  const td = tick(3, 98.4, 6, 0.93, 20, 'live');
-  const clock = tick(4, 97.1, 6, 0.9, 20, 'live');
-  const fix = tick(5, 96.2, 5.8, 0.9, 20, 'live');
-  const done = tick(6, 110, 27.5, 0, 20, 'final');
-  const ghost = tick(7, 112, 27.5, 0, 20, 'final');
-  const revised = tick(8, 88, 0, 1, 22, 'pre');
+  const pre = tick(1, 10, 0, 1, 20, 'pre');
+  const kick = tick(2, 10, 0, 1, 20, 'live');
+  const td = tick(3, 12.3, 6, 0.93, 20, 'live');
+  const clock = tick(4, 12.14, 6, 0.9, 20, 'live');
+  const fix = tick(5, 12.02, 5.8, 0.9, 20, 'live');
+  const done = tick(6, 13.75, 27.5, 0, 20, 'final');
+  const ghost = tick(7, 14, 27.5, 0, 20, 'final');
+  const revised = tick(8, 11, 0, 1, 22, 'pre');
 
   ok('kickoff is a status change', explainMove(pre, kick).reason, 'kickoff');
   const scored = explainMove(kick, td);
@@ -210,7 +210,7 @@ console.log('\nwhy did it move');
 
   const csv = trackCsv([kick, td]).split('\n');
   ok('csv has a header and a row per tick', csv.length, 3);
-  ok('csv first row is the first tick', csv[1].includes(',80,0,"first"'), true);
+  ok('csv first row is the first tick', csv[1].includes(',10,0,"first"'), true);
   ok('csv names the reason', csv[2].includes('"scored"'), true);
 }
 

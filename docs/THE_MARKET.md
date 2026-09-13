@@ -50,10 +50,11 @@ crypto is quoted, rather than against a session close.
 
 ### The live price (`lib/market/price.js`)
 
-Fundamental price is the weekly projection times four: a 20-point week is an
-80 stock. In play the price is "what will he finish with": points scored plus
+Fundamental price is half the weekly projection: a 20-point stud is a
+10-point share, a starter 5, a dart throw 2 (it was four times the projection
+for the first Sunday; the tick log was rescaled by 1/8 on 2026-09-13). In play the price is "what will he finish with": points scored plus
 what is still expected, and as the game goes on his own pace counts for up to
-half of the estimate. At the final whistle the price is his points times four.
+half of the estimate. At the final whistle the price is half his points.
 
 ## The universe
 

@@ -100,7 +100,7 @@ export default function MarketList({ initial, source }) {
       <p className="mk-note">
         {source === 'mock'
           ? 'Invented prices on real players. They move with the clock, loudest on Sunday, Monday and Thursday nights.'
-          : 'Real prices: projection times four, repriced from the stat line while his game is on. Change is against the projection. Charts fill in as ticks are logged.'}
+          : 'Real prices in points a share: half his projection, repriced from the stat line while his game is on. Change is against the projection.'}
       </p>
       {data.error && <div className="empty">Could not load the board: {data.error}</div>}
 

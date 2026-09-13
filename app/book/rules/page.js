@@ -262,7 +262,7 @@ export default function RulesPage() {
           <p>
             One contest a week on the <strong>Daily</strong> tab, everybody in, no buy-in.
             Build a lineup under a <strong>$50,000</strong> cap — QB, RB, RB, WR, WR, TE,
-            FLEX, K, DEF — and where you finish pays points into the same bank the store
+            FLEX, DEF — and where you finish pays points into the same bank the store
             spends from: <strong>20</strong> for first, then 17, 13, 10, 8, 5, 3, 2, 1 and
             nothing for last.
           </p>

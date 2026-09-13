@@ -89,13 +89,14 @@ try {
   ok('everything priced was written', built.written, built.priced);
 
   const ids = pool.map((p) => p.player_id).sort();
-  // Kickers ARE priced -- the league's lineup has a K slot and this matches it.
-  ok('kickers are priced', ids.includes('k1'), true);
+  // No slot takes a kicker, so none is priced -- a row nobody can roster is
+  // only noise in the pool.
+  ok('kickers are not priced', ids.includes('k1'), false);
   // A player rated zero is absent, not cheap. Pricing him at the floor would
   // put every inactive in the league on the board at $3,000.
   ok('a player rated at zero is not', ids.includes('ghost'), false);
   ok('nor one missing from the player file', ids.includes('nobody'), false);
-  ok('the rest are', ids, ['JAX', 'k1', 'qb1', 'qb2', 'rb1', 'rb2', 'te1', 'wr1']);
+  ok('the rest are', ids, ['JAX', 'qb1', 'qb2', 'rb1', 'rb2', 'te1', 'wr1']);
 
   console.log('\nevery priced position is one we meant to price');
   ok(

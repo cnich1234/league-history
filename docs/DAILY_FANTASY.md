@@ -92,7 +92,7 @@ One contest, everyone entered, scored on Sleeper's numbers for that NFL week.
 
 Standard DFS shape, matching the league's own lineup so it reads as familiar:
 
-    QB, RB, RB, WR, WR, TE, FLEX (RB/WR/TE), K, DEF     cap $50,000
+    QB, RB, RB, WR, WR, TE, FLEX (RB/WR/TE), DEF     cap $50,000
 
 ### Payouts — the open question
 
@@ -169,15 +169,18 @@ assumption of a 197-point season, and this is a deliberate loosening of it.
 lineup is unaffordable anyway -- $100,100 against a $50,000 cap -- so
 differentiation comes from the budget rather than from a rule.
 
-**Lineup: nine slots.** Started as the league's own Sleeper roster, which
+**Lineup: eight slots.** Started as the league's own Sleeper roster, which
 carries three WRs -- ten slots with the kicker, and ten of eleven positions
-filled before any choice was made. Dropped to two WRs to match traditional DFS:
+filled before any choice was made. Dropped to two WRs to match traditional DFS,
+then dropped the kicker (12 Sep): kickers priced into a band so narrow they
+were a fixed cost rather than a decision, and a slot with no decision in it is
+a tax on the cap.
 
-    QB, RB, RB, WR, WR, TE, FLEX (RB/WR/TE), K, DEF     cap $50,000
+    QB, RB, RB, WR, WR, TE, FLEX (RB/WR/TE), DEF     cap $50,000
 
 FLEX still takes RB, WR or TE, so a third receiver is a decision rather than a
-requirement. Kickers stay in, priced into a narrow band -- closer to a fixed
-cost than a real choice, which is true of kickers.
+requirement. The cap stayed at $50,000 with one slot fewer, so it binds a
+little less than it did.
 
 **The scale was wrong, not the floor.** Lowering the floor to $2,000 barely
 helped, because the complaint was never about cheap players -- it was that good

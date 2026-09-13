@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { getWeeks, getSeasonStandings, byId, ACHIEVEMENTS } from '@/lib/trophies';
+import { WEEKLY_ALLOWANCE } from '@/lib/boosts';
 import { getOwners } from '@/lib/data';
 import { SLEEPER_OWNERS } from '@/scripts/sleeper-owners.mjs';
 import LiveSection from '@/components/LiveSection';
@@ -124,8 +125,19 @@ function topBadges(badges = {}) {
   return Object.entries(badges)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 3)
-    .map(([id, n]) => `${byId[id]?.icon ?? ''}${n > 1 ? `×${n}` : ''}`)
-    .join(' ');
+    .map(([id, n]) => {
+      const def = byId[id];
+      return (
+        <span
+          key={id}
+          className="badge"
+          title={def ? `${def.name} (+${def.points}) — ${def.blurb}` : id}
+        >
+          {def?.icon ?? ''}
+          {n > 1 ? `×${n}` : ''}{' '}
+        </span>
+      );
+    });
 }
 
 function ScoringGuide() {
@@ -145,8 +157,8 @@ function ScoringGuide() {
       <p className="note" style={{ padding: '0 2px 12px' }}>
         Points are currency. They buy <strong>boosts</strong> in The Book — insurance on a
         bet, a better price, or something nastier aimed at everyone else. You also get{' '}
-        <strong>5 a week</strong> regardless, so trophies are roughly half of what you have
-        to spend.
+        <strong>{WEEKLY_ALLOWANCE} a week</strong> regardless, and daily fantasy pays on top,
+        so trophies are about a third of what you have to spend.
       </p>
       <p className="note" style={{ padding: '0 2px 14px' }}>
         Nothing here costs you points. Scoring the least in the league pays 2, and there

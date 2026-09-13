@@ -293,7 +293,11 @@ export const ACHIEVEMENTS = [
     // Needs a real field. With only one started player at a position, the same
     // person would win Best and Worst in the same week, which is nonsense.
     compute: (w) => {
-      const atPos = w.allStarters.filter((p) => p.position === pos);
+      // Only starters who PLAYED. A zero from a bye, an inactive, or a game
+      // not yet kicked off is an absence, not the worst score in the league
+      // -- and mid-week it made every unplayed starter a tie for worst, so
+      // one manager could collect this twice.
+      const atPos = w.allStarters.filter((p) => p.position === pos && p.played);
       if (atPos.length < 2) return [];
       return best(atPos, (p) => -p.points).map((p) => ({
         slug: p.slug,

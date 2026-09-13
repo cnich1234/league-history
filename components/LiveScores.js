@@ -55,6 +55,9 @@ export default function LiveScores({ owners, players, season = [] }) {
           name: players[id]?.n ?? id,
           position: players[id]?.p ?? '?',
           points: +(pts[id] ?? 0).toFixed(2),
+          // Live, a zero means "has not played yet" far more often than
+          // "played and scored nothing". Awards that mean the latter skip it.
+          played: (pts[id] ?? 0) !== 0,
         });
         const starters = starterIds.map(named);
         const bench = benchIds.map(named);
@@ -118,9 +121,16 @@ export default function LiveScores({ owners, players, season = [] }) {
       const median = scores.length % 2 ? scores[mid] : (scores[mid - 1] + scores[mid]) / 2;
 
       const ctx = { teams, games, allStarters, median };
+      // One award per manager per achievement, as the scorer and the database
+      // both enforce. A tie across two of one manager's starters used to show
+      // the same badge twice in the strip.
       const awards = [];
+      const seen = new Set();
       for (const a of ACHIEVEMENTS) {
         for (const w of a.compute(ctx)) {
+          const key = `${w.slug}|${a.id}`;
+          if (seen.has(key)) continue;
+          seen.add(key);
           awards.push({ achievement: a.id, slug: w.slug, detail: w.detail, points: a.points });
         }
       }
@@ -193,40 +203,25 @@ export default function LiveScores({ owners, players, season = [] }) {
               <span className="dim">
                 {state.awards
                   .filter((a) => a.slug === slug)
-                  .map((a) => byId[a.achievement]?.icon)
-                  .join(' ')}
+                  .map((a, j) => {
+                    const def = byId[a.achievement];
+                    return (
+                      <span
+                        key={`${a.achievement}-${j}`}
+                        className="badge"
+                        // Hover (or long-press) says what it is. A strip of
+                        // twelve emoji is a puzzle otherwise.
+                        title={def ? `${def.name} (+${def.points}) — ${def.blurb}${a.detail ? ` · ${a.detail}` : ''}` : a.achievement}
+                      >
+                        {def?.icon}{' '}
+                      </span>
+                    );
+                  })}
               </span>
             </span>
             <span className={`row-value ${pts < 0 ? 'neg' : ''}`}>{pts > 0 ? `+${pts}` : pts}</span>
           </div>
         ))}
-      </div>
-
-      <div className="section-head" style={{ marginTop: 18 }}>
-        <h2>Scoreboard</h2>
-        <span className="dim">points to spend</span>
-      </div>
-      <div className="rows">
-        {state.games.map((g, i) => {
-          // Each side gets its own row so the season total can sit beside the
-          // right name -- a combined "A vs B" row has nowhere to put two
-          // different numbers.
-          const sides = [
-            { name: g.winnerName, slug: g.winnerSlug, points: g.winnerPoints },
-            { name: g.loserName, slug: g.loserSlug, points: g.loserPoints },
-          ];
-          return (
-            <div key={i} className="scoreline">
-              {sides.map((side) => (
-                <div key={side.slug ?? side.name} className="scoreline-row">
-                  <span className="scoreline-name">{side.name}</span>
-                  <span className="scoreline-score">{side.points}</span>
-                  <span className="scoreline-season">{pointsFor(side.slug) ?? '—'}</span>
-                </div>
-              ))}
-            </div>
-          );
-        })}
       </div>
 
       <p className="note">

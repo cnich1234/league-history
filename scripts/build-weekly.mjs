@@ -306,9 +306,18 @@ export async function buildWeek(week) {
     t.winStreak = won ? t.winStreak + 1 : 0;
   }
 
+  // One award per manager per achievement per week -- the rule the database
+  // enforces (weekly_awards_once). The scorer used to emit duplicates when a
+  // tie fell on two of one manager's own starters; the table dropped them
+  // silently, so the week's snapshot said 31 points where the rows -- and the
+  // points actually paid -- said 27. Collapsed here, so the two agree.
   const awards = [];
+  const seen = new Set();
   for (const a of ACHIEVEMENTS) {
     for (const win of a.compute(ctx)) {
+      const key = `${win.slug}|${a.id}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
       awards.push({ achievement: a.id, slug: win.slug, detail: win.detail, points: a.points });
     }
   }

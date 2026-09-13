@@ -282,6 +282,8 @@ export default function StockChart({ initial, source }) {
         )}
       </div>
 
+      {n > 0 && data.note && <p className="mk-note">{data.note}</p>}
+
       <div className="mk-ranges">
         {RANGES.map((r) => (
           <button

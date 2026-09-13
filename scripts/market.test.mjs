@@ -15,7 +15,7 @@ import {
   mockCandles,
 } from '../lib/market/mock.js';
 import { RANGES, rangeWindow, toCandles } from '../lib/market/candles.js';
-import { basePrice, livePrice } from '../lib/market/price.js';
+import { basePrice, livePrice, gameRemaining, gameLive } from '../lib/market/price.js';
 
 let failed = 0;
 const ok = (label, actual, expected) => {
@@ -156,6 +156,24 @@ console.log('\nthe live price');
   ok('a goose egg still has a floor', livePrice({ projection: 0, points: 0, remaining: 0 }), 1);
   // Ten percent in, pace is not yet trusted, so both estimates are the projection's.
   ok('early in the game pace is ignored', livePrice({ projection: 20, points: 9, remaining: 0.9 }), 108);
+}
+
+console.log('\nthe game clock');
+{
+  const game = (status, metadata) => ({ status, metadata });
+  ok('pre-game is all to play', gameRemaining(game('pre_game', { has_started: false })), 1);
+  ok('and not live', gameLive(game('pre_game', { has_started: false })), false);
+  // Verbatim shape from api.sleeper.com/scores on 2026-09-13, CHI at CAR.
+  const q1 = game('in_game', { has_started: true, is_in_progress: true, quarter_num: 1, time_remaining: '4:12' });
+  ok('4:12 left in the first is 0.82 to go', gameRemaining(q1), 0.82);
+  ok('first quarter is live', gameLive(q1), true);
+  ok('start of the third is half', gameRemaining(game('in_game', { has_started: true, quarter_num: 3, time_remaining: '15:00' })), 0.5);
+  ok('two minutes in the fourth', gameRemaining(game('in_game', { has_started: true, quarter_num: 4, time_remaining: '2:00' })), 0.033);
+  ok('no clock falls back to the quarter start', gameRemaining(game('in_game', { has_started: true, quarter_num: 2 })), 0.75);
+  ok('overtime is nearly over', gameRemaining(game('in_game', { has_started: true, is_overtime: true, quarter_num: 5 })), 0.05);
+  ok('final is nothing left', gameRemaining(game('complete', { has_started: true, is_over: true })), 0);
+  ok('and not live', gameLive(game('complete', { has_started: true, is_over: true })), false);
+  ok('no game at all is not live', gameLive(null), false);
 }
 
 console.log(failed ? `\n${failed} FAILED` : '\nall good');

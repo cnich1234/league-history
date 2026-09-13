@@ -20,14 +20,14 @@ off the list.
 
 ## Two price sources
 
-`?source=mock` (the default) and `?source=live`, switched at the top of the
+`?source=live` (the default) and `?source=mock`, switched at the top of the
 watchlist.
 
 | | Mock | Live |
 |---|---|---|
 | Players | real, from this week's Sleeper projections | same |
 | Price now | invented, moves with the clock | projection + Sleeper stat line, repriced in play |
-| History | 90 days of minute prices, computed on demand | none yet |
+| History | 90 days of minute prices, computed on demand | the tick log, from the day it was switched on |
 | Purpose | see the chart work | see the real number |
 
 ### The mock engine (`lib/market/mock.js`)
@@ -90,9 +90,10 @@ discount.
 
 ## Next phases
 
-1. **Tick log.** One row per snapshot holding every price as JSON, written
-   lazily when a page is loaded during games and the last row is stale. Gives
-   the live source a chart. About 1,300 rows a Sunday.
+1. **Tick log** -- done 2026-09-13 (`db/024_market_ticks.sql`,
+   `lib/market/ticks.js`). One row per snapshot holding every price as JSON,
+   written whenever the live board is loaded and the newest row is more than
+   a minute old. About 1,400 rows a Sunday.
 2. **Trading.** Shares, a small table of holdings, an automated market maker
    so buys push the price up and sells push it down, a spread as the points
    sink, a cap on shares per player, weekly dividends for holders, and phase

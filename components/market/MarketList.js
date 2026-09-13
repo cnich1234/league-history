@@ -26,6 +26,7 @@ export default function MarketList({ initial, source }) {
   const [sort, setSort] = useState('movers');
   const [pos, setPos] = useState('ALL');
   const [query, setQuery] = useState('');
+  const [liveOnly, setLiveOnly] = useState(false);
   // The "as of" clock is the viewer's local time, unknown to the server.
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -55,6 +56,7 @@ export default function MarketList({ initial, source }) {
     const by = SORTS.find((s) => s.key === sort)?.by ?? SORTS[0].by;
     return (data.rows ?? [])
       .filter((p) => pos === 'ALL' || p.position === pos)
+      .filter((p) => !liveOnly || p.inGame)
       .filter(
         (p) =>
           !q ||
@@ -63,7 +65,7 @@ export default function MarketList({ initial, source }) {
           (p.team ?? '').toLowerCase().includes(q),
       )
       .sort(by);
-  }, [data, sort, pos, query]);
+  }, [data, sort, pos, query, liveOnly]);
 
   const asOf = data.asOf ? new Date(data.asOf) : null;
   const liveCount = (data.rows ?? []).filter((p) => p.inGame).length;
@@ -111,6 +113,14 @@ export default function MarketList({ initial, source }) {
       />
 
       <div className="mk-chips">
+        <button
+          type="button"
+          className={`mk-chip mk-chip-live ${liveOnly ? 'mk-chip-on' : ''}`}
+          aria-pressed={liveOnly}
+          onClick={() => setLiveOnly((v) => !v)}
+        >
+          <span className="mk-live-dot" /> Live
+        </button>
         {POSITIONS.map((p) => (
           <button
             key={p}
@@ -136,7 +146,9 @@ export default function MarketList({ initial, source }) {
       </div>
 
       <div className="mk-rows">
-        {rows.length === 0 && !data.error && <div className="empty">Nothing matches.</div>}
+        {rows.length === 0 && !data.error && (
+          <div className="empty">{liveOnly ? 'Nobody is in a game right now.' : 'Nothing matches.'}</div>
+        )}
         {rows.map((p) => {
           const up = p.change > 0;
           const down = p.change < 0;

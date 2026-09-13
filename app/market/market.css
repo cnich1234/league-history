@@ -92,6 +92,19 @@
   border-radius: 999px;
   cursor: pointer;
 }
+.mk-chip-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.mk-chip-live .mk-live-dot {
+  background: var(--text-dim);
+  animation: none;
+}
+.mk-chip-live.mk-chip-on .mk-live-dot {
+  background: var(--negative);
+  animation: mk-pulse 1.4s ease-in-out infinite;
+}
 .mk-chip-on {
   background: var(--teal-ghost);
   border-color: rgba(18, 214, 172, 0.35);

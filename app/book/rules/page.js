@@ -44,6 +44,14 @@ export default function RulesPage() {
             A bet showing 🛡️ is insured and cannot be touched. One showing 🎯 has already
             been hit by someone.
           </p>
+          <p>
+            Bets are grouped by where their game is. <strong>Open</strong>: nothing has
+            kicked off, every attack works, and it is the only place Ride Along works.{' '}
+            <strong>Live</strong>: underway and repricing. <strong>Locked</strong>:
+            underway but the price is frozen, like a prop. Both take every attack.{' '}
+            <strong>Closed</strong>: the game is over and nothing can be done to it. The
+            phase comes from the real games, not from the clock.
+          </p>
 
           <h2>The money</h2>
           <p>
@@ -101,8 +109,10 @@ export default function RulesPage() {
             to stack. First one there gets it.
           </p>
           <p>
-            Defences are separate: a bet can still carry an Insurance, a Mirror and a Half
-            Again at the same time. It is only attacks that are one to a customer.
+            Defences are separate: a bet can carry an Insurance, a Mirror and a Half Again
+            at the same time. It is only attacks that are one to a customer. Defences are
+            chosen <strong>when you place the bet</strong>, as tick-boxes on the slip. You
+            cannot shield a bet after somebody has started aiming at it.
           </p>
 
           <h2>Taking a cut</h2>
@@ -145,8 +155,16 @@ export default function RulesPage() {
           <p>
             It is <strong>public and loud</strong>, on The Action. That is the point: the
             target knows to buy Insurance, and everyone else knows there are points sitting
-            on the table. A bounty on a mirrored bet still rebounds, and the claimer
-            collects nothing.
+            on the table. Others can <strong>chip in</strong> to raise the reward, and
+            whatever happens to the bounty happens to everyone who backed it.
+          </p>
+          <p>
+            A bounty on a <strong>mirrored</strong> bet rebounds onto <em>every</em> backer,
+            each on their own biggest unhit bet, and the claimer collects nothing. If the
+            target <strong>undoes</strong> or cashes out the bet, the bounty closes and every
+            backer is refunded. A <strong>Receipt</strong> on a crowd hit names all of them.
+            Bounties only fire while the game is still on: one on a bet that has closed is
+            refunded.
           </p>
 
           <h2>Defending yourself</h2>
@@ -159,9 +177,14 @@ export default function RulesPage() {
           </p>
           <p>
             <strong>🪞 Mirror ({cost('mirror')})</strong> returns a hit instead of absorbing it: whoever
-            fires at a mirrored bet takes the same attack on their own biggest open bet,
+            fires at a mirrored bet takes the same attack on their own biggest unhit bet,
             and they are told it happened. Cheaper than Insurance, because it only pays off
-            if somebody actually comes for you.
+            if somebody actually comes for you. Someone with no bet to rebound onto is
+            simply refunded the attack.
+          </p>
+          <p>
+            Insurance, Mirror and Half Again go on <strong>at placement</strong>, from the
+            slip. There is no adding them later.
           </p>
           <p>
             <strong>👻 Ghost ({cost('ghost')})</strong> takes a different line — your bets vanish from The
@@ -195,13 +218,18 @@ export default function RulesPage() {
           <p>
             <strong>💸 Cash Out ({cost('cash-out')})</strong> settles a live bet early at whatever it is
             currently worth. Up on a position and want it banked before it turns? This.
+            Straight bets only, once the games have started, and not on a bet that has
+            already been hit — an attack rides to settlement. A market that has closed
+            has nothing left to cash.
           </p>
           <p>
             <strong>⏮️ Undo ({cost('undo')})</strong> voids the bet entirely and hands the whole stake
             back — any bet that has not settled, live ones included. Watching one die and
             want out? This. It is the dearest thing in the shop because it removes the
             risk completely, and an undone bet pays nothing even if the side you had
-            backed goes on to win.
+            backed goes on to win. Undo <strong>beats attacks</strong>: a stolen, skimmed or
+            voided bet comes back whole, the attacker&apos;s boost is spent for nothing, and
+            any bounty on it closes with every backer refunded.
           </p>
 
           <h2>Better Price</h2>
@@ -220,7 +248,9 @@ export default function RulesPage() {
           <p>
             <strong>🚗 Ride Along</strong> copies someone else&apos;s bet at their stake
             and their price. You never learn what it is — so it is a bet on the person,
-            not the wager. They lose nothing; you both win or lose together.
+            not the wager. They lose nothing; you both win or lose together. Only while
+            the bet is <strong>Open</strong>: once its game has kicked off there is nothing
+            fair to copy.
           </p>
           <p>
             <strong>🖕 Because, Fuck You</strong> cuts 30% off everything one manager wins
@@ -239,6 +269,32 @@ export default function RulesPage() {
             showing up, whatever your trophies earn, and whatever you place with in{' '}
             <strong>Daily</strong>. A typical manager ends the season with around{' '}
             <strong>300 points</strong> to spend.
+          </p>
+          <p>
+            Trophies and the allowance pay <strong>after the week completes</strong>, on
+            Tuesday. The Trophy Room shows awards as they stand on Sunday, but nothing is
+            yours until the scores are final — they change hands all afternoon.
+          </p>
+
+          <h2>The Market</h2>
+          <p>
+            Every NFL player is a <strong>stock</strong>, priced in points, on the{' '}
+            <strong>Market</strong> tab. A player&apos;s price is half what he is projected
+            to score this week, plus whatever earlier weeks have taught us about him.
+          </p>
+          <p>
+            On game day the price moves <strong>live</strong>: a touchdown jumps it, a quiet
+            afternoon bleeds it, and when his game ends it settles on what he actually did.
+            That result <strong>carries into next week</strong> — most of a big surprise,
+            up or down, stays in his price and fades a little each week — so a stud is
+            expensive and stays expensive, and a bust is cheap until he earns it back. A
+            price really moves only when a player does better or worse than expected.
+          </p>
+          <p>
+            Every week a player scores, a share pays a <strong>dividend</strong> of about
+            5% of his points. That is the reason to own someone whose price barely moves.
+            Buying and selling is not switched on yet; for now the charts are there to
+            watch, and every move on a chart can be traced to what caused it.
           </p>
           <p>
             <strong>No achievement costs you points any more.</strong> Scoring the least in
@@ -388,8 +444,12 @@ export default function RulesPage() {
           <h2>Limits</h2>
           <ul>
             <li>Minimum bet <strong>$10</strong>, maximum <strong>$250</strong></li>
-            <li>One bet per market — no taking both sides</li>
-            <li>No editing or cancelling once placed</li>
+            <li>One bet per market — no taking both sides, unless you own a Hedge</li>
+            <li>
+              A market you have a straight bet on cannot also be a parlay leg, and the other
+              way round
+            </li>
+            <li>No editing or cancelling once placed — only Undo or Cash Out from the shop</li>
           </ul>
 
           <h2>What you can bet</h2>

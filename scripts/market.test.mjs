@@ -159,6 +159,26 @@ console.log('\nthe live price');
   ok('early in the game pace is ignored', livePrice({ projection: 20, points: 9, remaining: 0.9 }), 13.5);
 }
 
+console.log('\nprices carry between weeks');
+{
+  ok('a premium lifts the baseline', basePrice(20, 2.5), 12.5);
+  ok('and the live price', livePrice({ projection: 20, premium: 2.5 }), 12.5);
+  ok('the floor still holds under a negative premium', basePrice(1, -3), 0.25);
+  // A 30-point week on a 20 projection: surprise is 5 in price; three
+  // quarters of it carries.
+  ok('a boom carries three quarters of the surprise', rollPremium({ premium: 0, actual: 30, projection: 20 }), 3.75);
+  ok('a bust carries the loss the same way', rollPremium({ premium: 0, actual: 10, projection: 20 }), -3.75);
+  ok('an old premium fades while a new surprise folds in', rollPremium({ premium: 4, actual: 20, projection: 20 }), 3);
+  ok('a bye week changes nothing', rollPremium({ premium: 4, actual: 0, projection: 0 }), 3);
+  ok('a 20-point week pays one per share', dividendFor(20), 1);
+  ok('a goose egg pays nothing', dividendFor(0), 0);
+  // Tuesday is a step, not a cliff: after the boom the final was 15, the new
+  // baseline on the same projection is 13.75.
+  const final = livePrice({ projection: 20, points: 30, remaining: 0 });
+  const nextBase = basePrice(20, rollPremium({ premium: 0, actual: 30, projection: 20 }));
+  ok('the roll steps down by a quarter of the surprise', [final, nextBase], [15, 13.75]);
+}
+
 console.log('\nthe game clock');
 {
   const game = (status, metadata) => ({ status, metadata });

@@ -56,6 +56,24 @@ for the first Sunday; the tick log was rescaled by 1/8 on 2026-09-13). In play t
 what is still expected, and as the game goes on his own pace counts for up to
 half of the estimate. At the final whistle the price is half his points.
 
+### Prices carry between weeks (`lib/market/baselines.js`)
+
+On top of half the projection every player carries a **premium**: what the
+surprises of earlier weeks have added to or taken from him. At the roll (the
+first tick after Sleeper flips the week, run by the per-minute cron) each
+player's premium takes on the whole of last week's surprise in price terms
+and then decays a quarter:
+
+    premium_next = 0.75 × (premium + 0.5 × (actual − projection))
+
+A 30-point week on a 20 projection finishes at 15 and opens the next week at
+13.75 on the same projection: a step, not a cliff. A 10-point bust opens at
+6.25. Old surprises fade over about a month, so a price cannot drift away
+from the projection forever. Week 1 carries nothing. The roll also records
+the week's **dividend** per share, 5% of the points (a 20-point week pays 1),
+for when shares exist. `npm run test:marketroll` exercises the roll against a
+sentinel season with injected feeds.
+
 ## The universe
 
 Top 150 by projection across QB, RB, WR, TE and DEF, one Sleeper call, cached

@@ -463,3 +463,12 @@
 .mk-why-odd .mk-why-reason {
   color: var(--negative);
 }
+.mk-unit-sm {
+  display: inline;
+  margin-left: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: none;
+  letter-spacing: 0;
+}

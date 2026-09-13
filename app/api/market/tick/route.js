@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { snapshot } from '@/lib/market/source';
+import { ensureRolled } from '@/lib/market/baselines';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,7 +17,10 @@ export async function GET(request) {
     return NextResponse.json({ error: 'Not allowed.' }, { status: 401 });
   }
   try {
-    return NextResponse.json(await snapshot());
+    const snap = await snapshot();
+    // The first tick after Sleeper flips the week rolls the premiums forward.
+    const roll = await ensureRolled(snap.season, snap.week).catch((e) => ({ error: e.message }));
+    return NextResponse.json({ ...snap, roll });
   } catch (e) {
     return NextResponse.json({ error: e.message }, { status: 502 });
   }

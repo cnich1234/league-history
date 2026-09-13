@@ -397,6 +397,19 @@ export default function StockChart({ initial, source }) {
             {fmt(player.points)}
           </div>
         )}
+        {source === 'live' && (
+          <div>
+            <span>Carried</span>
+            {signed(player.premium ?? 0)}
+          </div>
+        )}
+        {source === 'live' && player.dividend != null && (
+          <div>
+            <span>Last dividend</span>
+            {fmt(player.dividend)}
+            <span className="mk-unit-sm">/share on {fmt(player.lastActual)} pts</span>
+          </div>
+        )}
       </div>
 
       <button type="button" className="mk-trade" disabled>

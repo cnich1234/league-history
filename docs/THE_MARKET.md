@@ -4,9 +4,10 @@ A play stock market where every NFL player is a ticker. You buy shares with
 points, watch the price move, and sell when you like. Phase 1 is the watchlist
 and the chart; trading comes later.
 
-**Hidden.** Only the slugs in `lib/market/access.js` see the nav tab, the pages
-or the API. Everyone else gets a 404. Opening it to the league is one edit
-there.
+**Open to anyone signed in** as a watch-only preview. `MARKET_OPEN` in
+`lib/market/access.js` pulls it back to the testers list; the nav tab, the
+pages and the API all ask that one function, and signed-out visitors get a
+404 either way.
 
 **Decoupled.** Everything lives in `lib/market/`, `app/market/`,
 `app/api/market/` and `components/market/`, with its own stylesheet (`mk-`
@@ -96,4 +97,4 @@ discount.
    so buys push the price up and sells push it down, a spread as the points
    sink, a cap on shares per player, weekly dividends for holders, and phase
    rules for when trading freezes.
-3. **Open it up.** Remove the testers gate.
+3. **Open trading up** once it has been tested behind the testers gate.

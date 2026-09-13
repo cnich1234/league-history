@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import PlayerPhoto from '@/components/PlayerPhoto';
 
@@ -23,7 +22,6 @@ const signed = (n) => `${n > 0 ? '+' : n < 0 ? '-' : ''}${fmt(Math.abs(n))}`;
  * visible, so on a Sunday the numbers move without a reload.
  */
 export default function MarketList({ initial, source }) {
-  const router = useRouter();
   const [data, setData] = useState(initial);
   const [sort, setSort] = useState('movers');
   const [pos, setPos] = useState('ALL');
@@ -91,25 +89,15 @@ export default function MarketList({ initial, source }) {
             )}
           </div>
         </div>
-        <div className="mk-seg" role="tablist" aria-label="Price source">
-          {['mock', 'live'].map((s) => (
-            <button
-              key={s}
-              type="button"
-              role="tab"
-              aria-selected={source === s}
-              className={source === s ? 'mk-seg-on' : ''}
-              onClick={() => router.push(`/market?source=${s}`)}
-            >
-              {s === 'mock' ? 'Mock' : 'Live'}
-            </button>
-          ))}
-        </div>
+        {/* The Mock/Live switch is hidden now that the feed is real. The mock
+            still answers to ?source=mock for anyone who wants to see a chart
+            with ninety days behind it. */}
+        {source === 'mock' && <span className="pill">Mock prices</span>}
       </div>
 
       <p className="mk-note">
         {source === 'mock'
-          ? 'Invented prices on real players. They move with the clock, loudest on Sunday, Monday and Thursday nights. Switch to Live for the real feed.'
+          ? 'Invented prices on real players. They move with the clock, loudest on Sunday, Monday and Thursday nights.'
           : 'Real prices: projection times four, repriced from the stat line while his game is on. Change is against the projection. Charts fill in as ticks are logged.'}
       </p>
       {data.error && <div className="empty">Could not load the board: {data.error}</div>}

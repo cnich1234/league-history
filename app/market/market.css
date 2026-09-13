@@ -411,3 +411,55 @@
 .mk-trade:disabled {
   opacity: 0.35;
 }
+
+/* Why did it move */
+.mk-why {
+  margin-top: 22px;
+}
+.mk-why-rows {
+  margin-top: 8px;
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+.mk-why-rows > * + * {
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+.mk-why-row {
+  display: grid;
+  grid-template-columns: 92px 58px 1fr;
+  grid-template-areas:
+    'time delta reason'
+    'time delta detail';
+  column-gap: 10px;
+  padding: 9px 12px;
+  font-size: 12px;
+  align-items: center;
+}
+.mk-why-time {
+  grid-area: time;
+  color: var(--text-dim);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.mk-why-delta {
+  grid-area: delta;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.mk-why-reason {
+  grid-area: reason;
+  font-weight: 800;
+}
+.mk-why-detail {
+  grid-area: detail;
+  color: var(--text-muted);
+}
+.mk-why-odd {
+  background: rgba(255, 92, 92, 0.08);
+}
+.mk-why-odd .mk-why-reason {
+  color: var(--negative);
+}

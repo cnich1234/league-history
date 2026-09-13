@@ -20,6 +20,75 @@ function axisStamp(t, range) {
 const fullStamp = (t) =>
   new Date(t).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
 
+/**
+ * Why did it move. Every recorded move in the range with the input that
+ * caused it, newest first. An UNEXPLAINED row is a price that changed while
+ * no input did, which is a bug worth a look. Live source only: the mock has
+ * no inputs, only noise.
+ */
+function WhyPanel({ ticker, range, mounted }) {
+  const [data, setData] = useState(null);
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    const load = () =>
+      fetch(`/api/market/why?ticker=${encodeURIComponent(ticker)}&range=${range}`, { cache: 'no-store' })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => alive && d && setData(d))
+        .catch(() => {});
+    load();
+    const id = setInterval(() => {
+      if (document.visibilityState === 'visible') load();
+    }, POLL_MS);
+    return () => {
+      alive = false;
+      clearInterval(id);
+    };
+  }, [ticker, range]);
+
+  const moves = data?.moves ?? [];
+  const shown = open ? moves : moves.slice(0, 12);
+  const odd = moves.filter((m) => m.reason === 'UNEXPLAINED').length;
+
+  return (
+    <div className="mk-why">
+      <div className="section-head">
+        <h2>Why did it move</h2>
+        <a href={`/api/market/why?ticker=${encodeURIComponent(ticker)}&range=${range}&format=csv`}>
+          CSV
+        </a>
+      </div>
+      {data && (
+        <div className="mk-sub">
+          {data.ticks} ticks in this range · {moves.length} moves
+          {odd > 0 && <span className="mk-down"> · {odd} unexplained</span>}
+        </div>
+      )}
+      <div className="mk-why-rows">
+        {shown.length === 0 && (
+          <div className="empty">{data ? 'No moves recorded in this range.' : 'Loading…'}</div>
+        )}
+        {shown.map((m) => (
+          <div key={m.t} className={`mk-why-row ${m.reason === 'UNEXPLAINED' ? 'mk-why-odd' : ''}`}>
+            <span className="mk-why-time">{mounted ? fullStamp(m.t) : ''}</span>
+            <span className={`mk-why-delta ${m.delta > 0 ? 'mk-up' : m.delta < 0 ? 'mk-down' : ''}`}>
+              {signed(m.delta)}
+            </span>
+            <span className="mk-why-reason">{m.reason}</span>
+            <span className="mk-why-detail">{m.detail}</span>
+          </div>
+        ))}
+      </div>
+      {moves.length > 12 && (
+        <button type="button" className="mk-chip" onClick={() => setOpen((o) => !o)}>
+          {open ? 'Show fewer' : `Show all ${moves.length}`}
+        </button>
+      )}
+    </div>
+  );
+}
+
 /* Chart geometry, in CSS pixels. The svg is as wide as its container. */
 const H = 300;
 const PAD = { top: 12, right: 50, bottom: 22, left: 6 };
@@ -333,6 +402,8 @@ export default function StockChart({ initial, source }) {
       <button type="button" className="mk-trade" disabled>
         Trade · coming soon
       </button>
+
+      {source === 'live' && <WhyPanel ticker={player.ticker} range={range} mounted={mounted} />}
     </section>
   );
 }

@@ -94,8 +94,17 @@ discount.
    `lib/market/ticks.js`). One row per snapshot holding every price as JSON,
    written whenever the live board is loaded and the newest row is more than
    a minute old. About 1,400 rows a Sunday.
-2. **Trading.** Shares, a small table of holdings, an automated market maker
+2. **Why it moved** -- done 2026-09-13 (`db/025_market_inputs.sql`,
+   `lib/market/why.js`). Every tick also records the inputs behind each price
+   (points, share of game left, projection, status). The stock page's "Why
+   did it move" panel diffs consecutive ticks and names the cause of every
+   move; a price that changed with no input change is flagged UNEXPLAINED.
+   `/api/market/why?ticker=BROB&range=1D&format=csv` dumps the raw track.
+   A per-minute Vercel cron (`/api/market/tick`, Pro plan) keeps the log
+   gap-free: a tick a minute while any game is on, a quarter hour otherwise.
+   Storage is about 8 KB a tick, a few MB a Sunday.
+3. **Trading.** Shares, a small table of holdings, an automated market maker
    so buys push the price up and sells push it down, a spread as the points
    sink, a cap on shares per player, weekly dividends for holders, and phase
    rules for when trading freezes.
-3. **Open trading up** once it has been tested behind the testers gate.
+4. **Open trading up** once it has been tested behind the testers gate.

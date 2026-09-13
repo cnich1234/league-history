@@ -16,6 +16,7 @@ import {
 } from '../lib/market/mock.js';
 import { RANGES, rangeWindow, toCandles } from '../lib/market/candles.js';
 import { basePrice, livePrice, gameRemaining, gameLive } from '../lib/market/price.js';
+import { explainMove, explainTrack, trackCsv } from '../lib/market/why.js';
 
 let failed = 0;
 const ok = (label, actual, expected) => {
@@ -174,6 +175,43 @@ console.log('\nthe game clock');
   ok('final is nothing left', gameRemaining(game('complete', { has_started: true, is_over: true })), 0);
   ok('and not live', gameLive(game('complete', { has_started: true, is_over: true })), false);
   ok('no game at all is not live', gameLive(null), false);
+}
+
+console.log('\nwhy did it move');
+{
+  const tick = (t, price, points, remaining, projection, status) => ({ t, price, points, remaining, projection, status });
+  const pre = tick(1, 80, 0, 1, 20, 'pre');
+  const kick = tick(2, 80, 0, 1, 20, 'live');
+  const td = tick(3, 98.4, 6, 0.93, 20, 'live');
+  const clock = tick(4, 97.1, 6, 0.9, 20, 'live');
+  const fix = tick(5, 96.2, 5.8, 0.9, 20, 'live');
+  const done = tick(6, 110, 27.5, 0, 20, 'final');
+  const ghost = tick(7, 112, 27.5, 0, 20, 'final');
+  const revised = tick(8, 88, 0, 1, 22, 'pre');
+
+  ok('kickoff is a status change', explainMove(pre, kick).reason, 'kickoff');
+  const scored = explainMove(kick, td);
+  ok('scoring beats the clock', scored.reason, 'scored');
+  ok('with the points and the clock in the detail', scored.detail, '+6 pts (0 to 6) · 93% of game left');
+  ok('a quiet minute is the clock', explainMove(td, clock).reason, 'clock');
+  ok('points going down is a stat correction', explainMove(clock, fix).reason, 'stat correction');
+  const final = explainMove(fix, done);
+  ok('the final whistle', final.reason, 'final whistle');
+  ok('says where it settled', final.detail.startsWith('settled at 27.5 pts'), true);
+  ok('a move with no input change is flagged', explainMove(done, ghost).reason, 'UNEXPLAINED');
+  ok('a new week with a new projection', explainMove(ghost, revised).reason, 'new week');
+  ok('no inputs on old rows is said, not guessed', explainMove({ t: 0, price: 1 }, { t: 1, price: 2 }).reason, 'no inputs');
+
+  const track = [pre, kick, td, clock, clock, fix, done, ghost];
+  const moves = explainTrack(track);
+  ok('quiet ticks are dropped', moves.length, 6);
+  ok('newest first', moves[0].t, 8 - 1);
+  ok('quiet ticks kept on request', explainTrack(track, { includeQuiet: true }).length, 7);
+
+  const csv = trackCsv([pre, td]).split('\n');
+  ok('csv has a header and a row per tick', csv.length, 3);
+  ok('csv first row is the first tick', csv[1].includes(',80,0,"first"'), true);
+  ok('csv names the reason', csv[2].includes('"scored"'), true);
 }
 
 console.log(failed ? `\n${failed} FAILED` : '\nall good');

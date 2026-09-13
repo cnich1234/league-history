@@ -27,10 +27,18 @@ export default function LiveScores({ owners, players, season = [] }) {
     try {
       const nfl = await fetch('https://api.sleeper.app/v1/state/nfl').then((r) => r.json());
       const week = nfl.week;
-      const [users, rosters, matchups] = await Promise.all([
+      const [users, rosters, matchups, transactions] = await Promise.all([
         fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}/users`).then((r) => r.json()),
         fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}/rosters`).then((r) => r.json()),
         fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}/matchups/${week}`).then((r) => r.json()),
+        // Trades and pickups, the same feed the Tuesday scorer reads. A
+        // completed trade is a fact, not a score in progress, so there is no
+        // reason to hold Wheeler Dealer back until the week is scored -- and it
+        // was, because this view never asked. A failure costs two awards, not
+        // the strip.
+        fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}/transactions/${week}`)
+          .then((r) => (r.ok ? r.json() : []))
+          .catch(() => []),
       ]);
 
       if (!matchups.some((m) => m.points > 0)) {
@@ -54,6 +62,7 @@ export default function LiveScores({ owners, players, season = [] }) {
         const benchIds = (m.players ?? []).filter((id) => !starterIds.includes(id));
 
         const named = (id) => ({
+          id,
           name: players[id]?.n ?? id,
           position: players[id]?.p ?? '?',
           points: +(pts[id] ?? 0).toFixed(2),
@@ -125,7 +134,29 @@ export default function LiveScores({ owners, players, season = [] }) {
       // Not started means not in the running: a team with nobody played is
       // not a candidate, a game with an unstarted side is not a game yet, and
       // an unplayed starter is not the best or worst at anything.
-      const ctx = inTheRunning({ teams, games, allStarters, median });
+      // Who traded, and who picked someone up -- keyed by roster, then mapped
+      // to a manager. Mirrors scripts/build-weekly.mjs.
+      const slugOfRoster = (rosterId) => owners[rosterById[rosterId]?.owner_id]?.slug ?? null;
+      const tradedRosters = new Set();
+      const pickups = [];
+      for (const t of Array.isArray(transactions) ? transactions : []) {
+        if (t.status !== 'complete') continue;
+        if (t.type === 'trade') {
+          for (const r of t.roster_ids ?? []) tradedRosters.add(r);
+          continue;
+        }
+        if (t.type === 'waiver' || t.type === 'free_agent') {
+          for (const [playerId, rosterId] of Object.entries(t.adds ?? {})) {
+            pickups.push({ playerId, rosterId, slug: slugOfRoster(rosterId) });
+          }
+        }
+      }
+      const traded = [...tradedRosters].map(slugOfRoster).filter(Boolean);
+
+      const ctx = inTheRunning({
+        teams, games, allStarters, median, traded,
+        pickups: pickups.filter((p) => p.slug),
+      });
       // One award per manager per achievement, as the scorer and the database
       // both enforce. A tie across two of one manager's starters used to show
       // the same badge twice in the strip.

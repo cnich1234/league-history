@@ -23,7 +23,23 @@
   "crons": [
     {
       "path": "/api/cron",
+      "schedule": "30 4 * * 2"
+    },
+    {
+      "path": "/api/cron",
+      "schedule": "0 6 * * 2"
+    },
+    {
+      "path": "/api/cron",
       "schedule": "0 9 * * 2"
+    },
+    {
+      "path": "/api/cron",
+      "schedule": "0 15 * * 2"
+    },
+    {
+      "path": "/api/cron",
+      "schedule": "0 9 * * 3"
     },
     {
       "path": "/api/market/tick",

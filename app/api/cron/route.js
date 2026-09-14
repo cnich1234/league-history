@@ -35,14 +35,17 @@ export async function GET(request) {
 
     // The last week that is actually FINISHED, or null when none is.
     //
-    // Sleeper advances `week` once a week's games are done, so `week - 1` is
-    // complete -- but only when there IS a previous week. This used to read
-    // `Math.max(1, week - 1)`, and during week 1 that floor collapsed to week 1
-    // itself: the cron scored trophies, settled daily fantasy and expired
-    // bounties against a week still being played, paying out on partial scores.
-    // A floor is the wrong shape here. "No completed week yet" is not week 1,
-    // it is nothing, and every step below has to skip rather than guess.
-    const priorWeek = week > 1 ? week - 1 : null;
+    // This used to be `week - 1`, keyed to Sleeper advancing its counter --
+    // which it does some hours after the Monday game, at a time of its own
+    // choosing. A run just after Monday night could find the counter unmoved,
+    // skip every payout, and not try again until the next scheduled run. Now
+    // the current week counts as finished once every one of its games is
+    // final, so the first run after Monday night settles it. (Before that
+    // guard existed at all, `Math.max(1, week - 1)` floored to week 1 and paid
+    // out on a week still being played. "No completed week yet" is not week
+    // 1, it is nothing, and every step below has to skip rather than guess.)
+    const { completedWeek } = await import('@/lib/cron');
+    const priorWeek = await completedWeek(season, week);
 
     // Backstop for locking, which normally happens on the live poll. If nobody
     // opened the app all weekend, markets would still be 'open' here -- and
@@ -63,10 +66,11 @@ export async function GET(request) {
       log.push(`lock skipped: ${e.message}`);
     }
 
-    // Settle everything before the current week that is still open. Catches up
-    // automatically if a run was missed rather than leaving bets pending.
+    // Settle every finished week that is still open, the just-finished one
+    // included. Catches up automatically if a run was missed rather than
+    // leaving bets pending.
     const { settleWeek } = await import('@/lib/cron');
-    for (let w = Math.max(1, week - 3); w < week; w++) {
+    for (let w = Math.max(1, week - 3); w <= (priorWeek ?? 0); w++) {
       const result = await settleWeek(sql, season, w);
       if (result.settled || result.voided) {
         log.push(`week ${w}: settled ${result.settled}, voided ${result.voided}`);
@@ -247,10 +251,21 @@ export async function GET(request) {
       log.push(`money allowance skipped: ${e.message}`);
     }
 
-    // Build the current week's board if it does not exist yet.
-    const { buildWeek } = await import('@/lib/cron');
-    const built = await buildWeek(sql, season, week);
-    log.push(`week ${week}: ${built.created} market(s) created, ${built.skipped} existing`);
+    // Build the current week's board if it does not exist yet -- and ONLY
+    // then. The builder dedupes market by market, so re-running it once lines
+    // have moved adds a second spread at the new number beside the first: a
+    // rerun mid-week 1 created 47 such markets on games already played. The
+    // cron now runs several times a Tuesday, so a week with any market at all
+    // is left alone.
+    const [{ n: existing }] = await sql`
+      select count(*)::int as n from markets where season = ${season} and week = ${week}`;
+    if (existing > 0) {
+      log.push(`week ${week}: board already built (${existing} market(s))`);
+    } else {
+      const { buildWeek } = await import('@/lib/cron');
+      const built = await buildWeek(sql, season, week);
+      log.push(`week ${week}: ${built.created} market(s) created, ${built.skipped} existing`);
+    }
 
     return NextResponse.json({ ok: true, season, week, log });
   } catch (e) {

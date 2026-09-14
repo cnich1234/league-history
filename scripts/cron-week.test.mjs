@@ -10,6 +10,7 @@
  * null and every week-dependent step skips.
  */
 import { readFileSync } from 'node:fs';
+import { weekIsFinished, completedWeek } from '../lib/cron.js';
 
 let failed = 0;
 const ok = (name, cond) => {
@@ -26,6 +27,22 @@ ok('week 2 points at week 1', priorWeek(2) === 1);
 ok('week 3 points at week 2', priorWeek(3) === 2);
 ok('week 14 points at week 13', priorWeek(14) === 13);
 
+
+console.log('\nthe finished-week helper settles right after Monday night');
+{
+  const game = (status, over = status === 'complete') => ({ status, metadata: { is_over: over } });
+  ok('an empty feed is not a finished week', weekIsFinished([]) === false);
+  ok('a game still to play is not finished', weekIsFinished([game('complete'), game('pre_game', false)]) === false);
+  ok('a game in progress is not finished', weekIsFinished([game('complete'), game('in_game', false)]) === false);
+  ok('every game final is finished', weekIsFinished([game('complete'), game('complete')]) === true);
+  ok('the keyed object shape works too', weekIsFinished({ a: game('complete') }) === true);
+  const done = [game('complete'), game('complete')];
+  const live = [game('complete'), game('in_game', false)];
+  ok('week 1 with games left is nothing', (await completedWeek(2026, 1, { games: live })) === null);
+  ok('week 1 with every game final is week 1, before Sleeper flips', (await completedWeek(2026, 1, { games: done })) === 1);
+  ok('week 2 with games left points at week 1', (await completedWeek(2026, 2, { games: live })) === 1);
+  ok('week 2 all final is week 2', (await completedWeek(2026, 2, { games: done })) === 2);
+}
 console.log('\nnever pays out on a live week');
 for (const w of [1, 2, 3, 8, 14, 18]) {
   const p = priorWeek(w);
@@ -47,7 +64,8 @@ const code = src
   .filter((l) => !l.trim().startsWith('//') && !l.trim().startsWith('*'))
   .join('\n');
 ok('no Math.max(1, week - 1) in cron code', !/Math\.max\(\s*1\s*,\s*week\s*-\s*1\s*\)/.test(code));
-ok('guard is defined', /const priorWeek = week > 1 \? week - 1 : null/.test(code));
+ok('guard is the finished-week helper', /const priorWeek = await completedWeek\(season, week\)/.test(code));
+ok('settlement includes the finished week', /w <= \(priorWeek \?\? 0\)/.test(code));
 
 // Every week-dependent step must refuse to run when nothing has finished.
 const guarded = (code.match(/if \(priorWeek == null\) throw new Error\('no completed week yet'\)/g) ?? []).length;

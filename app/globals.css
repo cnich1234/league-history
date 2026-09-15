@@ -2530,6 +2530,12 @@ tbody tr:last-child td {
   overflow-wrap: anywhere;
 }
 
+.mm-unset {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 0.3px;
+}
 .mm-injury {
   color: var(--negative);
   font-weight: 800;

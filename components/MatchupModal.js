@@ -113,6 +113,10 @@ function Player({ p, started, align }) {
       <span className="mm-name">
         {p.name}
         {p.injury && <span className="mm-injury"> {p.injury.slice(0, 1)}</span>}
+        {/* Filled in by the model: the slot is empty or holds someone worse.
+            Prices assume the best available lineup, so benching cannot move
+            a line -- but the manager should see what he is being priced on. */}
+        {p.id && p.set === false && <span className="mm-unset"> not set</span>}
       </span>
       <span className="mm-meta">
         {p.team ?? '—'}

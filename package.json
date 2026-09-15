@@ -61,6 +61,7 @@
     "test:dfslobby": "node --env-file=.env.local scripts/dfslobby.test.mjs",
     "test:cronweek": "node scripts/cron-week.test.mjs",
     "test:market": "node scripts/market.test.mjs",
+    "test:lineup": "node scripts/lineup.test.mjs",
     "test:marketroll": "node --env-file=.env.local scripts/marketroll.test.mjs",
     "test:markettrade": "node --env-file=.env.local scripts/markettrade.test.mjs",
     "test:dfsledger": "node --env-file=.env.local scripts/dfsledger.test.mjs",

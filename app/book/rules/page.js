@@ -457,6 +457,16 @@ export default function RulesPage() {
             still bet against it.
           </p>
 
+          <h2>Your lineup does not move your line</h2>
+          <p>
+            Every price on a matchup, spread, total or showdown assumes the{' '}
+            <strong>best lineup your roster can still field</strong>, not the one you have
+            set. Bench your studs on Thursday and your odds do not budge, because the model
+            assumes you will put them back. Once a player&apos;s game kicks off he is locked
+            in Sleeper and counts as set, points and all. The only way to move your own price
+            is to actually start a worse team, which costs you a real game.
+          </p>
+
           <h2>Limits</h2>
           <ul>
             <li>Minimum bet <strong>$10</strong>, maximum <strong>$250</strong></li>

@@ -3,6 +3,7 @@ import { currentBettor } from '@/lib/auth';
 import { neon } from '@neondatabase/serverless';
 import { teamGameDates } from '@/lib/schedule';
 import { SLEEPER_OWNERS } from '@/lib/sleeper-owners';
+import { expectedLineup, DEFAULT_SLOTS } from '@/lib/lineup';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,13 +30,17 @@ export async function GET(request) {
   }
 
   try {
-    const [state, users, rosters, matchups] = await Promise.all([
+    const [state, users, rosters, matchups, league] = await Promise.all([
       fetch('https://api.sleeper.app/v1/state/nfl').then((r) => r.json()),
       fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}/users`).then((r) => r.json()),
       fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}/rosters`).then((r) => r.json()),
       fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}/matchups/${week}`).then((r) => r.json()),
+      fetch(`https://api.sleeper.app/v1/league/${LEAGUE_ID}`).then((r) => r.json()).catch(() => null),
     ]);
     const season = Number(state.season);
+    const slots = Array.isArray(league?.roster_positions) && league.roster_positions.length
+      ? league.roster_positions
+      : DEFAULT_SLOTS;
 
     const [projRows, gameDates] = await Promise.all([
       fetch(
@@ -67,21 +72,43 @@ export async function GET(request) {
       const owner = SLEEPER_OWNERS[roster?.owner_id];
       const user = userById[roster?.owner_id];
       const m = matchups.find((x) => x.roster_id === rosterId);
-      const starters = (m?.starters ?? []).filter((id) => id && id !== '0');
+      // The lineup the matchup is PRICED on: locked starters as set, every
+      // open slot filled with the best available player (lib/lineup.js).
+      // A starter with points on the board has kicked off and is locked.
+      const setStarters = (m?.starters ?? []).map((x) => (x && x !== '0' ? String(x) : null));
+      const pointsOf = (id) => {
+        const i = setStarters.indexOf(id);
+        return i >= 0 ? Number(m?.starters_points?.[i] ?? 0) : 0;
+      };
+      const entries = expectedLineup(m ?? {}, {
+        slots,
+        positionOf: (id) => info[id]?.position ?? null,
+        projectionOf: (id) => {
+          const p = info[id];
+          if (!p) return 0;
+          if (p.team && !gameDates[p.team]) return 0;
+          return p.projection ?? 0;
+        },
+        kickedOff: (id) => pointsOf(id) > 0,
+        unavailable: new Set([...(roster?.reserve ?? []), ...(roster?.taxi ?? [])].map(String)),
+      });
 
-      const players = starters.map((id, i) => {
-        const p = info[id] ?? {};
+      const players = entries.map(({ id, slot, index }) => {
+        const p = (id && info[id]) || {};
         const date = p.team ? gameDates[p.team] : null;
         return {
           id,
-          name: p.name || 'Empty slot',
-          position: p.position ?? '?',
+          slot,
+          // Set in this slot right now, or filled in by the model.
+          set: id != null && index != null,
+          name: id ? p.name || String(id) : 'Empty slot',
+          position: p.position ?? slot,
           team: p.team,
           opponent: p.opponent,
           injury: p.injury,
-          projection: p.projection,
+          projection: id ? p.projection : null,
           // Live points once games start; zero before kickoff.
-          points: Number(m?.starters_points?.[i] ?? 0),
+          points: id ? pointsOf(id) : 0,
           day: date
             ? new Date(`${date}T12:00:00Z`).toLocaleDateString('en-US', {
                 weekday: 'short',
@@ -98,6 +125,8 @@ export async function GET(request) {
         points: Number(m?.points ?? 0),
         projected:
           Math.round(players.reduce((sum, p) => sum + (p.projection ?? 0), 0) * 10) / 10,
+        // How many slots the model had to fill in because they were not set.
+        unset: players.filter((p) => p.id && !p.set).length,
         players,
       };
     };

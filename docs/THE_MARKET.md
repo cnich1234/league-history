@@ -1,11 +1,12 @@
 # The Market
 
 A play stock market where every NFL player is a ticker. You buy shares with
-points, watch the price move, and sell when you like. Phase 1 is the watchlist
-and the chart; trading comes later.
+points, watch the price move, and sell when you like. Watchlist, charts,
+trading and dividends are all live as of 2026-09-15.
 
-**Open to anyone signed in** as a watch-only preview. `MARKET_OPEN` in
-`lib/market/access.js` pulls it back to the testers list; the nav tab, the
+**Open to anyone signed in**, trading included. `MARKET_OPEN` and
+`MARKET_TRADING_OPEN` in `lib/market/access.js` pull either back to the
+testers list; the nav tab, the
 pages and the API all ask that one function, and signed-out visitors get a
 404 either way.
 
@@ -123,8 +124,8 @@ discount.
    gap-free: a tick a minute while any game is on, a quarter hour otherwise.
    Storage is about 8 KB a tick, a few MB a Sunday.
 3. **Trading** -- built 2026-09-14 (`db/027_market_trading.sql`,
-   `lib/market/trading.js`), behind `MARKET_TRADING_OPEN` in `access.js` for
-   the testers first. The rules, all enforced in `trading.js`:
+   `lib/market/trading.js`); opened to the whole league on 2026-09-15
+   (`MARKET_TRADING_OPEN` in `access.js`). The rules, all enforced in `trading.js`:
    - **Spread 5%.** A buy fills at the ask (price x 1.025), a sell at the bid
      (price x 0.975). The gap is the points sink.
    - **Whole points.** The ledger is integers: a buy costs the ask rounded up,
@@ -144,6 +145,6 @@ discount.
    - Screens: the trade sheet on the stock page, `/market/portfolio`, "own N"
      on the watchlist. `npm run test:markettrade` covers the arithmetic,
      placement rules, fills, rejections and dividends in a sentinel season.
-   - Not yet: demand moving the price (a market maker), phase rules that
-     freeze trading, and the rules-page copy, which still says trading is off.
-4. **Open trading up** once it has been tested behind the testers gate.
+   - Not yet: demand moving the price (a market maker) and phase rules that
+     freeze trading.
+4. **Open trading up** -- done 2026-09-15.

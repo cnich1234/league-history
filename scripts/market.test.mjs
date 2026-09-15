@@ -15,7 +15,7 @@ import {
   mockCandles,
 } from '../lib/market/mock.js';
 import { RANGES, rangeWindow, toCandles } from '../lib/market/candles.js';
-import { basePrice, livePrice, gameRemaining, gameLive } from '../lib/market/price.js';
+import { basePrice, livePrice, gameRemaining, gameLive, rollPremium, dividendFor } from '../lib/market/price.js';
 import { explainMove, explainTrack, trackCsv } from '../lib/market/why.js';
 
 let failed = 0;

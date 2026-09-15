@@ -292,10 +292,25 @@ export default function RulesPage() {
             price really moves only when a player does better or worse than expected.
           </p>
           <p>
-            Every week a player scores, a share pays a <strong>dividend</strong> of about
-            5% of his points. That is the reason to own someone whose price barely moves.
-            Buying and selling is not switched on yet; for now the charts are there to
-            watch, and every move on a chart can be traced to what caused it.
+            Every week a player scores, a share pays a <strong>dividend</strong> of 5% of
+            his points, paid into your points at the week&apos;s roll and rounded down. That is
+            the reason to own someone whose price barely moves.
+          </p>
+          <p>
+            <strong>Buying and selling.</strong> Open any player and tap Buy or Sell. A buy
+            fills at the <strong>ask</strong>, 2.5% above the price, a sell at the{' '}
+            <strong>bid</strong>, 2.5% below; that 5% gap is the house&apos;s cut. Points are
+            whole, so a buy rounds up and a sell rounds down. You can hold at most{' '}
+            <strong>10 shares</strong> of any one player. An order never fills on the tap: it
+            fills at the <strong>next recorded price tick</strong>, within a minute, so nobody
+            can trade on a touchdown before the feed sees it. Cancel it any time before then.
+            <strong>My portfolio</strong>, at the top of the Market, shows what you own, what
+            it is worth at the bid, and every trade and dividend.
+          </p>
+          <p>
+            Every move on a chart can be traced to what caused it: the &quot;Why did it
+            move&quot; panel under each chart names the play, the clock, or the roll behind
+            every tick.
           </p>
           <p>
             <strong>No achievement costs you points any more.</strong> Scoring the least in

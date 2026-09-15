@@ -3546,3 +3546,63 @@ a.bounty-alert:hover {
   flex: 1;
   min-width: 0;
 }
+
+/* ---------- Phone notifications ---------- */
+.push-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid rgba(255, 197, 61, 0.25);
+  border-radius: var(--radius-lg);
+}
+.push-main {
+  min-width: 0;
+  flex: 1;
+}
+.push-title {
+  font-size: 13.5px;
+  font-weight: 800;
+}
+.push-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.45;
+  margin-top: 2px;
+}
+.push-msg {
+  font-size: 12px;
+  font-weight: 700;
+  margin-top: 4px;
+}
+.push-ok {
+  color: var(--positive);
+}
+.push-bad {
+  color: var(--negative);
+}
+.push-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: none;
+}
+.push-btn {
+  border: 0;
+  border-radius: 999px;
+  padding: 9px 14px;
+  background: var(--gold);
+  color: #1a1400;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.push-ghost {
+  background: var(--surface-hover);
+  color: var(--text-muted);
+}

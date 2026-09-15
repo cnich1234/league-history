@@ -13,3 +13,6 @@ data/raw/
 .lh.json
 .capture-note.txt
 .neon
+
+.vercel
+.env*

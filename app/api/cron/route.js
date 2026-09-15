@@ -97,7 +97,22 @@ export async function GET(request) {
       // so a second cron run cannot inflate anyone.
       const points = await weekPointsBySlug(season, priorWeek);
       const granted = await grantTrophyPoints(season, priorWeek, points);
-      if (granted.length) log.push(`granted trophy points to ${granted.length}`);
+      if (granted.length) {
+        log.push(`granted trophy points to ${granted.length}`);
+        // Only on the run that actually paid, so a second run stays quiet.
+        try {
+          const { notifyAll } = await import('@/lib/push');
+          const sent = await notifyAll({
+            title: `🏅 Week ${priorWeek} is in the books`,
+            body: 'Bets settled, trophies and allowance paid. See what you earned.',
+            url: '/trophies',
+            tag: `week-${priorWeek}`,
+          });
+          log.push(`notified ${sent} device(s)`);
+        } catch (e) {
+          log.push(`notify skipped: ${e.message}`);
+        }
+      }
     } catch (e) {
       log.push(`scoring skipped: ${e.message}`);
     }

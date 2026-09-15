@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { notifyAttack } from '@/lib/push';
 import { currentManager } from '@/lib/auth';
 import {
   buyBoost,
@@ -58,6 +59,8 @@ export async function POST(request) {
         // Switcheroo moves a bet rather than modifying its payout.
         if (byKind[body.kind]?.flips || body.switch) {
           const row = await switcheroo({ slug, boostId, betId: Number(body.betId) });
+          // Best effort, after the fact: a notification never blocks the hit.
+          await notifyAttack(Number(body.betId), byKind[body.kind]?.name ?? 'Switcheroo').catch(() => 0);
           return NextResponse.json({ ok: true, switched: row });
         }
         // Receipt reads rather than writes: it returns WHO, and changes no money.
@@ -89,6 +92,10 @@ export async function POST(request) {
           return NextResponse.json({ ok: true, cashed: row });
         }
         const row = await useBoostOnBet({ slug, boostId, betId: Number(body.betId) });
+        // Only attacks buzz the owner; a shield on your own bet is your business.
+        if (byKind[body.kind]?.attack) {
+          await notifyAttack(Number(body.betId), byKind[body.kind]?.name ?? 'An attack').catch(() => 0);
+        }
         return NextResponse.json({ ok: true, used: { ...row, id: String(row.id) } });
       }
       if (body.target != null && byKind[body.kind]?.doublesStake) {

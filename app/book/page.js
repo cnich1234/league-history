@@ -26,6 +26,7 @@ import {
 } from '@/lib/shop';
 import { formatMoney, formatOdds } from '@/lib/odds';
 import Login from '@/components/Login';
+import PushToggle from '@/components/PushToggle';
 import BoardSection from '@/components/BoardSection';
 import { SlipProvider } from '@/components/SlipProvider';
 import ParlaySlip from '@/components/ParlaySlip';
@@ -187,6 +188,7 @@ export default async function BookPage({ searchParams }) {
         Week {week} · pot {formatMoney(pool.totalCents)}
         {pool.buyinsOutstanding > 0 && ` (+${formatMoney(pool.outstandingCents)} owed)`}
       </p>
+      <PushToggle />
 
       <WeekSwitcher weeks={weeks} current={week} />
 

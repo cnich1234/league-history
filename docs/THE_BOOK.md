@@ -420,7 +420,7 @@ fantasy was added on top and is the largest of the three by design:
 
 |                               | Season | Ledger reason |
 | ----------------------------- | ------ | ------------- |
-| Weekly allowance (7/wk × 14)  | 98     | `allowance`   |
+| Weekly allowance (10/wk × 14) | 140    | `allowance`   |
 | Trophies                      | ~99    | `trophies`    |
 | Daily fantasy (average place) | ~111   | `daily`       |
 

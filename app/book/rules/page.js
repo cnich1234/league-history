@@ -265,7 +265,7 @@ export default function RulesPage() {
             which change real money in here.
           </p>
           <p>
-            Three sources: <strong>7 a week</strong> just for showing up, whatever your
+            Three sources: <strong>10 a week</strong> just for showing up, whatever your
             trophies earn, and whatever you place with in <strong>Daily</strong>. Trophies
             are the big one, a typical week pays 10 to 15 and a great one past 25, so a
             manager who plays well ends the season with <strong>400 points or more</strong>{' '}

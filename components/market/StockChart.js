@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import PlayerPhoto from '@/components/PlayerPhoto';
+import TradeSheet from './TradeSheet';
 
 const RANGES = ['1D', '1W', '2W', '1M', '2M', '3M'];
 const POLL_MS = 30_000;
@@ -102,7 +103,7 @@ const VOL_H = 40;
  * a candle, page scrolls otherwise -- is easier to get right than to
  * configure. The header shows whatever candle is under the finger.
  */
-export default function StockChart({ initial, source }) {
+export default function StockChart({ initial, source, canTrade = false }) {
   const [data, setData] = useState(initial);
   const [range, setRange] = useState(initial.range);
   const [mode, setMode] = useState('candles');
@@ -412,9 +413,13 @@ export default function StockChart({ initial, source }) {
         )}
       </div>
 
-      <button type="button" className="mk-trade" disabled>
-        Trade · coming soon
-      </button>
+      {source === 'live' ? (
+        <TradeSheet player={player} canTrade={canTrade} onChanged={() => load(range)} />
+      ) : (
+        <button type="button" className="mk-trade" disabled>
+          Trade · not on mock prices
+        </button>
+      )}
 
       {source === 'live' && <WhyPanel ticker={player.ticker} range={range} mounted={mounted} />}
     </section>

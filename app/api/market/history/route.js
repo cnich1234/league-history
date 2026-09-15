@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { currentBettor } from '@/lib/auth';
+import { currentBettor, currentManager } from '@/lib/auth';
 import { canSeeMarket } from '@/lib/market/access';
 import { history } from '@/lib/market/source';
 
@@ -16,6 +16,7 @@ export async function GET(req) {
       source: sp.get('source'),
       ticker: sp.get('ticker'),
       range: sp.get('range') ?? undefined,
+      owner: await currentManager(),
     });
     if (!data) return NextResponse.json({ error: 'No such stock' }, { status: 404 });
     return NextResponse.json(data);

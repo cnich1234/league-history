@@ -94,7 +94,13 @@ export default function MarketList({ initial, source }) {
         {/* The Mock/Live switch is hidden now that the feed is real. The mock
             still answers to ?source=mock for anyone who wants to see a chart
             with ninety days behind it. */}
-        {source === 'mock' && <span className="pill">Mock prices</span>}
+        {source === 'mock' ? (
+          <span className="pill">Mock prices</span>
+        ) : (
+          <Link href="/market/portfolio" className="mk-chip mk-chip-on">
+            My portfolio
+          </Link>
+        )}
       </div>
 
       <p className="mk-note">
@@ -172,6 +178,7 @@ export default function MarketList({ initial, source }) {
                       LIVE
                     </span>
                   )}
+                  {p.owned > 0 && <span className="mk-own">own {p.owned}</span>}
                 </div>
                 <div className="mk-name">{p.name}</div>
               </div>

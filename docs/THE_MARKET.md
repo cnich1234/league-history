@@ -122,8 +122,28 @@ discount.
    A per-minute Vercel cron (`/api/market/tick`, Pro plan) keeps the log
    gap-free: a tick a minute while any game is on, a quarter hour otherwise.
    Storage is about 8 KB a tick, a few MB a Sunday.
-3. **Trading.** Shares, a small table of holdings, an automated market maker
-   so buys push the price up and sells push it down, a spread as the points
-   sink, a cap on shares per player, weekly dividends for holders, and phase
-   rules for when trading freezes.
+3. **Trading** -- built 2026-09-14 (`db/027_market_trading.sql`,
+   `lib/market/trading.js`), behind `MARKET_TRADING_OPEN` in `access.js` for
+   the testers first. The rules, all enforced in `trading.js`:
+   - **Spread 5%.** A buy fills at the ask (price x 1.025), a sell at the bid
+     (price x 0.975). The gap is the points sink.
+   - **Whole points.** The ledger is integers: a buy costs the ask rounded up,
+     a sell pays the bid rounded down. Shares are whole.
+   - **Cap 10 shares** of one player per owner, pending orders included. No
+     league-wide supply: the price is the model's, not demand's.
+   - **Orders fill at the next recorded tick**, never on the tap, so nobody
+     trades on a touchdown before the feed sees it. Fills happen inside
+     `liveBoard` right after `recordTick` writes, at that tick's prices, so
+     every fill is auditable against the chart. Cancel while pending.
+   - **Dividends** 5% of the week's points per share, paid at the roll by
+     `payDividends`, one `point_ledger` row per owner per week (rounded down,
+     `point_ledger_dividend_once`), detail in `market_dividends`.
+   - Points move through the same ledger the shop spends from (`reason`
+     'trade' and 'dividend'). A held player keeps a price after dropping out
+     of the top 150 (`loadUniverse({ include })`).
+   - Screens: the trade sheet on the stock page, `/market/portfolio`, "own N"
+     on the watchlist. `npm run test:markettrade` covers the arithmetic,
+     placement rules, fills, rejections and dividends in a sentinel season.
+   - Not yet: demand moving the price (a market maker), phase rules that
+     freeze trading, and the rules-page copy, which still says trading is off.
 4. **Open trading up** once it has been tested behind the testers gate.

@@ -6,7 +6,14 @@
  * benching before kickoff changes nothing; only a locked starter counts as
  * set. Pure, so this runs without a feed.
  */
-import { expectedLineup, expectedIds, slotFits, DEFAULT_SLOTS } from '../lib/lineup.js';
+import {
+  expectedLineup,
+  expectedIds,
+  slotFits,
+  replacementTable,
+  replacementFor,
+  DEFAULT_SLOTS,
+} from '../lib/lineup.js';
 import { sides, sideFinal } from '../lib/live.js';
 
 let failed = 0;
@@ -70,7 +77,7 @@ console.log('\nlocked starters are what they are');
   const kicked = new Set(['qb2', 'wr4']);
   const lineup = { starters: ['qb2', 'rb1', 'rb2', 'wr4', 'wr2', 'wr3', 'te1', 'rb3', 'k1', 'def1'], players: roster };
   const entries = expectedLineup(lineup, opts({ kickedOff: (id) => kicked.has(id) }));
-  ok('the locked QB stays even though a better one sits', entries[0], { slot: 'QB', id: 'qb2', locked: true, index: 0 });
+  ok('the locked QB stays even though a better one sits', entries[0], { slot: 'QB', id: 'qb2', locked: true, index: 0, replacement: 0 });
   ok('the locked WR stays', entries[3].id, 'wr4');
   ok('open slots still take the best available', [entries[4].id, entries[5].id], ['wr1', 'wr2']);
   // A bench player whose game has started cannot be started any more.
@@ -87,6 +94,36 @@ console.log('\nunavailable players');
   const thin = { starters: Array(10).fill('0'), players: ['qb1', 'rb1', 'wr1'] };
   const entries = expectedLineup(thin, opts());
   ok('a thin roster leaves slots empty rather than inventing players', entries.filter((e) => e.id).length, 3);
+}
+
+console.log('\na slot nobody can fill is worth a waiver pickup');
+{
+  // Free agents: five defences worth 9, 8, 7, 6, 5 and a sixth worth 1, two
+  // kickers, one rostered defence that must not count.
+  const fa = { d1: 9, d2: 8, d3: 7, d4: 6, d5: 5, d6: 1, k9: 7, k8: 5, def1: 99 };
+  const faPos = { d1: 'DEF', d2: 'DEF', d3: 'DEF', d4: 'DEF', d5: 'DEF', d6: 'DEF', k9: 'K', k8: 'K', def1: 'DEF' };
+  const table = replacementTable({
+    ids: Object.keys(fa),
+    rostered: new Set(['def1']),
+    positionOf: (id) => faPos[id] ?? null,
+    projectionOf: (id) => fa[id] ?? 0,
+  });
+  ok('the top five free agents at a position are averaged', table.DEF, 7);
+  ok('fewer than five just averages what there is', table.K, 6);
+  ok('rostered players are not free agents', table.DEF < 20, true);
+  ok('flex takes the best of RB, WR, TE', replacementFor('FLEX', { RB: 6, WR: 8, TE: 4 }), 8);
+  ok('a position with nobody on the wire is worth nothing', replacementFor('QB', table), 0);
+
+  // A roster whose only defence is on a bye: the DEF slot is filled by the wire.
+  const byeProj = { ...PROJ, def1: 0 };
+  const empty = { starters: Array(10).fill('0'), players: roster };
+  const entries = expectedLineup(empty, opts({ projectionOf: (id) => byeProj[id] ?? 0, replacement: table }));
+  ok('the bye defence still fills the slot when he is the only one', entries[9].id, 'def1');
+  const none = { starters: Array(10).fill('0'), players: roster.filter((id) => id !== 'def1') };
+  const e2 = expectedLineup(none, opts({ replacement: table }));
+  ok('with no defence at all the slot carries the waiver value', [e2[9].id, e2[9].replacement], [null, 7]);
+  ok('a slot that was filled carries no replacement', e2[0].replacement, 0);
+  ok('expectedIds ignores waiver fills', expectedIds(none, opts({ replacement: table })).length, 9);
 }
 
 console.log('\nthe live model uses it');
@@ -108,6 +145,13 @@ console.log('\nthe live model uses it');
   ok('a locked bad QB counts as played', [s2.scored, s2.remaining], [4.1, 18 + 14 + 17 + 13 + 11 + 10 + 9 + 8 + 7]);
   // Without lineup options the old behaviour holds, for older callers.
   ok('old callers still price the set starters', sides(empty, PROJ, games, team).projected, 0);
+  // No defence on the roster at all: the slot is priced at the waiver value.
+  const noDef = { starters: Array(10).fill('0'), starters_points: [], players: roster.filter((id) => id !== 'def1') };
+  const s3 = sides(noDef, PROJ, games, team, { ...lineupOpts, replacement: { DEF: 7 } });
+  ok('a waiver fill counts toward what is to come', s3.remaining, 22 + 18 + 14 + 17 + 13 + 11 + 10 + 9 + 8 + 7);
+  ok('and toward the starter count', s3.players, 10);
+  const s4 = sides(noDef, PROJ, games, team, lineupOpts);
+  ok('without a table the empty slot is worth nothing', s4.players, 9);
 }
 
 console.log(failed ? `\n${failed} FAILED` : '\nall good');

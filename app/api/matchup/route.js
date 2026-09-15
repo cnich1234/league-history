@@ -3,7 +3,7 @@ import { currentBettor } from '@/lib/auth';
 import { neon } from '@neondatabase/serverless';
 import { teamGameDates } from '@/lib/schedule';
 import { SLEEPER_OWNERS } from '@/lib/sleeper-owners';
-import { expectedLineup, DEFAULT_SLOTS } from '@/lib/lineup';
+import { expectedLineup, replacementTable, DEFAULT_SLOTS } from '@/lib/lineup';
 
 export const dynamic = 'force-dynamic';
 
@@ -67,6 +67,20 @@ export async function GET(request) {
     const userById = Object.fromEntries(users.map((u) => [u.user_id, u]));
     const rosterById = Object.fromEntries(rosters.map((r) => [r.roster_id, r]));
 
+    // What a slot nobody on a roster can fill is worth: the waiver wire.
+    const rostered = new Set(rosters.flatMap((r) => (r.players ?? []).map(String)));
+    const replacement = replacementTable({
+      ids: Object.keys(info),
+      rostered,
+      positionOf: (id) => (info[id]?.position === '?' ? null : info[id]?.position ?? null),
+      projectionOf: (id) => {
+        const p = info[id];
+        if (!p) return 0;
+        if (p.team && !gameDates[p.team]) return 0;
+        return p.projection ?? 0;
+      },
+    });
+
     const side = (rosterId) => {
       const roster = rosterById[rosterId];
       const owner = SLEEPER_OWNERS[roster?.owner_id];
@@ -81,6 +95,7 @@ export async function GET(request) {
         return i >= 0 ? Number(m?.starters_points?.[i] ?? 0) : 0;
       };
       const entries = expectedLineup(m ?? {}, {
+        replacement,
         slots,
         positionOf: (id) => info[id]?.position ?? null,
         projectionOf: (id) => {
@@ -93,7 +108,7 @@ export async function GET(request) {
         unavailable: new Set([...(roster?.reserve ?? []), ...(roster?.taxi ?? [])].map(String)),
       });
 
-      const players = entries.map(({ id, slot, index }) => {
+      const players = entries.map(({ id, slot, index, replacement: fill }) => {
         const p = (id && info[id]) || {};
         const date = p.team ? gameDates[p.team] : null;
         return {
@@ -101,12 +116,12 @@ export async function GET(request) {
           slot,
           // Set in this slot right now, or filled in by the model.
           set: id != null && index != null,
-          name: id ? p.name || String(id) : 'Empty slot',
+          name: id ? p.name || String(id) : fill > 0 ? 'Waiver pickup' : 'Empty slot',
           position: p.position ?? slot,
           team: p.team,
           opponent: p.opponent,
           injury: p.injury,
-          projection: id ? p.projection : null,
+          projection: id ? p.projection : fill > 0 ? fill : null,
           // Live points once games start; zero before kickoff.
           points: id ? pointsOf(id) : 0,
           day: date

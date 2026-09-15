@@ -466,6 +466,12 @@ export default function RulesPage() {
             in Sleeper and counts as set, points and all. The only way to move your own price
             is to actually start a worse team, which costs you a real game.
           </p>
+          <p>
+            A slot nobody on your roster can fill, a defence on a bye with the waiver claim
+            not clearing until Thursday, is priced at what a pickup would bring: the average
+            of the top five free agents at that position. A bye week costs you on the field,
+            not on the line as well.
+          </p>
 
           <h2>Limits</h2>
           <ul>

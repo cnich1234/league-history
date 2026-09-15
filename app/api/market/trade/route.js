@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { currentManager } from '@/lib/auth';
 import { canTrade } from '@/lib/market/access';
-import { quotes } from '@/lib/market/source';
+import { quotes, fillNow } from '@/lib/market/source';
 import { placeOrder, cancelOrder } from '@/lib/market/trading';
 
 export const dynamic = 'force-dynamic';
@@ -41,7 +41,10 @@ export async function POST(req) {
       shares: Number(body?.shares),
       price: player.price,
     });
-    return NextResponse.json({ ok: true, order, price: player.price });
+    // Try to fill straight away. If the last tick is under a minute old the
+    // order waits for the cron's next one, which is the point of the rule.
+    const attempt = await fillNow().catch(() => null);
+    return NextResponse.json({ ok: true, order, price: player.price, filled: Boolean(attempt?.fills?.filled) });
   } catch (e) {
     return NextResponse.json({ error: e.message }, { status: 400 });
   }

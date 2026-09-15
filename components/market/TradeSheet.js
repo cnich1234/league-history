@@ -67,7 +67,10 @@ export default function TradeSheet({ player, canTrade, onChanged }) {
       });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error ?? 'Could not place the order.');
-      setMsg({ ok: true, text: `Order in. It fills at the next tick, within a minute.` });
+      setMsg({
+        ok: true,
+        text: d.filled ? 'Filled at this tick.' : 'Order in. It fills at the next tick, within a minute.',
+      });
       loadPending();
       onChanged?.();
     } catch (e) {

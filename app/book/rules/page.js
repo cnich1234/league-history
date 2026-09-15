@@ -265,10 +265,11 @@ export default function RulesPage() {
             which change real money in here.
           </p>
           <p>
-            Three sources now, near enough evenly: <strong>7 a week</strong> just for
-            showing up, whatever your trophies earn, and whatever you place with in{' '}
-            <strong>Daily</strong>. A typical manager ends the season with around{' '}
-            <strong>300 points</strong> to spend.
+            Three sources: <strong>7 a week</strong> just for showing up, whatever your
+            trophies earn, and whatever you place with in <strong>Daily</strong>. Trophies
+            are the big one, a typical week pays 10 to 15 and a great one past 25, so a
+            manager who plays well ends the season with <strong>400 points or more</strong>{' '}
+            to spend. Everyone opened the season with 50.
           </p>
           <p>
             Trophies and the allowance pay <strong>after the week completes</strong>, on
@@ -298,7 +299,7 @@ export default function RulesPage() {
           </p>
           <p>
             <strong>No achievement costs you points any more.</strong> Scoring the least in
-            the league pays 2 as a consolation. There are four awards a manager who lost
+            the league pays 4 as a consolation. There are four awards a manager who lost
             can still collect, so a bad season on the field does not lock you out of the
             store.
           </p>

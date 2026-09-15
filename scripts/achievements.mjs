@@ -16,33 +16,33 @@ export const CATEGORIES = { GOOD: 'good', PAIN: 'pain', BONUS: 'bonus' };
 export const ACHIEVEMENTS = [
   // ---- core ----
   {
-    id: 'top-score', name: 'Weekly High Score', icon: '👑', points: 3,
+    id: 'top-score', name: 'Weekly High Score', icon: '👑', points: 6,
     category: CATEGORIES.GOOD,
     blurb: 'Most points scored in the league this week.',
     compute: (w) => best(w.teams, (t) => t.points).map((t) => ({ slug: t.slug, detail: `${t.points.toFixed(2)} pts` })),
   },
   {
-    id: 'above-median', name: 'Beat the Median', icon: '📈', points: 1,
+    id: 'above-median', name: 'Beat the Median', icon: '📈', points: 2,
     category: CATEGORIES.GOOD,
     blurb: 'Scored above the league median. Half the league earns this every week.',
     compute: (w) => w.teams.filter((t) => t.points > w.median)
       .map((t) => ({ slug: t.slug, detail: `${t.points.toFixed(2)} vs ${w.median.toFixed(2)} median` })),
   },
   {
-    id: 'biggest-margin', name: 'Biggest Beatdown', icon: '💥', points: 2,
+    id: 'biggest-margin', name: 'Biggest Beatdown', icon: '💥', points: 4,
     category: CATEGORIES.GOOD,
     blurb: 'Won by the largest margin this week.',
     compute: (w) => best(w.games, (g) => g.margin).map((g) => ({ slug: g.winnerSlug, detail: `won by ${g.margin.toFixed(2)}` })),
   },
   {
-    id: 'top-player', name: 'Player of the Week', icon: '⭐', points: 2,
+    id: 'top-player', name: 'Player of the Week', icon: '⭐', points: 4,
     category: CATEGORIES.GOOD,
     blurb: 'Started the highest-scoring player in the league.',
     compute: (w) => best(w.allStarters, (p) => p.points)
       .map((p) => ({ slug: p.slug, detail: `${p.name} ${p.points.toFixed(2)}` })),
   },
   {
-    id: 'manager-of-week', name: 'Actually Set Your Lineup', icon: '🧠', points: 4,
+    id: 'manager-of-week', name: 'Actually Set Your Lineup', icon: '🧠', points: 8,
     category: CATEGORIES.GOOD,
     blurb: 'Left the fewest startable points on the bench. The one award that is purely a decision.',
     // Counts only players who PLAYED and could have replaced someone weaker at
@@ -65,13 +65,13 @@ export const ACHIEVEMENTS = [
   // season into a bad season with nothing to do about it. These pay the bottom
   // of the table instead, and none of them correlate with winning.
   {
-    id: 'low-score', name: 'Bottom of the Barrel', icon: '🗑️', points: 2,
+    id: 'low-score', name: 'Bottom of the Barrel', icon: '🗑️', points: 4,
     category: CATEGORIES.PAIN,
     blurb: 'Lowest score in the league. Consolation, because that is a rough week.',
     compute: (w) => best(w.teams, (t) => -t.points).map((t) => ({ slug: t.slug, detail: `${t.points.toFixed(2)} pts` })),
   },
   {
-    id: 'unluckiest', name: 'Nice Score, Still Lost', icon: '😤', points: 2,
+    id: 'unluckiest', name: 'Nice Score, Still Lost', icon: '😤', points: 4,
     category: CATEGORIES.PAIN,
     blurb: 'Highest-scoring loser of the week. Worth a point because it was not your fault.',
     compute: (w) => {
@@ -80,14 +80,14 @@ export const ACHIEVEMENTS = [
     },
   },
   {
-    id: 'close-loss', name: 'So Close', icon: '💔', points: 2,
+    id: 'close-loss', name: 'So Close', icon: '💔', points: 4,
     category: CATEGORIES.PAIN,
     blurb: 'Lost by less than 3 points.',
     compute: (w) => w.games.filter((g) => g.margin < 3)
       .map((g) => ({ slug: g.loserSlug, detail: `lost by ${g.margin.toFixed(2)}` })),
   },
   {
-    id: 'beat-projection', name: 'Overachiever', icon: '🚀', points: 1,
+    id: 'beat-projection', name: 'Overachiever', icon: '🚀', points: 2,
     category: CATEGORIES.PAIN,
     blurb: 'Scored more than you were projected to. A bad team does this as often as a good one.',
     // One point, not two. This and beat-spread both fire about half of all
@@ -105,7 +105,7 @@ export const ACHIEVEMENTS = [
       })),
   },
   {
-    id: 'beat-spread', name: 'Beat the Spread', icon: '⚖️', points: 1,
+    id: 'beat-spread', name: 'Beat the Spread', icon: '⚖️', points: 2,
     category: CATEGORIES.PAIN,
     blurb: 'Did better than the projected margin -- win or lose.',
     // The best of the consolation awards, because losing does not disqualify
@@ -124,7 +124,7 @@ export const ACHIEVEMENTS = [
   },
 
   {
-    id: 'lucky-win', name: 'Ugly Win', icon: '🐗', points: 2,
+    id: 'lucky-win', name: 'Ugly Win', icon: '🐗', points: 4,
     category: CATEGORIES.PAIN,
     blurb: 'Won the week with the lowest score of anyone who won.',
     // The mirror of Nice Score Still Lost: you were bad and got away with it.
@@ -137,7 +137,7 @@ export const ACHIEVEMENTS = [
     },
   },
   {
-    id: 'over-projection', name: 'Blew It Away', icon: '📊', points: 2,
+    id: 'over-projection', name: 'Blew It Away', icon: '📊', points: 4,
     category: CATEGORIES.PAIN,
     blurb: 'Beat your projection by the most points in the league.',
     // Distinct from Overachiever, which pays EVERYONE who beat their number.
@@ -156,7 +156,7 @@ export const ACHIEVEMENTS = [
 
   // ---- bonus ----
   {
-    id: 'giant-killer', name: 'Giant Killer', icon: '🗡️', points: 2,
+    id: 'giant-killer', name: 'Giant Killer', icon: '🗡️', points: 4,
     category: CATEGORIES.BONUS,
     blurb: 'Beat a team with a better record coming into the week.',
     // Was 3, which made it the single biggest earner in the game -- it fires
@@ -168,14 +168,14 @@ export const ACHIEVEMENTS = [
       .map((g) => ({ slug: g.winnerSlug, detail: `beat ${g.loserName} (${g.loserRecordBefore})` })),
   },
   {
-    id: 'hot-streak', name: 'On a Heater', icon: '🔥', points: 3,
+    id: 'hot-streak', name: 'On a Heater', icon: '🔥', points: 6,
     category: CATEGORIES.BONUS,
     blurb: 'Won three or more in a row.',
     compute: (w) => w.teams.filter((t) => t.winStreak >= 3)
       .map((t) => ({ slug: t.slug, detail: `${t.winStreak} straight` })),
   },
   {
-    id: 'big-week', name: 'Put Up 180', icon: '💯', points: 5,
+    id: 'big-week', name: 'Put Up 180', icon: '💯', points: 10,
     category: CATEGORIES.BONUS,
     blurb: 'Scored 180 or more. Happens a couple of times a season, league-wide.',
     // 200 was the first instinct and it is essentially mythical: at this
@@ -186,7 +186,7 @@ export const ACHIEVEMENTS = [
       .map((t) => ({ slug: t.slug, detail: `${t.points.toFixed(2)} pts` })),
   },
   {
-    id: 'wr-150', name: 'Receiving Clinic', icon: '🎪', points: 3,
+    id: 'wr-150', name: 'Receiving Clinic', icon: '🎪', points: 6,
     category: CATEGORIES.BONUS,
     blurb: 'Started a receiver who went for 150+ receiving yards.',
     // 250 was the original threshold and it happened ZERO times in all of
@@ -196,7 +196,7 @@ export const ACHIEVEMENTS = [
       .map((p) => ({ slug: p.slug, detail: `${p.name} ${p.recYards} rec yds` })),
   },
   {
-    id: 'rb-150', name: 'Ground and Pound', icon: '🚜', points: 3,
+    id: 'rb-150', name: 'Ground and Pound', icon: '🚜', points: 6,
     category: CATEGORIES.BONUS,
     blurb: 'Started a back who ran for 150+ yards.',
     // 200+ rushing happened 5 times in 17 weeks of 2025. 150 happened 16 times,
@@ -206,7 +206,7 @@ export const ACHIEVEMENTS = [
   },
 
   {
-    id: 'bench-beats-lineup', name: 'Wrong Nine', icon: '🙃', points: 10,
+    id: 'bench-beats-lineup', name: 'Wrong Nine', icon: '🙃', points: 20,
     category: CATEGORIES.BONUS,
     blurb: 'Your bench outscored your starters.',
     // Worth 10 because it is genuinely rare: across all 150 team-weeks of the
@@ -220,7 +220,7 @@ export const ACHIEVEMENTS = [
       })),
   },
   {
-    id: 'perfect-lineup', name: 'Perfect Lineup', icon: '💎', points: 4,
+    id: 'perfect-lineup', name: 'Perfect Lineup', icon: '💎', points: 8,
     category: CATEGORIES.BONUS,
     blurb: 'Nobody on your bench could have scored more than a starter you played.',
     // The strict version of Actually Set Your Lineup: not "fewest points
@@ -231,7 +231,7 @@ export const ACHIEVEMENTS = [
       .map((t) => ({ slug: t.slug, detail: 'nothing left on the bench' })),
   },
   {
-    id: 'negative-defense', name: 'Defenceless', icon: '🚨', points: 2,
+    id: 'negative-defense', name: 'Defenceless', icon: '🚨', points: 4,
     category: CATEGORIES.BONUS,
     blurb: 'Started a defence that finished on negative points.',
     // Happens about 2.2 times per NFL week, so with ten started defences this
@@ -242,7 +242,7 @@ export const ACHIEVEMENTS = [
   },
 
   {
-    id: 'made-a-trade', name: 'Wheeler Dealer', icon: '🤝', points: 10,
+    id: 'made-a-trade', name: 'Wheeler Dealer', icon: '🤝', points: 20,
     category: CATEGORIES.BONUS,
     blurb: 'Completed a trade this week.',
     // Worth a lot on purpose: trades are the thing a quiet league does least,
@@ -251,7 +251,7 @@ export const ACHIEVEMENTS = [
     compute: (w) => (w.traded ?? []).map((slug) => ({ slug, detail: 'made a trade' })),
   },
   {
-    id: 'best-pickup', name: 'Waiver Wire Genius', icon: '🎣', points: 2,
+    id: 'best-pickup', name: 'Waiver Wire Genius', icon: '🎣', points: 4,
     category: CATEGORIES.BONUS,
     blurb: 'Your waiver pickup outscored every other pickup this week.',
     // Must have been STARTED. Claiming someone and leaving them on the bench
@@ -277,7 +277,7 @@ export const ACHIEVEMENTS = [
 
   // ---- position awards ----
   ...['QB', 'RB', 'WR', 'TE'].map((pos) => ({
-    id: `top-${pos.toLowerCase()}`, name: `Best ${pos}`, icon: positionIcon(pos), points: 1,
+    id: `top-${pos.toLowerCase()}`, name: `Best ${pos}`, icon: positionIcon(pos), points: 2,
     category: CATEGORIES.BONUS,
     blurb: `Started the highest-scoring ${pos} in the league.`,
     compute: (w) => best(w.allStarters.filter((p) => p.position === pos), (p) => p.points)
@@ -287,7 +287,7 @@ export const ACHIEVEMENTS = [
   // Started the WORST at a position. A consolation, not a fine -- nothing in
   // this list takes points away any more.
   ...['QB', 'RB', 'WR', 'TE'].map((pos) => ({
-    id: `worst-${pos.toLowerCase()}`, name: `Worst ${pos}`, icon: worstIcon(pos), points: 1,
+    id: `worst-${pos.toLowerCase()}`, name: `Worst ${pos}`, icon: worstIcon(pos), points: 2,
     category: CATEGORIES.PAIN,
     blurb: `Started the lowest-scoring ${pos} in the league.`,
     // Needs a real field. With only one started player at a position, the same

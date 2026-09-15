@@ -156,10 +156,11 @@ function ScoringGuide() {
         Points are currency. They buy <strong>boosts</strong> in The Book — insurance on a
         bet, a better price, or something nastier aimed at everyone else. You also get{' '}
         <strong>{WEEKLY_ALLOWANCE} a week</strong> regardless, and daily fantasy pays on top,
-        so trophies are about a third of what you have to spend.
+        but trophies are the biggest of the three: a good week here is worth more than
+        the other two combined.
       </p>
       <p className="note" style={{ padding: '0 2px 14px' }}>
-        Nothing here costs you points. Scoring the least in the league pays 2, and there
+        Nothing here costs you points. Scoring the least in the league pays 4, and there
         are four awards you can win while losing — a rough season on the field should not
         lock you out of the store.
       </p>

@@ -19,6 +19,7 @@ Turn off removes the row and unsubscribes the phone.
 |---|---|---|
 | A bet of yours is attacked (any attack boost, Switcheroo) | `app/api/shop/route.js` | the bet's owner, attacker not named |
 | A bounty is posted on you | `app/api/bounty/route.js` | the target |
+| A bounty is posted, generic and snarky, no name | `app/api/bounty/route.js` | everyone else with a device |
 | A Market order fills or is rejected | `lib/market/trading.js` `fillOrders` | the owner |
 | Dividends paid at the roll | `lib/market/trading.js` `payDividends` | each owner paid |
 | Week settled, trophies and allowance paid | `app/api/cron/route.js`, only on the run that paid | everyone with a device |

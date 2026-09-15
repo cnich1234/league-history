@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { currentManager } from '@/lib/auth';
 import { postBounty, contributeToBounty } from '@/lib/shop';
 import { currentWeek } from '@/lib/book';
-import { notifyBounty } from '@/lib/push';
+import { notifyBounty, notifyBountyPosted } from '@/lib/push';
 import { byKind } from '@/lib/boosts';
 
 export const dynamic = 'force-dynamic';
@@ -45,10 +45,11 @@ export async function POST(request) {
       betId: body.betId ?? null,
       points: body.points,
     });
-    await notifyBounty(String(body.target ?? ''), {
-      weapon: byKind[String(body.weapon ?? '')]?.name ?? String(body.weapon ?? 'an attack'),
-      points: Number(body.points) || 0,
-    }).catch(() => 0);
+    const weapon = byKind[String(body.weapon ?? '')]?.name ?? String(body.weapon ?? 'an attack');
+    const points = Number(body.points) || 0;
+    await notifyBounty(String(body.target ?? ''), { weapon, points }).catch(() => 0);
+    // And the rest of the league, without the name.
+    await notifyBountyPosted({ poster: slug, target: String(body.target ?? ''), weapon, points }).catch(() => 0);
     return NextResponse.json({ ok: true, bounty });
   } catch (e) {
     return NextResponse.json({ error: e.message }, { status: 400 });

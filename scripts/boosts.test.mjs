@@ -55,12 +55,22 @@ console.log('\nthe catalogue is coherent');
   // the things it stops, shielding beats attacking and the right move is to
   // shield everything -- which is no decision at all. It sat at 4 while
   // blocking a 14-point Switcheroo.
+  // Repriced 2026-09-15 the other way round, on purpose: Insurance is the
+  // CHEAP defence so everyone can shield the one bet they care about, and it
+  // is chosen at placement, so it cannot be bought once somebody is aiming.
+  // Mirror costs more because it hurts the attacker; Ghost is the dearest
+  // because it hides a whole week.
   const shield = byKind['insurance'];
   const blockable = BOOSTS.filter((b) => b.attack && b.target === 'bet');
   check(
-    'insurance costs more than most of what it blocks',
-    blockable.filter((a) => a.cost >= shield.cost).map((a) => a.kind),
-    ['switcheroo'],
+    'insurance is cheaper than every attack it blocks',
+    blockable.filter((a) => a.cost <= shield.cost).map((a) => a.kind),
+    [],
+  );
+  check(
+    'ghost, then mirror, then insurance',
+    byKind['ghost'].cost > byKind['mirror'].cost && byKind['mirror'].cost > shield.cost,
+    true,
   );
   // The weekly allowance must buy something, or the default grant is pointless.
   check(

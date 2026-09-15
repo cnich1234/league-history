@@ -170,16 +170,15 @@ export default function RulesPage() {
           <h2>Defending yourself</h2>
           <p>
             <strong>🛡️ Insurance ({cost('insurance')})</strong> absorbs a hit — a shielded bet ignores
-            every attack. It is deliberately <em>dear</em>: it costs more than almost
-            everything it blocks, so it goes on the one bet you would hate to lose rather
-            than on all of them. At four points it was cheaper than being attacked, and
-            shielding everything was simply the right move.
+            every attack. It is the cheap defence, deliberately: cheaper than any attack it
+            blocks, so everyone can afford to shield the one bet they would hate to lose.
+            It still has to be chosen when the bet is placed, and it only covers that bet.
           </p>
           <p>
             <strong>🪞 Mirror ({cost('mirror')})</strong> returns a hit instead of absorbing it: whoever
             fires at a mirrored bet takes the same attack on their own biggest unhit bet,
-            and they are told it happened. Cheaper than Insurance, because it only pays off
-            if somebody actually comes for you. Someone with no bet to rebound onto is
+            and they are told it happened. Dearer than Insurance, because it does not just
+            protect you, it costs the attacker. Someone with no bet to rebound onto is
             simply refunded the attack.
           </p>
           <p>
@@ -188,8 +187,9 @@ export default function RulesPage() {
           </p>
           <p>
             <strong>👻 Ghost ({cost('ghost')})</strong> takes a different line — your bets vanish from The
-            Action for the week, so there is nothing to aim at. Cheap, but it is a whole
-            week declared in advance, and people will notice you have gone quiet.
+            Action for the week, so there is nothing to aim at. The dearest defence in the
+            shop, because it covers every bet you place all week rather than one, and it
+            is declared in advance, so people will notice you have gone quiet.
           </p>
           <p>
             <strong>🧾 Receipt ({cost('receipt')})</strong> names whoever attacked one of your bets. It

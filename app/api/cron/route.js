@@ -44,7 +44,7 @@ export async function GET(request) {
     // guard existed at all, `Math.max(1, week - 1)` floored to week 1 and paid
     // out on a week still being played. "No completed week yet" is not week
     // 1, it is nothing, and every step below has to skip rather than guess.)
-    const { completedWeek } = await import('@/lib/cron');
+    const { completedWeek, FIRST_WEEK } = await import('@/lib/cron');
     const priorWeek = await completedWeek(season, week);
 
     // Backstop for locking, which normally happens on the live poll. If nobody
@@ -70,7 +70,7 @@ export async function GET(request) {
     // included. Catches up automatically if a run was missed rather than
     // leaving bets pending.
     const { settleWeek } = await import('@/lib/cron');
-    for (let w = Math.max(1, week - 3); w <= (priorWeek ?? 0); w++) {
+    for (let w = Math.max(FIRST_WEEK, week - 3); w <= (priorWeek ?? 0); w++) {
       const result = await settleWeek(sql, season, w);
       if (result.settled || result.voided) {
         log.push(`week ${w}: settled ${result.settled}, voided ${result.voided}`);

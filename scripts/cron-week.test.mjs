@@ -10,7 +10,7 @@
  * null and every week-dependent step skips.
  */
 import { readFileSync } from 'node:fs';
-import { weekIsFinished, completedWeek } from '../lib/cron.js';
+import { weekIsFinished, completedWeek, FIRST_WEEK } from '../lib/cron.js';
 
 let failed = 0;
 const ok = (name, cond) => {
@@ -39,9 +39,12 @@ console.log('\nthe finished-week helper settles right after Monday night');
   const done = [game('complete'), game('complete')];
   const live = [game('complete'), game('in_game', false)];
   ok('week 1 with games left is nothing', (await completedWeek(2026, 1, { games: live })) === null);
-  ok('week 1 with every game final is week 1, before Sleeper flips', (await completedWeek(2026, 1, { games: done })) === 1);
-  ok('week 2 with games left points at week 1', (await completedWeek(2026, 2, { games: live })) === 1);
-  ok('week 2 all final is week 2', (await completedWeek(2026, 2, { games: done })) === 2);
+  // 2026's week 1 was preseason: finished or not, it is never the completed week.
+  ok('the season starts at week 2', FIRST_WEEK === 2);
+  ok('week 1 with every game final is still nothing', (await completedWeek(2026, 1, { games: done })) === null);
+  ok('week 2 with games left points at nothing, not the preseason week', (await completedWeek(2026, 2, { games: live })) === null);
+  ok('week 2 all final is week 2, before Sleeper flips', (await completedWeek(2026, 2, { games: done })) === 2);
+  ok('week 3 with games left points at week 2', (await completedWeek(2026, 3, { games: live })) === 2);
 }
 console.log('\nnever pays out on a live week');
 for (const w of [1, 2, 3, 8, 14, 18]) {
@@ -66,6 +69,7 @@ const code = src
 ok('no Math.max(1, week - 1) in cron code', !/Math\.max\(\s*1\s*,\s*week\s*-\s*1\s*\)/.test(code));
 ok('guard is the finished-week helper', /const priorWeek = await completedWeek\(season, week\)/.test(code));
 ok('settlement includes the finished week', /w <= \(priorWeek \?\? 0\)/.test(code));
+ok('settlement never reaches back before the first week', /Math\.max\(FIRST_WEEK, week - 3\)/.test(code));
 
 // Every week-dependent step must refuse to run when nothing has finished.
 const guarded = (code.match(/if \(priorWeek == null\) throw new Error\('no completed week yet'\)/g) ?? []).length;

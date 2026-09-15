@@ -15,6 +15,7 @@ import {
   h2hProbability,
   LEAGUE_SD,
 } from '../lib/odds.js';
+import { sides, sideFinal } from '../lib/live.js';
 
 let failed = 0;
 const check = (label, actual, expected) => {
@@ -81,6 +82,23 @@ check(
   ) < 1e-9,
   true,
 );
+
+console.log('\nan empty lineup is not final');
+{
+  const done = { status: 'complete', metadata: { is_over: true } };
+  const games = { KC: done, BUF: done };
+  const team = { 1: 'KC', 2: 'BUF' };
+  const proj = { 1: 20, 2: 15 };
+  const played = sides({ starters: ['1', '2'], starters_points: [24.5, 9.1] }, proj, games, team);
+  check('a played-out lineup is final', sideFinal(played), true);
+  check('and counts its starters', played.players, 2);
+  const unset = sides({ starters: [], starters_points: [] }, proj, games, team);
+  check('an unset lineup has nothing to come', unset.remaining, 0);
+  check('but is NOT final', sideFinal(unset), false);
+  const zeros = sides({ starters: ['0', '0'], starters_points: [0, 0] }, proj, games, team);
+  check('empty slots are not starters either', sideFinal(zeros), false);
+  check('a side from before players were counted still finals on remaining', sideFinal({ remaining: 0 }), true);
+}
 
 console.log('\nspreads');
 // Favourite leads by 20 with a 6.5 line: covering is likelier than not.

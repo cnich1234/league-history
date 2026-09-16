@@ -14,7 +14,7 @@ import {
   mockQuote,
   mockCandles,
 } from '../lib/market/mock.js';
-import { RANGES, rangeWindow, toCandles } from '../lib/market/candles.js';
+import { RANGES, DEFAULT_RANGE, rangeWindow, toCandles } from '../lib/market/candles.js';
 import { basePrice, livePrice, gameRemaining, gameLive, rollPremium, dividendFor } from '../lib/market/price.js';
 import { explainMove, explainTrack, trackCsv } from '../lib/market/why.js';
 
@@ -127,6 +127,34 @@ console.log('\nquotes and candles agree');
   );
   ok('1W is a rolling week', rangeWindow('1W', now).from, now - 7 * DAY);
   ok('every range has a step', Object.values(RANGES).every((r) => r.step > 0), true);
+}
+
+console.log('\nWEEK is anchored to the roll, not to the clock');
+{
+  const now = dayStart(70) + 14 * 60 * MINUTE;
+  const rolled = now - 40 * 60 * 60_000; // rolled 40 hours ago, a Tuesday morning
+
+  const w = rangeWindow('WEEK', now, rolled);
+  ok('the window opens at the roll', w.from, rolled - 5 * MINUTE);
+  ok('and runs to now', w.to, now);
+  truthy('which is wider than a rolling day', w.from < now - DAY);
+
+  // The bug this range exists to fix: a move 27 hours old had aged out of 1D
+  // while still sitting in the log, so a real price change read as deleted.
+  const moveAt = now - 27 * 60 * 60_000;
+  truthy('a 27-hour-old move is outside 1D', rangeWindow('1D', now).from > moveAt);
+  truthy('and inside WEEK', w.from < moveAt);
+
+  // Week 1 has no roll to anchor to.
+  const fallback = rangeWindow('WEEK', now, null);
+  ok('with no roll it falls back to a rolling week', fallback.from, now - 7 * DAY);
+
+  // A roll older than the fallback width cannot drag the window back further.
+  const ancient = rangeWindow('WEEK', now, now - 30 * DAY);
+  ok('and never reaches back past its own width', ancient.from, now - 7 * DAY);
+
+  ok('WEEK is the default range', DEFAULT_RANGE, 'WEEK');
+  ok('the default is anchored', RANGES[DEFAULT_RANGE].anchored, true);
 }
 
 console.log('\nbucketing recorded ticks');

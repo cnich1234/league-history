@@ -86,12 +86,40 @@ projection: the bigger name keeps the clean symbol.
 
 | Range | Window | Candle |
 |---|---|---|
+| **Week** (default) | **the Tuesday roll to now** | 15 min |
 | 1D | rolling 24 hours | 5 min |
 | 1W | rolling 7 days | 1 hour |
 | 2W | rolling 14 days | 2 hours |
 | 1M | rolling 30 days | 6 hours |
 | 2M | rolling 60 days | 12 hours |
 | 3M | rolling 90 days | 1 day |
+
+### Why Week is the default
+
+Every other range is a rolling window ending now, because the market never
+closes and there is no session for 1D to be. This market does have a session
+though, and it is the week: prices reset at the roll, dividends pay there, and
+"what has happened since Tuesday" is the question anyone actually has.
+
+The rolling window answered a different one, and on 2026-09-16 it cost us. A
+player's price had fallen 8.75 to 1.98 across Tuesday on two projection
+revisions. By Wednesday afternoon all three moves were more than 24 hours old,
+so the 1D chart was a flat line at 1.98, the "Why did it move" panel said zero
+moves, and the stat boxes read "24h high 1.98, 24h low 1.98". Nothing had been
+deleted -- every tick was still in the log -- but the default view made a real
+price change look erased.
+
+Week is anchored to `min(created_at)` in `market_baselines`, which is the
+instant the roll actually wrote the week's premiums. Not a wall-clock Tuesday:
+the roll happens on the first tick after Sleeper flips the week, at whatever
+hour that lands. Week 1 has no roll, so it falls back to a rolling seven days.
+
+Two things follow from the same fix. The high and low boxes now track the
+SELECTED range rather than a hardcoded 24 hours, and the reference price is
+where the range opened rather than `basePrice(projection, premium)` -- which
+moved with the projection and so always read 0.00 and 0.00%. The watchlist uses
+the same week-open reference, so a row that has halved since Tuesday says so
+instead of showing a flat zero before kickoff.
 
 ## What moves a real price (the plan)
 

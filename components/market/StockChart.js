@@ -5,7 +5,12 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import PlayerPhoto from '@/components/PlayerPhoto';
 import TradeSheet from './TradeSheet';
 
-const RANGES = ['1D', '1W', '2W', '1M', '2M', '3M'];
+// WEEK first and default: this market has a session, and it is the week. It
+// runs from the Tuesday roll rather than a rolling window, so nothing that
+// happened since prices reset can age out of view.
+const RANGES = ['WEEK', '1D', '1W', '2W', '1M', '2M', '3M'];
+const RANGE_LABEL = { WEEK: 'Week' };
+const labelFor = (r) => RANGE_LABEL[r] ?? r;
 const POLL_MS = 30_000;
 
 const fmt = (n) => (Number(n) || 0).toFixed(2);
@@ -15,7 +20,8 @@ const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
 function axisStamp(t, range) {
   const d = new Date(t);
   if (range === '1D') return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-  if (range === '1W' || range === '2W') return d.toLocaleString([], { weekday: 'short', hour: 'numeric' });
+  if (range === 'WEEK' || range === '1W' || range === '2W')
+    return d.toLocaleString([], { weekday: 'short', hour: 'numeric' });
   return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
 }
 const fullStamp = (t) =>
@@ -169,7 +175,14 @@ export default function StockChart({ initial, source, canTrade = false }) {
   const volBottom = H - PAD.bottom;
   const slot = n ? plotW / n : plotW;
 
-  const prevClose = player.prevClose;
+  // The reference line and the change figure are the price at the START OF THE
+  // SELECTED RANGE, not a projection-derived baseline that moves with the
+  // price. The old one always read 0.00 / 0.00%, which told you nothing about
+  // a stock that had halved since Tuesday.
+  const prevClose = player.rangeOpen ?? player.prevClose;
+  // "Week" when the range is anchored to the roll, otherwise name the window.
+  const statLabel = range === 'WEEK' ? 'Week' : range;
+  const openLabel = range === 'WEEK' ? "Week's open" : 'Range open';
   let lo = prevClose;
   let hi = prevClose;
   for (const c of candles) {
@@ -233,7 +246,15 @@ export default function StockChart({ initial, source, canTrade = false }) {
         <div className={`mk-chg mk-chg-big ${tone}`}>
           {signed(change)} {signed(changePct)}%{' '}
           <span className="mk-sub">
-            {shown ? (mounted ? fullStamp(shown.t) : '') : source === 'live' ? 'vs projection' : '24h'}
+            {shown
+              ? mounted
+                ? fullStamp(shown.t)
+                : ''
+              : source === 'live'
+                ? range === 'WEEK'
+                  ? 'since the week opened'
+                  : `over ${range}`
+                : '24h'}
           </span>
         </div>
         {shown && (
@@ -362,7 +383,7 @@ export default function StockChart({ initial, source, canTrade = false }) {
             className={`mk-range ${range === r ? 'mk-range-on' : ''}`}
             onClick={() => setRange(r)}
           >
-            {r}
+            {labelFor(r)}
           </button>
         ))}
         <button
@@ -377,16 +398,16 @@ export default function StockChart({ initial, source, canTrade = false }) {
 
       <div className="mk-stats">
         <div>
-          <span>{source === 'live' ? 'Baseline' : '24h ago'}</span>
+          <span>{source === 'live' ? openLabel : '24h ago'}</span>
           {fmt(prevClose)}
         </div>
         <div>
-          <span>24h high</span>
-          {fmt(player.dayHigh)}
+          <span>{statLabel} high</span>
+          {fmt(player.rangeHigh ?? player.dayHigh)}
         </div>
         <div>
-          <span>24h low</span>
-          {fmt(player.dayLow)}
+          <span>{statLabel} low</span>
+          {fmt(player.rangeLow ?? player.dayLow)}
         </div>
         <div>
           <span>Projection</span>

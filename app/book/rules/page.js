@@ -437,6 +437,14 @@ export default function RulesPage() {
             <strong>first kickoff of the week</strong>. A tie pushes and everyone gets
             their money back.
           </p>
+          <p>
+            <strong>Back as many managers as you like.</strong> Every manager is a
+            separate option here, so a second bet is a different horse, not more money on
+            the same one — which is why the one-bet-per-market rule does not apply.
+            One bet per manager, and at most one of them can win. The price on each
+            already carries the house cut, so buying the whole field is a guaranteed
+            loss. Any of them can ride in a parlay too.
+          </p>
 
           <h2>When bets lock</h2>
           <p>
@@ -487,6 +495,10 @@ export default function RulesPage() {
           <ul>
             <li>Minimum bet <strong>$10</strong>, maximum <strong>$250</strong></li>
             <li>One bet per market — no taking both sides, unless you own a Hedge</li>
+            <li>
+              Special bets are the exception: every manager is an option, so you can back as
+              many of them as you like, one bet each. Only one can win
+            </li>
             <li>
               A market can be in as many of your parlays as you like, alongside a straight bet
               on it too

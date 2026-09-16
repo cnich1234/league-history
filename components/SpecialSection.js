@@ -17,6 +17,9 @@ import BetSlip from './BetSlip';
 export default function SpecialSection({
   markets,
   myByMarket,
+  // Every straight bet you hold on each of these, not just one. A field market
+  // takes one bet per manager, so "your bet" here is a list.
+  myAllByMarket = {},
   myParlayByMarket = {},
   oddsBoosts = [],
   slipBoosts = [],
@@ -30,7 +33,12 @@ export default function SpecialSection({
   if (!markets?.length) return null;
 
   const open = markets.filter((m) => m.status === 'open').length;
-  const placed = markets.filter((m) => myByMarket[String(m.id)]).length;
+  // Count bets, not markets: three managers backed in one market is three
+  // placed, which is what the header used to undercount as one.
+  const placed = markets.reduce(
+    (n, m) => n + (myAllByMarket[String(m.id)]?.length ?? (myByMarket[String(m.id)] ? 1 : 0)),
+    0,
+  );
 
   return (
     <section className="section">
@@ -57,6 +65,7 @@ export default function SpecialSection({
               key={m.id}
               market={m}
               existingBet={myByMarket[String(m.id)]}
+              placedBets={myAllByMarket[String(m.id)] ?? null}
               hedged={hedged.includes(String(m.id))}
               parlayLegs={myParlayByMarket[String(m.id)] ?? null}
               bankrollCents={bankrollCents}

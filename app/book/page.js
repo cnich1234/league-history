@@ -147,9 +147,17 @@ export default async function BookPage({ searchParams }) {
   // Parlays have no market_id, so they cannot key this map -- and including
   // them would collide on the "null" key and mark unrelated markets as placed.
   // A voided bet does not mark its market as yours: it can be bet again.
-  const myByMarket = Object.fromEntries(
-    myBets.filter((b) => !b.is_parlay && b.status !== 'void').map((b) => [String(b.market_id), b]),
-  );
+  const myStraight = myBets.filter((b) => !b.is_parlay && b.status !== 'void');
+  const myByMarket = Object.fromEntries(myStraight.map((b) => [String(b.market_id), b]));
+
+  // A field market takes one bet per manager, so a single bet per market is no
+  // longer the whole story there. myByMarket keeps its shape for every
+  // two-sided market on the board; this carries the full list for the ones
+  // that can hold several.
+  const myAllByMarket = {};
+  for (const b of myStraight) {
+    (myAllByMarket[String(b.market_id)] ??= []).push(b);
+  }
   const myLegs = await parlayLegsFor(myBets.filter((b) => b.is_parlay).map((b) => b.id));
 
   // Markets you are on through a PARLAY leg rather than a straight bet. Without
@@ -275,6 +283,7 @@ export default async function BookPage({ searchParams }) {
           <SpecialSection
             markets={specials}
             myByMarket={myByMarket}
+            myAllByMarket={myAllByMarket}
             myParlayByMarket={myParlayByMarket}
             bankrollCents={guest ? 0 : spendable}
             // Open when there is nothing else on the board, so the page is not

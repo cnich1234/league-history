@@ -345,7 +345,7 @@ section above the board because there is no game card to file them under.
 
 They are **team bets**: you back a manager, and whoever he started counts.
 
-Three rules that matter:
+Four rules that matter:
 
 - **Only starters count.** A 40-point RB on someone's bench earned his manager
   nothing and must not win him the bet either.
@@ -354,6 +354,14 @@ Three rules that matter:
   starting two tied players is _not_ a tie — there is still one winner.
 - **They lock at the week's first kickoff**, not the last. Every lineup is
   involved, so the earliest game decides it.
+- **One bet per manager, not per market.** The exception to one-bet-per-market,
+  added 2026-09-16. That rule was written when every market had two sides, where
+  a second bet could only be more money on a side you already held. Here a second
+  bet is a different horse, and at most one can win. The money is governed by the
+  week's allowance either way, and `fieldOdds` prices every option with the 4.5%
+  margin, so covering the field is a guaranteed loss and needs no rule of its own.
+  The same manager twice is still refused, by `placeBet` and by `bets_one_per_side`
+  underneath it. `npm run test:field` covers all of it.
 
 ### Pricing a field
 

@@ -71,6 +71,10 @@ export default function BetSlip({
   // its own, so without this a market you had already backed inside a slip
   // looked exactly like one you had never touched.
   parlayLegs,
+  // Every straight bet you hold on THIS market. A field market -- the weekly
+  // specials -- takes one per manager, so the placed card becomes a list and
+  // the options stay on screen for the managers still available.
+  placedBets = null,
   disabled,
   bankrollCents,
   livePrices,
@@ -214,12 +218,16 @@ export default function BetSlip({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Could not place bet.');
-      setPlaced({
+      const justPlaced = {
         option_key: selected.option_key,
         option_label: selected.label,
         stake_cents: Math.round(stakeNum * 100),
         odds: selected.odds,
-      });
+      };
+      setPlaced(justPlaced);
+      // On a field market the bets accumulate rather than replace: a second
+      // manager joins the list instead of taking over the card.
+      setMine((prev) => [...prev, justPlaced]);
       setSelected(null);
       setReviewing(false);
     } catch (err) {
@@ -233,7 +241,17 @@ export default function BetSlip({
   // side is bettable, at whatever it costs now.
   const hedgeOpen = Boolean(placed) && hedged;
 
-  if (placed && !hedgeOpen) {
+  // A field market never collapses to a single placed card. Every manager you
+  // have not backed is still bettable, and the ones you hold are still worth
+  // adding to a parlay -- so it renders like an open market with your
+  // positions listed above the options.
+  const field = market.kind === 'special';
+  // Local placements join the server's list, so a second bet appears without
+  // a reload the way the first one does.
+  const [mine, setMine] = useState(placedBets ?? (existingBet ? [existingBet] : []));
+  const heldKeys = new Set(mine.map((b) => String(b.option_key)));
+
+  if (placed && !hedgeOpen && !field) {
     return (
       <div className="market market-placed">
         <div className="market-head">
@@ -309,6 +327,47 @@ export default function BetSlip({
         )}
       </div>
 
+      {field && mine.length > 0 && (
+        <div className="placed-list">
+          {mine.map((b) => (
+            <div key={b.id ?? b.option_key} className="placed-row">
+              <span className="placed-row-main">
+                <strong>{b.option_label}</strong> · {money(Number(b.stake_cents) / 100)} at{' '}
+                {b.odds > 0 ? `+${b.odds}` : b.odds}
+              </span>
+              <span className="pos">
+                +{money(profitOf(Number(b.stake_cents) / 100, b.odds))}
+              </span>
+              {/* The option is spent for a second straight bet, but the same
+                  pick can still ride in a parlay. */}
+              {!shut && (
+                <button
+                  className="btn-parlay btn-parlay-sm"
+                  type="button"
+                  onClick={() => {
+                    const o = market.options?.find(
+                      (x) => String(x.option_key) === String(b.option_key),
+                    );
+                    slip.toggle({
+                      marketId: market.id,
+                      optionKey: b.option_key,
+                      odds: o?.odds ?? b.odds,
+                      label: b.option_label,
+                      marketTitle: market.title,
+                    });
+                  }}
+                >
+                  {slip.selected(market.id, b.option_key) ? 'In slip' : '+ Parlay'}
+                </button>
+              )}
+            </div>
+          ))}
+          <div className="dim placed-list-note">
+            Back another manager below, or add one to a parlay. Only one of them can win.
+          </div>
+        </div>
+      )}
+
       {hedgeOpen && (
         <div className="in-slip-note">
           <span>
@@ -342,7 +401,11 @@ export default function BetSlip({
               setError(null);
               setSelected(selected?.option_key === o.option_key ? null : o);
             }}
-            disabled={shut || (hedgeOpen && o.option_key === placed.option_key)}
+            disabled={
+              shut ||
+              (hedgeOpen && o.option_key === placed.option_key) ||
+              (field && heldKeys.has(String(o.option_key)))
+            }
           >
             <span className="option-label">
               {o.label}

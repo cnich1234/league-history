@@ -1862,6 +1862,44 @@ tbody tr:last-child td {
   background: var(--teal-ghost);
 }
 
+/* A smaller Parlay button, for the rows of a field market's held positions
+   where it sits inline beside the stake rather than on its own line. */
+.btn-parlay-sm {
+  padding: 5px 9px;
+  font-size: 12px;
+  border-radius: 7px;
+}
+
+/* Your positions on a field market -- the weekly specials, where every manager
+   is an option and you may hold several. Listed above the options, which stay
+   on screen because the managers you have not backed are still bettable. */
+.placed-list {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--teal-dim);
+  border-radius: 10px;
+  background: var(--teal-ghost);
+}
+
+.placed-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 0;
+  font-size: 14px;
+  flex-wrap: wrap;
+}
+
+.placed-row-main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.placed-list-note {
+  margin-top: 6px;
+  font-size: 12.5px;
+}
+
 .slip {
   position: fixed;
   /* Sits above the tab bar, which is 56px plus the phone's home indicator. */

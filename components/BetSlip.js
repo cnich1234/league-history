@@ -250,6 +250,27 @@ export default function BetSlip({
             +{money(profitOf(Number(placed.stake_cents) / 100, placed.odds))} profit
           </strong>
         </div>
+        {/* The same pick can ride in a parlay too, as many as you like. */}
+        {!shut && placed.option_key != null && (
+          <div className="actions">
+            <button
+              className="btn-parlay"
+              type="button"
+              onClick={() => {
+                const o = market.options?.find((x) => x.option_key === placed.option_key);
+                slip.toggle({
+                  marketId: market.id,
+                  optionKey: placed.option_key,
+                  odds: o?.odds ?? placed.odds,
+                  label: placed.option_label,
+                  marketTitle: market.title,
+                });
+              }}
+            >
+              {slip.has(market.id) ? 'In parlay slip' : '+ Parlay'}
+            </button>
+          </div>
+        )}
       </div>
     );
   }
@@ -534,10 +555,6 @@ export default function BetSlip({
           >
             Review
           </button>
-          {/* A market you have bet straight cannot also be a parlay leg, and a
-              hedge is the one time this row shows with a straight bet already
-              on it -- so the button would only invite a refusal. */}
-          {!hedgeOpen && (
           <button
             className="btn-parlay"
             type="button"
@@ -553,7 +570,6 @@ export default function BetSlip({
           >
             + Parlay
           </button>
-          )}
         </div>
       )}
 

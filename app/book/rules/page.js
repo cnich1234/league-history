@@ -488,8 +488,8 @@ export default function RulesPage() {
             <li>Minimum bet <strong>$10</strong>, maximum <strong>$250</strong></li>
             <li>One bet per market — no taking both sides, unless you own a Hedge</li>
             <li>
-              A market you have a straight bet on cannot also be a parlay leg, and the other
-              way round
+              A market can be in as many of your parlays as you like, alongside a straight bet
+              on it too
             </li>
             <li>No editing or cancelling once placed — only Undo or Cash Out from the shop</li>
           </ul>

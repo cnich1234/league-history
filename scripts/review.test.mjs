@@ -153,7 +153,7 @@ try {
     ok('The Void does', Number(after?.attacked), 1);
   }
 
-  console.log('\na market is in a parlay or bet straight, never both');
+  console.log('\na market can be in a parlay AND bet straight, as many times as you like');
   {
     const m1 = await mkt();
     const m2 = await mkt();
@@ -165,27 +165,32 @@ try {
         { marketId: m2, optionKey: 'home' },
       ],
     });
-    await rejects(
-      'straight bet refused on a market in your parlay',
-      () => placeBet({ slug: A, marketId: m1, optionKey: 'away', stakeCents: 1000 }),
-      'parlay',
-    );
+    // The exclusivity used to be enforced both ways. Dropped 2026-09-15: it
+    // stopped nothing worth stopping, and the league read it as "you cannot
+    // reuse a bet in another parlay". Every leg still carries the house cut.
+    const straight = await placeBet({ slug: A, marketId: m1, optionKey: 'away', stakeCents: 1000 });
+    ok('a straight bet on a market in your parlay is allowed', Boolean(straight?.id), true);
     const m3 = await mkt();
     await placeBet({ slug: A, marketId: m3, optionKey: 'home', stakeCents: 1000 });
     const m4 = await mkt();
-    await rejects(
-      'parlay leg refused on a market you bet straight',
-      () =>
-        placeParlay({
-          slug: A,
-          stakeCents: 2000,
-          legs: [
-            { marketId: m3, optionKey: 'away' },
-            { marketId: m4, optionKey: 'home' },
-          ],
-        }),
-      'straight bet',
-    );
+    const p2 = await placeParlay({
+      slug: A,
+      stakeCents: 2000,
+      legs: [
+        { marketId: m3, optionKey: 'away' },
+        { marketId: m4, optionKey: 'home' },
+      ],
+    });
+    ok('a parlay leg on a market you bet straight is allowed', Boolean(p2?.id), true);
+    const p3 = await placeParlay({
+      slug: A,
+      stakeCents: 2000,
+      legs: [
+        { marketId: m3, optionKey: 'away' },
+        { marketId: m1, optionKey: 'home' },
+      ],
+    });
+    ok('and the same leg can sit in a second parlay', Boolean(p3?.id), true);
   }
 
   console.log('\na crowd-funded Switcheroo moves the bet');

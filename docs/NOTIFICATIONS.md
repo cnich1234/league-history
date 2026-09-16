@@ -31,3 +31,20 @@ the push service) is deleted, any other failure is logged and swallowed.
 
 **Testing.** `POST /api/push/test` sends the signed-in manager a test. There
 is no automated test: it needs a real phone. The routes refuse guests.
+
+## Tests never reach a phone
+
+Every suite runs against the live database with real bettor slugs, which is
+what keeps them honest. But `notify` takes a slug, not a season, so a sentinel
+fill in season 9985 sent "✅ Bought 2 × p1 at 12" to Chris's lock screen three
+times on 2026-09-16 -- once per `npm run test:markettrade`.
+
+`lib/push.js` now refuses to send from a test run. The guard is in `notify`,
+which `notifyMany` and `notifyAll` both funnel through, so one check covers
+every send in the app. It fires on `PUSH_SILENT=1` or on an entrypoint matching
+`*.test.mjs`, which catches a suite run directly with `node` as well as through
+npm. `npm run test:pushguard` asserts all three senders stay silent.
+
+The guard is here rather than in the twenty-two suites that can reach a
+notification, because one place that cannot be forgotten beats twenty-two that
+can.

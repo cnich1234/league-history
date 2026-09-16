@@ -107,6 +107,30 @@ console.log('\nfilling at a tick');
   ok('a player nobody prices waits', (await fillOrders({}, { season: SEASON })).waiting, 0);
 }
 
+console.log('\nthe clocks do not have to agree');
+{
+  // placed_at comes from the DATABASE, `now` from the caller, and the two
+  // machines are about a second apart. Without the grace window an order
+  // placed in the same second as a tick -- the one somebody just tapped and is
+  // watching for -- was silently skipped until the next tick a minute later.
+  await placeOrder({ owner: A, season: SEASON, week: 2, playerId: 'p8', side: 'buy', shares: 1, price: 2 });
+  const same = await fillOrders({ p8: 2 }, { season: SEASON, now: Date.now() });
+  ok('an order placed this instant still fills at this tick', same.filled, 1);
+  // The guarantee that matters is untouched: a tick from BEFORE the order was
+  // placed cannot fill it, so nobody trades on a play the feed has not seen.
+  await placeOrder({ owner: A, season: SEASON, week: 2, playerId: 'p8', side: 'sell', shares: 1, price: 2 });
+  const past = await fillOrders({ p8: 2 }, { season: SEASON, now: Date.now() - 60_000 });
+  ok('a tick from a minute ago still does not', past.filled, 0);
+
+  // Leave the book as this block found it: the sell above is still pending and
+  // the share still held, and both would be counted by the assertions below.
+  const stray = (await ordersFor(A, SEASON)).find((o) => o.player_id === 'p8' && o.status === 'pending');
+  if (stray) await cancelOrder({ owner: A, season: SEASON, orderId: stray.id });
+  await sql`delete from market_holdings where season = ${SEASON} and player_id = 'p8'`;
+  await sql`delete from market_orders where season = ${SEASON} and player_id = 'p8'`;
+  await sql`delete from point_ledger where season = ${SEASON} and note like '%p8%'`;
+}
+
 console.log('\nfills that cannot happen');
 {
   await placeOrder({ owner: A, season: SEASON, week: 2, playerId: 'p3', side: 'buy', shares: 1, price: 20 });

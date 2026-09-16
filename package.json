@@ -70,7 +70,8 @@
     "test:field": "node --env-file=.env.local scripts/field.test.mjs",
     "test:writeup": "node scripts/writeup.test.mjs",
     "writeup:preview": "node --env-file=.env.local scripts/writeup.mjs preview",
-    "writeup:recap": "node --env-file=.env.local scripts/writeup.mjs recap"
+    "writeup:recap": "node --env-file=.env.local scripts/writeup.mjs recap",
+    "test:pushguard": "node --env-file=.env.local scripts/pushguard.test.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.125.0",

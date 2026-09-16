@@ -146,8 +146,9 @@ export default async function BookPage({ searchParams }) {
 
   // Parlays have no market_id, so they cannot key this map -- and including
   // them would collide on the "null" key and mark unrelated markets as placed.
+  // A voided bet does not mark its market as yours: it can be bet again.
   const myByMarket = Object.fromEntries(
-    myBets.filter((b) => !b.is_parlay).map((b) => [String(b.market_id), b]),
+    myBets.filter((b) => !b.is_parlay && b.status !== 'void').map((b) => [String(b.market_id), b]),
   );
   const myLegs = await parlayLegsFor(myBets.filter((b) => b.is_parlay).map((b) => b.id));
 

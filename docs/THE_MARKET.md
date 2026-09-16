@@ -4,8 +4,8 @@ A play stock market where every NFL player is a ticker. You buy shares with
 points, watch the price move, and sell when you like. Watchlist, charts,
 trading and dividends are all live as of 2026-09-15.
 
-**Open to anyone signed in**, trading included. `MARKET_OPEN` and
-`MARKET_TRADING_OPEN` in `lib/market/access.js` pull either back to the
+**Open to anyone signed in, trading included, since 2026-09-15.** `MARKET_OPEN`
+and `MARKET_TRADING_OPEN` in `lib/market/access.js` pull either back to the
 testers list; the nav tab, the
 pages and the API all ask that one function, and signed-out visitors get a
 404 either way.

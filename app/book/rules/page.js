@@ -25,6 +25,16 @@ export default function RulesPage() {
             end takes <strong>$300</strong> in real money.
           </p>
 
+          <h2>Phone notifications</h2>
+          <p>
+            The card at the top of The Book turns them on for your phone. On iPhone that only
+            works from the home-screen app: Share, then Add to Home Screen. You get buzzed when
+            one of your bets is attacked (the attack is named, the attacker is not — buy a
+            Receipt for that), when a bounty goes up on you, when any bounty goes up at all,
+            when a Market order fills, when dividends pay, and when the week settles. Slow Play
+            stays silent: you find out when you go to bet.
+          </p>
+
           <h2>The Action</h2>
           <p>
             Every open bet in the league, live as soon as it is placed. You see{' '}

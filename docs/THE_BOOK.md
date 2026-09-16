@@ -680,7 +680,16 @@ passing all three. Cheapest first:
    source data. Projections are matched within a point, because they drift with
    injury news between writing and checking; a drifted projection warns, an
    invented number blocks.
-3. **Two agents**, one reading claims in order and one computing ground truth
+3. **Privacy**, in code. Nobody's portfolio and nobody's point balance reaches
+   the league. Holdings are private for the same reason a bet is hidden until
+   its market locks: visible positions get copied, and then everyone owns the
+   same four players and calls it strategy. The app always enforced this --
+   every holdings query is scoped to the signed-in owner -- but a writeup sees
+   the whole database and speaks to the whole league, so it is the one place
+   the rule can break by accident. It did, on 2026-09-16, and the paragraph was
+   taken down. `bookState` now returns anonymous totals only, and the gate
+   checks the prose as well in case a draft invents one.
+4. **Two agents**, one reading claims in order and one computing ground truth
    first and comparing. Both return a structured verdict. Prose findings are
    useless to an unattended job -- it cannot read "mostly fine, check line 40"
    and decide.

@@ -11,7 +11,7 @@
  * lineup, because nothing in the context said who actually rostered the player.
  * If this suite ever goes quiet on that case, the gate is broken.
  */
-import { checkAttribution, checkNumbers, decide } from '../lib/writeup-verify.js';
+import { checkAttribution, checkNumbers, checkPrivacy, decide } from '../lib/writeup-verify.js';
 
 let failed = 0;
 const ok = (label, actual, expected) => {
@@ -34,6 +34,11 @@ const CONTEXT = {
   standings: [
     { manager: 'Kevin', pointsFor: 191.66, pointsAgainst: 147.4 },
     { manager: 'Brandon', pointsFor: 147.4, pointsAgainst: 191.66 },
+    { manager: 'Devin', pointsFor: 135.4, pointsAgainst: 130.02 },
+    { manager: 'Chris N', pointsFor: 155.42, pointsAgainst: 119.54 },
+    { manager: 'Chad', pointsFor: 139.16, pointsAgainst: 138.84 },
+    { manager: 'Austin', pointsFor: 119.54, pointsAgainst: 155.42 },
+    { manager: 'Mike R', pointsFor: 138.84, pointsAgainst: 139.16 },
   ],
   results: [
     {
@@ -106,6 +111,42 @@ console.log('\nnumbers: invented figures do not publish');
   ok('and says what the feed now reads', problems.some((p) => p.why.includes('136.9')), true);
 }
 
+console.log('\nprivacy: nobody else\'s portfolio, nobody else\'s points');
+{
+  // The exact paragraph that shipped in the week 2 preview on 2026-09-16 and
+  // had to be taken down. Holdings are private for the same reason bets are
+  // hidden until a market locks: visible positions get copied, and then the
+  // whole league owns the same four players and calls it strategy.
+  const leak = 'Three people are trading. Kevin has 22 shares, Devin has 15, and Chris N has 10.';
+  ok('a named share count is blocked', checkPrivacy(leak, CONTEXT).length > 0, true);
+  ok('and it is blocking', checkPrivacy(leak, CONTEXT)[0]?.severity, 'error');
+}
+ok(
+  'a points balance is blocked',
+  checkPrivacy('Kevin now has 4 points to his name, the lowest in the league.', CONTEXT).length > 0,
+  true,
+);
+ok(
+  'points spent are blocked',
+  checkPrivacy('Kevin spent 46 points on the stock market.', CONTEXT).length > 0,
+  true,
+);
+ok(
+  'the word portfolio against a name is blocked',
+  checkPrivacy("Kevin's portfolio looks like a cry for help.", CONTEXT).length > 0,
+  true,
+);
+ok(
+  'an anonymous total is allowed',
+  checkPrivacy('Three people are trading and twenty-five shares sit in one receiver.', CONTEXT).length,
+  0,
+);
+ok(
+  'ordinary trash talk is untouched',
+  checkPrivacy('Kevin put up 191.66 and has the best roster in the league.', CONTEXT).length,
+  0,
+);
+
 console.log('\nthe decision: a missing check is never a pass');
 {
   const clean = { attribution: [], numbers: [] };
@@ -148,6 +189,16 @@ console.log('\nthe decision: a missing check is never a pass');
     decide({
       attribution: [{ severity: 'error', why: 'wrong owner' }],
       numbers: [],
+      agentVerdicts: [{ pass: true, claims: [] }, { pass: true, claims: [] }],
+    }).publish,
+    false,
+  );
+  ok(
+    'a privacy leak blocks even with two clean verdicts',
+    decide({
+      attribution: [],
+      numbers: [],
+      privacy: [{ severity: 'error', why: 'named share count' }],
       agentVerdicts: [{ pass: true, claims: [] }, { pass: true, claims: [] }],
     }).publish,
     false,

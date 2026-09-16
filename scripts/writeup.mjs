@@ -13,6 +13,7 @@
  *
  *   attribution  every player named is checked against who actually rosters him
  *   numbers      every score quoted is checked against the source data
+ *   privacy      nobody's portfolio or point balance reaches the league
  *   two agents   independent structured verdicts, both must pass
  *
  * Any failure stops the publish, writes the draft to a holding directory, and
@@ -116,7 +117,7 @@ function lastJson(text) {
 
 async function main() {
   const { nflState, buildWriteupContext } = await import('../lib/writeup-context.js');
-  const { checkAttribution, checkNumbers, decide } = await import('../lib/writeup-verify.js');
+  const { checkAttribution, checkNumbers, checkPrivacy, decide } = await import('../lib/writeup-verify.js');
 
   const { season, week } = await nflState();
   log(`${KIND} for season ${season}, Sleeper week ${week}${DRY ? ' (dry run)' : ''}`);
@@ -151,7 +152,8 @@ async function main() {
   // ---- gate 1 and 2: code, no model ----
   const attribution = checkAttribution(markdown, context);
   const numbers = checkNumbers(markdown, context);
-  log(`code gates: ${attribution.length} attribution, ${numbers.length} number findings`);
+  const privacy = checkPrivacy(markdown, context);
+  log(`code gates: ${attribution.length} attribution, ${numbers.length} number, ${privacy.length} privacy findings`);
 
   // ---- gate 3: two independent agents ----
   const verdicts = [];
@@ -162,7 +164,7 @@ async function main() {
     verdicts.push(parsed);
   }
 
-  const decision = decide({ attribution, numbers, agentVerdicts: verdicts });
+  const decision = decide({ attribution, numbers, privacy, agentVerdicts: verdicts });
   log(decision.summary);
 
   if (!decision.publish) {
@@ -171,7 +173,7 @@ async function main() {
     writeFileSync(held, markdown, 'utf8');
     writeFileSync(
       join(HOLD, `${KIND}-week-${targetWeek}.problems.json`),
-      JSON.stringify({ decision, attribution, numbers, verdicts }, null, 2),
+      JSON.stringify({ decision, attribution, numbers, privacy, verdicts }, null, 2),
       'utf8',
     );
     // The draft must not sit in content/ or the next run will think it is done.
@@ -279,6 +281,15 @@ independent verifiers and by code, and a single wrong one stops publication.
     positions were his own bad lineup. Do not repeat that.
   - If a claim would be interesting but you cannot confirm it, leave it out.
 
+NOBODY'S PORTFOLIO, NOBODY'S POINTS. Individual Market holdings and point
+balances are private, exactly like a bet before its market locks, and for the
+same reason: if everyone can see the positions, everyone copies them. Never
+write that a named manager holds N shares, owns a particular player's stock,
+spent N points or has N points left. The context gives you anonymous totals --
+how many people are trading, how concentrated the market is -- and those are
+fair game and worth a paragraph. A named position is not, and the check will
+stop the publish.
+
 Write the file and then reply with one line saying what you wrote. Do not commit.`;
 }
 
@@ -316,6 +327,11 @@ superlative and projection. Check especially:
     him. Owning shares in a player on the Market is NOT the same as having him
     on your roster, and conflating the two is the exact error this check exists
     to catch.
+  - PRIVACY. Individual Market holdings and point balances must not appear at
+    all. If the article says a named manager holds shares, bought a particular
+    player, spent points or has a points balance, mark that claim WRONG even if
+    the number is accurate -- it is private information, like a bet before its
+    market locks. Anonymous totals are fine.
 
 Then reply with ONLY a JSON object as the last thing in your response, in this
 shape and nothing else after it:

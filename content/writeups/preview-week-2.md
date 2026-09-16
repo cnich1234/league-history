@@ -2,8 +2,6 @@
 
 One week in and the league has sorted itself into two groups: five people who think they have proven something, and five people who are quietly hoping nobody checks the tape. Both groups are wrong in different directions. Kevin dropped 191.66 on the field and looks like the best team in the league. Chris R scored 102.96 and looks like a man who let a stranger set his lineup. Everyone else landed somewhere in the mushy middle where fantasy football lives most of the time.
 
-We also have a new wrinkle this year, which is that some of you now own stock in the players you are supposed to be evaluating. More on that disaster in a moment.
-
 ## I Cashed @ WSOP x8 (Ernie) vs Devin (Devin)
 
 Ernie is 1-0 after putting 172.16 on Chris R, which sounds impressive until you notice Chris R scored 102.96 and a decent bowling team could have covered that. Caleb Williams went for 41.3 and Derrick Henry added 37.3, so Ernie's day was real. It was also a day where he left **Patrick Mahomes and 25.7 points on his bench**, started Kyle Pitts for a clean 0.0, and ran a Chargers defense that also managed 0.0. Winning by 69 while actively sabotaging three roster spots is the most Ernie thing that has ever happened.
@@ -18,9 +16,9 @@ This is the game where the schedule stops being funny. Chris R opened with 102.9
 
 Kevin is the problem. Christian Watson went 33.7, Justin Jefferson 31.2, and the whole thing added up to the highest score of week 1 by a comfortable margin. He has two championships, a career record 44 games over .500, and the best roster in this preview.
 
-He has also done something genuinely stupid, and it has nothing to do with his roster. Kevin took his 50 opening points and spent **46 of them on the stock market**, buying ten shares of Ja'Marr Chase, ten of Colston Loveland, and two of Joe Burrow. To be clear about what that means: Chase actually plays for Austin, who started him for 3.2 points. Loveland belongs to Chad, who started him for a clean 0.0. Kevin bought a stake in two other men's disappointments and paid full price for the privilege. Only Burrow is his, and Burrow is listed questionable. Kevin now has 4 points to his name, the lowest in the league, and a portfolio that looks like a cry for help.
+Chris R does have one thing going for him, which is that nobody stays this lucky. Kevin drew the softest possible opening in Brandon and hung 191.66 on him; now he gets the only team in the league that scored under 110. At some point the schedule stops handing out gifts and he has to beat somebody awake.
 
-Projection says 142.6 to 120.3, a 71% shot and the widest gap on the board. **Kevin wins.** Chris R's only path is Kevin logging in to check his stock prices and forgetting to set a lineup.
+Projection says 142.6 to 120.3, a 71% shot and the widest gap on the board. **Kevin wins.** Chris R's only path is Kevin forgetting which day it is.
 
 ## Gronkey Punch (Mike B) vs MiOK (Mike R)
 
@@ -54,10 +52,11 @@ History is not kind here. Chris N is 16-8 against Chad across 24 meetings. He al
 
 ## Lock of the Week
 
-Kevin beats Chris R and it is not close. The more interesting bet is whether Kevin realizes before Sunday that twenty of his twenty-two shares are invested in players who start every week for somebody else in this league, and that his 4 remaining points make him the poorest man in a league where he has the best team. Somebody is going to put a bounty on him purely because he cannot afford to defend himself.
+Kevin beats Chris R and it is not close. The more interesting question is Austin. The reigning champion opened by scoring 119.54, which is ninth out of ten, and now runs into the one man he has never been able to shake. Five rings and an 0-2 start would be the single funniest thing to happen in this league since Mike B scored 47.5. Take Brandon and enjoy it.
 
-## The Market Watch
+## The Market
 
-Three people are trading. Kevin has 22 shares, Devin has 15, and Chris N has 10. Between them they hold twenty-five shares of Ja'Marr Chase, currently the most expensive disappointment in the league and, awkwardly, Austin's starting receiver. If Chase has a big Sunday, three people get rich and the rest of you will hear about it. If he does not, the dividends are going to be brutal reading on Tuesday morning.
-
-Six of you still sit on the full 50 with no exposure to anything. That is either discipline or fear, and we will find out which by about week 5.
+Prices move all week and the dividends land at Tuesday's roll. What anybody is
+holding is their own business, which is the point -- if everyone could see the
+portfolios we would all end up owning the same four players and calling it
+strategy.

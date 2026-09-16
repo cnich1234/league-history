@@ -650,3 +650,64 @@ for the whole season. Nothing called it, so no market had ever left `status =
 changed.
 
 If another one turns up, that is the shape it will take.
+
+## Automated writeups
+
+A recap on Tuesday morning and a preview on Wednesday morning, generated,
+verified and published without anyone present. Added 2026-09-16.
+
+It runs on Chris's machine under Windows Task Scheduler rather than as a Vercel
+cron, for two reasons. A deployed app cannot write a markdown file into its own
+repo, and writeups are files on disk read at build time. And a single scheduled
+API call cannot do what an agent session does -- the week 2 preview took about
+twenty queries and two verification passes, which is the difference between a
+writeup worth reading and a summary of the box score.
+
+    scripts/writeup.mjs      the run: gather, write, verify, publish
+    scripts/writeup-task.ps1 the scheduler wrapper (PATH, logs, git pull)
+    lib/writeup-context.js   everything a writeup is written from
+    lib/writeup-verify.js    the gates
+    npm run test:writeup     the gates, tested against real past errors
+
+### The gates
+
+Auto-publishing is only defensible because nothing reaches the league without
+passing all three. Cheapest first:
+
+1. **Attribution**, in code. Every player named is checked against who actually
+   rosters him. This is the cheap gate that catches the expensive mistake.
+2. **Arithmetic**, in code. Every score-shaped number is checked against the
+   source data. Projections are matched within a point, because they drift with
+   injury news between writing and checking; a drifted projection warns, an
+   invented number blocks.
+3. **Two agents**, one reading claims in order and one computing ground truth
+   first and comparing. Both return a structured verdict. Prose findings are
+   useless to an unattended job -- it cannot read "mostly fine, check line 40"
+   and decide.
+
+`decide()` treats a missing or malformed verdict as a STOP. "The checker did not
+run" and "the checker approved" must never look the same.
+
+A blocked draft is written to `.writeups-blocked/` with the problems as JSON,
+removed from `content/` so the next run does not think it is done, and a
+notification says what stopped it. The run notifies on publish, on block and on
+crash, so silence never means success.
+
+### Why the attribution gate exists
+
+The first draft of the week 2 preview had every number correct and still got the
+story wrong. It read as though a manager's Market holdings were his own
+underperforming lineup. Ja'Marr Chase is Austin's starter and Colston Loveland is
+Chad's; Kevin owns the shares, not the players. No arithmetic check would ever
+have caught it, because nothing was miscounted -- the frame was wrong.
+
+That is the class of error that survives automation, which is why ownership is
+in the context explicitly, why the prompt names the trap, and why the gate is
+code rather than a hope.
+
+### Prerequisites
+
+The headless CLI (`npm i -g @anthropic-ai/claude-code`) must be installed AND
+authenticated as its own session -- the desktop app's login does not carry over.
+Run `claude` once interactively and sign in, or the scheduled runs fail at the
+first step and notify.

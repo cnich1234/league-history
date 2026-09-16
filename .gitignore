@@ -16,3 +16,4 @@ data/raw/
 
 .vercel
 .env*
+.writeups-blocked/

@@ -110,15 +110,14 @@ export default function TradeSheet({ player, canTrade, onChanged }) {
             </button>
           ))}
         </div>
-        <div className="mk-sub">
-          you own <strong>{owned}</strong>
-          {balance != null && (
-            <>
-              {' · '}
-              <strong>{balance}</strong> pts to spend
-            </>
-          )}
-        </div>
+        {/* Held shares are already stated twice below -- on the Sell tab and in
+            the cap line -- so the only number that earns this spot is what you
+            have left to spend. */}
+        {balance != null && (
+          <div className="mk-sub">
+            <strong className="mk-spend">{balance} pts</strong> to spend
+          </div>
+        )}
       </div>
 
       <div className="mk-sheet-quote">

@@ -111,22 +111,6 @@
   color: var(--teal);
 }
 
-/* The balance, carried on the portfolio chip so it costs no vertical space on
-   a phone. The number is what matters, the word underneath is the label. */
-.mk-chip-points {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 5px;
-  text-decoration: none;
-}
-.mk-chip-points strong {
-  font-size: 13.5px;
-}
-.mk-chip-sub {
-  color: var(--text-dim);
-  font-weight: 700;
-  font-size: 10.5px;
-}
 
 /* The list */
 .mk-rows {
@@ -232,6 +216,15 @@
   align-items: center;
   gap: 12px;
   padding: 10px 2px 6px;
+}
+
+/* What you have left to spend, above the trade sheet. In the same green as the
+   Buy pill: it is the number that decides whether the next tap is possible, and
+   it was previously the same grey as the label beside it. */
+.mk-spend {
+  color: var(--teal);
+  font-weight: 800;
+  font-size: 13.5px;
 }
 
 /* Held shares and spendable points, top right of the stock page. Pushed to the

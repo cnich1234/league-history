@@ -97,19 +97,8 @@ export default function MarketList({ initial, source }) {
         {source === 'mock' ? (
           <span className="pill">Mock prices</span>
         ) : (
-          /* The balance rides on the portfolio link rather than taking a row of
-             its own. It is the number you check before every buy, and it was
-             only visible inside the trade sheet -- one tap and one scroll from
-             the list where you decide what to look at. */
-          <Link href="/market/portfolio" className="mk-chip mk-chip-on mk-chip-points">
-            {data.balance == null ? (
-              'My portfolio'
-            ) : (
-              <>
-                <strong>{data.balance}</strong> pts
-                <span className="mk-chip-sub">portfolio</span>
-              </>
-            )}
+          <Link href="/market/portfolio" className="mk-chip mk-chip-on">
+            My portfolio
           </Link>
         )}
       </div>

@@ -72,7 +72,8 @@
     "writeup:preview": "node --env-file=.env.local scripts/writeup.mjs preview",
     "writeup:recap": "node --env-file=.env.local scripts/writeup.mjs recap",
     "test:pushguard": "node --env-file=.env.local scripts/pushguard.test.mjs",
-    "test:implies": "node scripts/implies.test.mjs"
+    "test:implies": "node scripts/implies.test.mjs",
+    "test:dfsreveal": "node --env-file=.env.local scripts/dfsreveal.test.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.125.0",

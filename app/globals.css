@@ -2575,6 +2575,17 @@ tbody tr:last-child td {
   letter-spacing: 0.3px;
 }
 
+/* A daily-fantasy slot whose player has not kicked off: the photo's footprint
+   with nothing in it, so the rows stay aligned with the revealed ones. */
+.dfs-slot-blank {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  flex: none;
+}
+
 /* Who the odds are actually built on, when it is not the man on the row. Sits
    under the matchup line so the starter keeps the name position. */
 .mm-priced {

@@ -97,8 +97,19 @@ export default function MarketList({ initial, source }) {
         {source === 'mock' ? (
           <span className="pill">Mock prices</span>
         ) : (
-          <Link href="/market/portfolio" className="mk-chip mk-chip-on">
-            My portfolio
+          /* The balance rides on the portfolio link rather than taking a row of
+             its own. It is the number you check before every buy, and it was
+             only visible inside the trade sheet -- one tap and one scroll from
+             the list where you decide what to look at. */
+          <Link href="/market/portfolio" className="mk-chip mk-chip-on mk-chip-points">
+            {data.balance == null ? (
+              'My portfolio'
+            ) : (
+              <>
+                <strong>{data.balance}</strong> pts
+                <span className="mk-chip-sub">portfolio</span>
+              </>
+            )}
           </Link>
         )}
       </div>
@@ -106,7 +117,7 @@ export default function MarketList({ initial, source }) {
       <p className="mk-note">
         {source === 'mock'
           ? 'Invented prices on real players. They move with the clock, loudest on Sunday, Monday and Thursday nights.'
-          : 'Real prices in points a share: half his projection, repriced from the stat line while his game is on. Change is against the projection.'}
+          : "Real prices in points a share: half his projection plus what earlier weeks carried, repriced from the stat line while his game is on. Change is against the price at Tuesday's roll."}
       </p>
       {data.error && <div className="empty">Could not load the board: {data.error}</div>}
 

@@ -111,6 +111,23 @@
   color: var(--teal);
 }
 
+/* The balance, carried on the portfolio chip so it costs no vertical space on
+   a phone. The number is what matters, the word underneath is the label. */
+.mk-chip-points {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  text-decoration: none;
+}
+.mk-chip-points strong {
+  font-size: 13.5px;
+}
+.mk-chip-sub {
+  color: var(--text-dim);
+  font-weight: 700;
+  font-size: 10.5px;
+}
+
 /* The list */
 .mk-rows {
   background: var(--surface);
@@ -215,6 +232,27 @@
   align-items: center;
   gap: 12px;
   padding: 10px 2px 6px;
+}
+
+/* Held shares and spendable points, top right of the stock page. Pushed to the
+   end of the header row so the player's name keeps the left edge. */
+.mk-wallet {
+  margin-left: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.mk-wallet strong {
+  font-size: 14px;
+  color: var(--text);
+}
+.mk-wallet-own strong {
+  color: var(--teal);
 }
 .mk-stock-name {
   font-size: 18px;

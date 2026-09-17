@@ -154,57 +154,25 @@ console.log('\nthe live model uses it');
   ok('without a table the empty slot is worth nothing', s4.players, 9);
 }
 
-console.log('\na questionable player never displaces a healthy one');
+console.log('\ninjury status does not change the pick');
 {
-  // Devin started a healthy Emeka Egbuka; the model swapped in a Questionable
-  // Alec Pierce because he projected 0.78 higher. A projection cannot express
-  // "might not play at all", so the lineup model has to.
-  const risky = (id) => id === 'wr1'; // the best receiver, but questionable
+  // Tried the other way on 2026-09-17 and reverted it the same day. Sleeper
+  // already discounts a Questionable player's projection for the chance he
+  // sits, so preferring a healthy man on top of that prices the same risk
+  // twice. Worse, it hands a manager a lever on his own line: an injury
+  // designation lands on somebody else's schedule, and his price would move
+  // without him touching anything.
+  //
+  // It also read as arbitrary on the board, which is how it was caught -- one
+  // matchup said "odds use Mahomes" and another silently ignored a receiver
+  // projected higher, for no reason a reader could see.
+  //
+  // The rule is the best lineup a roster can field, and "best" is whatever the
+  // projection says.
   const set = ['qb1', 'rb1', 'rb2', 'wr2', 'wr3', 'wr4', 'te1', 'rb3', 'k1', 'def1'];
-  const m = { starters: set, players: roster };
-
-  const withRisk = expectedIds(m, opts({ doubtful: risky }));
-  ok('the questionable man is left out', withRisk.includes('wr1'), false);
-  ok('and a healthy one takes the slot', withRisk.includes('wr4'), true);
-
-  // Without the flag he is simply the best available, as before.
-  ok('unflagged, he starts on merit', expectedIds(m, opts()).includes('wr1'), true);
-}
-{
-  // If the manager started him himself, that is his call and the price follows
-  // the lineup he set. Second-guessing it would move a line on a bench move,
-  // which is the thing this whole model exists to prevent.
-  const risky = (id) => id === 'wr1';
-  const set = ['qb1', 'rb1', 'rb2', 'wr1', 'wr2', 'wr3', 'te1', 'rb3', 'k1', 'def1'];
-  const ids = expectedIds({ starters: set, players: roster }, opts({ doubtful: risky }));
-  ok('a questionable player he started himself stays in', ids.includes('wr1'), true);
-}
-{
-  // When nobody healthy fits, a risky player still beats an empty slot: the
-  // alternative is pricing that slot at waiver value, which is worse.
-  const ids = expectedIds(
-    { starters: [], players: ['qb1', 'k1', 'def1'] },
-    {
-      slots: ['QB', 'K', 'DEF'],
-      positionOf: (id) => POS[id] ?? null,
-      projectionOf: (id) => PROJ[id] ?? 0,
-      doubtful: () => true,
-    },
-  );
-  ok('a risky player still beats nobody', ids, ['qb1', 'k1', 'def1']);
-}
-{
-  // Ordering among risky players is still by projection.
-  const ids = expectedIds(
-    { starters: [], players: ['wr1', 'wr2'] },
-    {
-      slots: ['WR'],
-      positionOf: (id) => POS[id] ?? null,
-      projectionOf: (id) => PROJ[id] ?? 0,
-      doubtful: () => true,
-    },
-  );
-  ok('among two risky players the better one starts', ids, ['wr1']);
+  const ids = expectedIds({ starters: set, players: roster }, opts());
+  ok('the better projection starts, injured or not', ids.includes('wr1'), true);
+  ok('and the weaker man he set does not', ids.includes('wr4'), false);
 }
 
 console.log(failed ? `\n${failed} FAILED` : '\nall good');

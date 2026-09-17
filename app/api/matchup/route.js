@@ -6,7 +6,6 @@ import { SLEEPER_OWNERS } from '@/lib/sleeper-owners';
 import {
   expectedLineup,
   replacementTable,
-  isRisky,
   startingSlotsOf,
   DEFAULT_SLOTS,
 } from '@/lib/lineup';
@@ -114,7 +113,6 @@ export async function GET(request) {
         },
         kickedOff: (id) => pointsOf(id) > 0,
         unavailable: new Set([...(roster?.reserve ?? []), ...(roster?.taxi ?? [])].map(String)),
-        doubtful: (id) => isRisky(info[id]?.injury),
       });
 
       const startingSlots = startingSlotsOf(slots);
@@ -130,6 +128,11 @@ export async function GET(request) {
       // the one actually starting, which is worse than unhelpful on a bet about
       // quarterbacks.
       const modelIds = new Set(entries.map((e) => e.id).filter(Boolean));
+      // Players the model starts who the manager did not: the substitutions,
+      // in the model's own order. Each benched starter is paired with one.
+      const swappedIn = entries
+        .map((e) => e.id)
+        .filter((id) => id && !startedIds.has(String(id)));
       const describe = (id) => {
         const p = (id && info[id]) || {};
         const date = p.team ? gameDates[p.team]?.date ?? null : null;
@@ -181,11 +184,18 @@ export async function GET(request) {
           position: (startedId ? base.position : describe(modelId).position) ?? slot,
           points: startedId ? pointsOf(startedId) : 0,
           started: Boolean(startedId),
-          // Set here, but the pricing model uses a different man. Named so the
-          // manager can see exactly what the odds are built on.
+          // Set here, but the pricing model does not use him ANYWHERE -- so
+          // the odds are built on somebody he benched. Named so the manager can
+          // see exactly what that is.
+          //
+          // The man named is whoever the model started that the manager did
+          // not, not whatever landed in this slot index: the model orders slots
+          // best-first, so a receiver who is in both lineups routinely sits at
+          // a different WR index and would otherwise be reported as replacing
+          // himself.
           pricedAs:
-            startedId && !modelIds.has(String(startedId)) && modelId
-              ? describe(modelId)
+            startedId && !modelIds.has(String(startedId)) && swappedIn.length
+              ? describe(swappedIn.shift())
               : null,
         };
       });

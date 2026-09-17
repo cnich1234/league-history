@@ -503,6 +503,11 @@ export default function RulesPage() {
               A market can be in as many of your parlays as you like, alongside a straight bet
               on it too
             </li>
+            <li>
+              But no parlay leg that another leg already guarantees — &quot;wins by 30+&quot;
+              already contains &quot;wins by 20+&quot; and &quot;wins&quot;, so stacking them
+              would pay several times for one result
+            </li>
             <li>No editing or cancelling once placed — only Undo or Cash Out from the shop</li>
           </ul>
 

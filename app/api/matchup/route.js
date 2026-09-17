@@ -94,6 +94,8 @@ export async function GET(request) {
         const i = setStarters.indexOf(id);
         return i >= 0 ? Number(m?.starters_points?.[i] ?? 0) : 0;
       };
+      // Everyone the manager actually started, regardless of which slot.
+      const startedIds = new Set(setStarters.filter(Boolean));
       const entries = expectedLineup(m ?? {}, {
         replacement,
         slots,
@@ -108,14 +110,21 @@ export async function GET(request) {
         unavailable: new Set([...(roster?.reserve ?? []), ...(roster?.taxi ?? [])].map(String)),
       });
 
-      const players = entries.map(({ id, slot, index, replacement: fill }) => {
+      const players = entries.map(({ id, slot, replacement: fill }) => {
         const p = (id && info[id]) || {};
         const date = p.team ? gameDates[p.team]?.date ?? null : null;
         return {
           id,
           slot,
-          // Set in this slot right now, or filled in by the model.
-          set: id != null && index != null,
+          // Is this player in your starting lineup AT ALL?
+          //
+          // Not "in this exact slot". The model fills slots best-first, so two
+          // receivers of similar value routinely swap places between identical
+          // WR slots -- same players, same total, same lineup. Comparing slot
+          // by slot flagged both as "not set" on a lineup that was perfectly
+          // set, which is alarming and wrong. What the manager needs to know is
+          // whether the model is pricing somebody he did not start.
+          set: id != null && startedIds.has(String(id)),
           name: id ? p.name || String(id) : fill > 0 ? 'Waiver pickup' : 'Empty slot',
           position: p.position ?? slot,
           team: p.team,

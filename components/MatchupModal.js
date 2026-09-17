@@ -75,7 +75,10 @@ export default function MatchupModal({ home, away, week, onClose }) {
                 <div className="mm-team-score">
                   {started ? data.home.points.toFixed(2) : data.home.projected.toFixed(1)}
                 </div>
-                <div className="mm-team-label">{started ? 'points' : 'projected'}</div>
+                <div className="mm-team-label">{started ? 'points' : 'priced at'}</div>
+                {!started && data.home.asSet != null && data.home.unset > 0 && (
+                  <div className="mm-team-asset">{data.home.asSet.toFixed(1)} as set</div>
+                )}
               </div>
               <div className="mm-vs">vs</div>
               <div className="mm-team">
@@ -83,7 +86,10 @@ export default function MatchupModal({ home, away, week, onClose }) {
                 <div className="mm-team-score">
                   {started ? data.away.points.toFixed(2) : data.away.projected.toFixed(1)}
                 </div>
-                <div className="mm-team-label">{started ? 'points' : 'projected'}</div>
+                <div className="mm-team-label">{started ? 'points' : 'priced at'}</div>
+                {!started && data.away.asSet != null && data.away.unset > 0 && (
+                  <div className="mm-team-asset">{data.away.asSet.toFixed(1)} as set</div>
+                )}
               </div>
             </div>
 
@@ -103,10 +109,11 @@ export default function MatchupModal({ home, away, week, onClose }) {
                 happens rather than burying it in the rules page. */}
             {(data.home.unset > 0 || data.away.unset > 0) && !started && (
               <p className="mm-note">
-                A slot marked <span className="mm-unset">not set</span> is priced on the best
-                player that manager could start there, not the one he did. Benching somebody
-                cannot move his line — that is the rule — so what you see here is what the
-                odds are built on.
+                These are the lineups as set — whoever is listed is who plays. Where a row
+                says <span className="mm-priced-inline">odds use</span> somebody else, the
+                price is built on the best player that manager could still start there
+                instead. Benching somebody cannot move his line, which is the rule, so the
+                odds ignore it even though the scoreboard will not.
               </p>
             )}
           </>
@@ -129,13 +136,23 @@ function Player({ p, started, align }) {
         {/* Filled in by the model: the slot is empty or holds someone worse.
             Prices assume the best available lineup, so benching cannot move
             a line -- but the manager should see what he is being priced on. */}
-        {p.id && p.set === false && <span className="mm-unset"> not set</span>}
+        {!p.started && p.id && <span className="mm-unset"> not set</span>}
       </span>
       <span className="mm-meta">
         {p.team ?? '—'}
         {p.opponent ? ` vs ${p.opponent}` : ''}
         {p.day ? ` · ${p.day}` : ''}
       </span>
+      {/* The man on the row is the one who actually plays. When the odds are
+          built on somebody else, say so here rather than showing his name in
+          place of the starter -- a QB-versus-QB bet is settled on whoever takes
+          the field. */}
+      {p.pricedAs && (
+        <span className="mm-priced">
+          odds use {p.pricedAs.name}
+          {p.pricedAs.projection != null ? ` ${p.pricedAs.projection.toFixed(1)}` : ''}
+        </span>
+      )}
       <span className={`mm-points ${live ? '' : 'mm-proj'}`}>
         {live ? p.points.toFixed(1) : (p.projection?.toFixed(1) ?? '—')}
       </span>

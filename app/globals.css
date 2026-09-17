@@ -2575,6 +2575,27 @@ tbody tr:last-child td {
   letter-spacing: 0.3px;
 }
 
+/* Who the odds are actually built on, when it is not the man on the row. Sits
+   under the matchup line so the starter keeps the name position. */
+.mm-priced {
+  display: block;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--gold);
+  margin-top: 1px;
+}
+.mm-priced-inline {
+  color: var(--gold);
+  font-weight: 700;
+}
+/* The lineup's own total, beside the one the odds use. */
+.mm-team-asset {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
 /* Explains the "not set" marker in place. Shown only when a slot actually
    carries one, so it is an answer to a question the reader is already asking
    rather than another paragraph to skip. */

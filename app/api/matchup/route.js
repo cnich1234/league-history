@@ -3,7 +3,13 @@ import { currentBettor } from '@/lib/auth';
 import { neon } from '@neondatabase/serverless';
 import { teamGameDates } from '@/lib/schedule';
 import { SLEEPER_OWNERS } from '@/lib/sleeper-owners';
-import { expectedLineup, replacementTable, isRisky, DEFAULT_SLOTS } from '@/lib/lineup';
+import {
+  expectedLineup,
+  replacementTable,
+  isRisky,
+  startingSlotsOf,
+  DEFAULT_SLOTS,
+} from '@/lib/lineup';
 
 export const dynamic = 'force-dynamic';
 
@@ -111,29 +117,30 @@ export async function GET(request) {
         doubtful: (id) => isRisky(info[id]?.injury),
       });
 
-      const players = entries.map(({ id, slot, replacement: fill }) => {
+      const startingSlots = startingSlotsOf(slots);
+
+      // THE ROWS ARE THE ACTUAL LINEUP. Whoever the manager started is who
+      // shows, in the slot he put him in -- because that is who takes the
+      // field, and a QB-versus-QB bet is settled on the man who plays, not on
+      // the man the pricing model would have picked.
+      //
+      // Where the model prices somebody else, that is carried alongside as
+      // `pricedAs` rather than replacing the row. Showing only the model's pick
+      // meant Mahomes appeared as Ernie's quarterback while Caleb Williams was
+      // the one actually starting, which is worse than unhelpful on a bet about
+      // quarterbacks.
+      const modelIds = new Set(entries.map((e) => e.id).filter(Boolean));
+      const describe = (id) => {
         const p = (id && info[id]) || {};
         const date = p.team ? gameDates[p.team]?.date ?? null : null;
         return {
           id,
-          slot,
-          // Is this player in your starting lineup AT ALL?
-          //
-          // Not "in this exact slot". The model fills slots best-first, so two
-          // receivers of similar value routinely swap places between identical
-          // WR slots -- same players, same total, same lineup. Comparing slot
-          // by slot flagged both as "not set" on a lineup that was perfectly
-          // set, which is alarming and wrong. What the manager needs to know is
-          // whether the model is pricing somebody he did not start.
-          set: id != null && startedIds.has(String(id)),
-          name: id ? p.name || String(id) : fill > 0 ? 'Waiver pickup' : 'Empty slot',
-          position: p.position ?? slot,
-          team: p.team,
-          opponent: p.opponent,
-          injury: p.injury,
-          projection: id ? p.projection : fill > 0 ? fill : null,
-          // Live points once games start; zero before kickoff.
-          points: id ? pointsOf(id) : 0,
+          name: id ? p.name || String(id) : null,
+          position: p.position ?? null,
+          team: p.team ?? null,
+          opponent: p.opponent ?? null,
+          injury: p.injury ?? null,
+          projection: id ? (p.projection ?? null) : null,
           day: date
             ? new Date(`${date}T12:00:00Z`).toLocaleDateString('en-US', {
                 weekday: 'short',
@@ -141,17 +148,72 @@ export async function GET(request) {
               })
             : null,
         };
+      };
+
+      const players = startingSlots.map((slot, i) => {
+        const startedId = setStarters[i];
+        const entry = entries[i] ?? {};
+        const modelId = entry.id ?? null;
+        const fill = Number(entry.replacement) || 0;
+        const base = describe(startedId);
+
+        // The slot is empty and the model could not fill it either: it is worth
+        // a waiver pickup and nothing more.
+        if (!startedId && !modelId) {
+          return {
+            ...base,
+            slot,
+            name: fill > 0 ? 'Waiver pickup' : 'Empty slot',
+            position: slot,
+            projection: fill > 0 ? fill : null,
+            points: 0,
+            started: false,
+            pricedAs: null,
+          };
+        }
+
+        return {
+          ...base,
+          slot,
+          // Nobody set here, but the model found somebody: the row IS the
+          // model's pick, flagged as not started.
+          ...(startedId ? {} : { ...describe(modelId), slot }),
+          position: (startedId ? base.position : describe(modelId).position) ?? slot,
+          points: startedId ? pointsOf(startedId) : 0,
+          started: Boolean(startedId),
+          // Set here, but the pricing model uses a different man. Named so the
+          // manager can see exactly what the odds are built on.
+          pricedAs:
+            startedId && !modelIds.has(String(startedId)) && modelId
+              ? describe(modelId)
+              : null,
+        };
       });
+
+      // TWO TOTALS, because there are genuinely two numbers.
+      //
+      // `projected` is what the ODDS are built on: the best lineup this roster
+      // could field, which is the anti-tanking rule. `asSet` is what the lineup
+      // on screen actually adds up to. They differ exactly when the model
+      // prices somebody the manager did not start, and the difference is the
+      // edge he is giving away by not starting his best available side.
+      const priced = entries.reduce(
+        (sum, e) => sum + (e.id ? info[e.id]?.projection ?? 0 : Number(e.replacement) || 0),
+        0,
+      );
+      const asSet = players.reduce((sum, p) => sum + (p.projection ?? 0), 0);
 
       return {
         rosterId,
         team: user?.metadata?.team_name || owner?.name || 'Unknown',
         manager: owner?.name ?? null,
         points: Number(m?.points ?? 0),
-        projected:
-          Math.round(players.reduce((sum, p) => sum + (p.projection ?? 0), 0) * 10) / 10,
-        // How many slots the model had to fill in because they were not set.
-        unset: players.filter((p) => p.id && !p.set).length,
+        projected: Math.round(priced * 10) / 10,
+        asSet: Math.round(asSet * 10) / 10,
+        // Slots where the odds are built on somebody other than the man set.
+        unset: players.filter((p) => p.pricedAs).length,
+        // Slots nobody is set in at all.
+        empty: players.filter((p) => !p.started).length,
         players,
       };
     };

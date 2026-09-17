@@ -115,7 +115,7 @@ export default function TradeSheet({ player, canTrade, onChanged }) {
             have left to spend. */}
         {balance != null && (
           <div className="mk-sub">
-            <strong className="mk-spend">{balance} pts</strong> to spend
+            <strong className="mk-spend">{balance} points</strong> to spend
           </div>
         )}
       </div>

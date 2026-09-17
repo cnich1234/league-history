@@ -237,21 +237,6 @@ export default function StockChart({ initial, source, canTrade = false }) {
             )}
           </div>
         </div>
-        {/* What you hold and what you can spend, at the top rather than only
-            inside the trade sheet further down. These are the two numbers you
-            want while looking at the price, not after deciding to act on it. */}
-        {player.balance != null && (
-          <div className="mk-wallet">
-            {player.owned > 0 && (
-              <span className="mk-wallet-own">
-                <strong>{player.owned}</strong> held
-              </span>
-            )}
-            <span className="mk-wallet-pts">
-              <strong>{player.balance}</strong> pts
-            </span>
-          </div>
-        )}
       </div>
 
       <div className="mk-quote">

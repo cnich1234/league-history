@@ -110,7 +110,7 @@ export async function GET(request) {
 
       const players = entries.map(({ id, slot, index, replacement: fill }) => {
         const p = (id && info[id]) || {};
-        const date = p.team ? gameDates[p.team] : null;
+        const date = p.team ? gameDates[p.team]?.date ?? null : null;
         return {
           id,
           slot,

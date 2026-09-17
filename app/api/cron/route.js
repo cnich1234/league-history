@@ -206,8 +206,10 @@ export async function GET(request) {
       // The weekly contest, created on demand and locking at the first kickoff
       // of the week so the board has a deadline to show.
       const dates = await teamGameDates(season, week).catch(() => ({}));
+      // The first ACTUAL kickoff. This used to parse the game date, which gave
+      // midnight UTC and locked the contest most of a day early.
       const kicks = Object.values(dates)
-        .map((d) => new Date(d).getTime())
+        .map((d) => (d?.kickoff instanceof Date ? d.kickoff.getTime() : NaN))
         .filter(Number.isFinite);
       const first = kicks.length ? new Date(Math.min(...kicks)) : null;
       await weeklyContest(season, week, first);

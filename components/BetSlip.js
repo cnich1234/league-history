@@ -46,16 +46,28 @@ const money = (n) =>
  * the real rule.
  */
 function lockLabel(market) {
-  const day = new Date(market.locks_at).toLocaleDateString('en-US', {
+  // ARIZONA, not UTC. A lock is now a real kickoff, and a Thursday 5:15pm
+  // Arizona kickoff is 00:15 UTC on FRIDAY -- so formatting in UTC put the
+  // whole Thursday board a day late. It read fine while every lock was
+  // midnight Arizona, which is 07:00 UTC the same calendar day.
+  const at = new Date(market.locks_at);
+  const day = at.toLocaleDateString('en-US', {
     weekday: 'short',
-    timeZone: 'UTC',
+    timeZone: 'America/Phoenix',
+  });
+  const time = at.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZone: 'America/Phoenix',
   });
   // A live market that has NOT reached its lock yet said "Open · prices move
   // live", which sat one line away from "LIVE · price moves" on a market that
   // genuinely was live -- two near-identical phrases for opposite states. Say
   // when it starts moving instead, since that is the thing you cannot see.
   if (market.live) return `Live from ${day}`;
-  return `Closes at ${day} kickoff`;
+  // The time as well as the day: "closes at Thu kickoff" was fine when kickoff
+  // meant midnight, but the actual deadline is worth stating now that it is one.
+  return `Closes ${day} ${time}`;
 }
 
 export default function BetSlip({

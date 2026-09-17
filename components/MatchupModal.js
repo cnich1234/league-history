@@ -96,6 +96,19 @@ export default function MatchupModal({ home, away, week, onClose }) {
                 </div>
               ))}
             </div>
+
+            {/* Without this, a player somebody did not start appears in their
+                lineup with no explanation and reads as a bug -- which is
+                exactly how it was reported. Say the rule where the surprise
+                happens rather than burying it in the rules page. */}
+            {(data.home.unset > 0 || data.away.unset > 0) && !started && (
+              <p className="mm-note">
+                A slot marked <span className="mm-unset">not set</span> is priced on the best
+                player that manager could start there, not the one he did. Benching somebody
+                cannot move his line — that is the rule — so what you see here is what the
+                odds are built on.
+              </p>
+            )}
           </>
         )}
       </div>

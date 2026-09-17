@@ -3,7 +3,7 @@ import { currentBettor } from '@/lib/auth';
 import { neon } from '@neondatabase/serverless';
 import { teamGameDates } from '@/lib/schedule';
 import { SLEEPER_OWNERS } from '@/lib/sleeper-owners';
-import { expectedLineup, replacementTable, DEFAULT_SLOTS } from '@/lib/lineup';
+import { expectedLineup, replacementTable, isRisky, DEFAULT_SLOTS } from '@/lib/lineup';
 
 export const dynamic = 'force-dynamic';
 
@@ -108,6 +108,7 @@ export async function GET(request) {
         },
         kickedOff: (id) => pointsOf(id) > 0,
         unavailable: new Set([...(roster?.reserve ?? []), ...(roster?.taxi ?? [])].map(String)),
+        doubtful: (id) => isRisky(info[id]?.injury),
       });
 
       const players = entries.map(({ id, slot, replacement: fill }) => {

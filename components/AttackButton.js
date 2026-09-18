@@ -72,6 +72,21 @@ export default function AttackButton({
     );
   }
 
+  // An insured bet cannot be hit, so the button says so rather than opening a
+  // sheet that only tells you the same thing two taps later. Kept in place
+  // rather than removed: the row still needs something on the right, and a
+  // greyed control reads as "this one is protected" at a glance.
+  //
+  // A Ride is still worth offering -- copying somebody's pick is not an attack
+  // and a shield does nothing to it.
+  if (shielded && !canRide) {
+    return (
+      <button className="attack-btn attack-btn-off" type="button" disabled title="Insured — nothing gets through">
+        Insured
+      </button>
+    );
+  }
+
   if (!open) {
     return (
       <button className="attack-btn" type="button" onClick={() => setOpen(true)}>

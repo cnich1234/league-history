@@ -1274,6 +1274,16 @@ tbody tr:last-child td {
   cursor: pointer;
 }
 
+/* An insured bet: the button stays so the row keeps its shape, but it is grey
+   and dead. Opening the sheet only to be told nothing gets through was two
+   taps to learn what the shield icon already said. */
+.attack-btn-off {
+  border-color: rgba(140, 140, 150, 0.28);
+  background: transparent;
+  color: var(--text-dim);
+  cursor: not-allowed;
+}
+
 /* A catalogue entry in the attack popup: shown, not clickable, because you do
    not own it yet. */
 .picker-item-flat {

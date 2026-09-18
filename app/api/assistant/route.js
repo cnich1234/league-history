@@ -4,6 +4,10 @@ import { currentBettor } from '@/lib/auth';
 import { buildContext, SYSTEM_PROMPT } from '@/lib/assistant';
 
 export const dynamic = 'force-dynamic';
+// A long answer takes ten seconds or more to generate, which is the default
+// function limit -- so the request was being killed mid-flight and the chat
+// just sat there. Devin's brother asked a follow-up and never got a reply.
+export const maxDuration = 60;
 
 /**
  * The in-app assistant.

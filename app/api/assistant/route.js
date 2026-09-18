@@ -48,7 +48,10 @@ export async function POST(request) {
     const client = new Anthropic({ apiKey: key });
     const res = await client.messages.create({
       model: 'claude-sonnet-5',
-      max_tokens: 700,
+      // 700 was cutting long answers off mid-sentence, and a question like
+      // "explain every boost" genuinely needs more than that. 1200 still keeps
+      // replies phone-sized; the prompt does the work of keeping them short.
+      max_tokens: 1200,
       system: [
         { type: 'text', text: SYSTEM_PROMPT },
         // Cached: the context is ~13k tokens and barely changes between
@@ -63,6 +66,24 @@ export async function POST(request) {
       .map((c) => c.text)
       .join('\n')
       .trim();
+
+    // An empty reply used to come back as ok:true and render a blank bubble,
+    // which on a phone is indistinguishable from "it never responded" -- which
+    // is exactly how this was reported. It happens when the model returns no
+    // text block at all, or stops on the token cap before writing anything.
+    // Say so instead, so the person knows to ask again.
+    if (!text) {
+      console.error('assistant: empty reply', { stop: res.stop_reason });
+      return NextResponse.json(
+        {
+          error:
+            res.stop_reason === 'max_tokens'
+              ? 'That answer ran long and got cut off. Ask for a smaller piece of it.'
+              : 'No answer came back. Try asking again.',
+        },
+        { status: 502 },
+      );
+    }
 
     return NextResponse.json({ ok: true, reply: text });
   } catch (e) {

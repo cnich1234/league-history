@@ -2585,6 +2585,28 @@ tbody tr:last-child td {
   letter-spacing: 0.3px;
 }
 
+/* A daily-fantasy slot whose player has kicked off: frozen, while every other
+   slot stays editable. The whole lineup used to freeze on the first kickoff,
+   which locked seven Sunday slots behind a Thursday quarterback for no reason. */
+.dfs-slot-locked {
+  flex: none;
+  width: 30px;
+  text-align: center;
+  font-size: 13px;
+  opacity: 0.65;
+  cursor: default;
+}
+.dfs-slot-swap:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+/* A candidate whose game has started: shown, since he is on the board and
+   people will look for him, but not selectable. */
+.dfs-candidate-played {
+  opacity: 0.4;
+  text-decoration: line-through;
+}
+
 /* The Action, grouped by who placed the bets.
    One manager with eleven open bets used to push everybody else off the
    screen, so each owner folds into a summary of what they have at stake. */

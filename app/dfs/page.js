@@ -2,6 +2,7 @@ import { currentBettor, isGuestSlug, listBettors } from '@/lib/auth';
 import { currentWeek } from '@/lib/book';
 import {
   salaryPool,
+  lockedPlayers,
   weeklyContest,
   lineupFor,
   openLobbies,
@@ -43,6 +44,9 @@ export default async function DailyPage({ searchParams }) {
   const asked = Number(params?.week);
   const week = Number.isFinite(asked) && asked > 0 ? asked : await currentWeek(SEASON);
   const pool = await salaryPool(SEASON, week);
+  // Whose game has already kicked off: those slots are frozen, the rest are
+  // still editable. Empty before the first game of the week.
+  const started = await lockedPlayers(SEASON, week).catch(() => new Set());
 
   if (!pool.length) {
     return (
@@ -180,6 +184,7 @@ export default async function DailyPage({ searchParams }) {
           cap={SALARY_CAP}
           pool={pool}
           initialSlots={entry?.slots ?? null}
+          lockedIds={[...started]}
           readOnly={contest.status !== 'open'}
         />
       )}

@@ -2,6 +2,7 @@ import { neon } from '@neondatabase/serverless';
 import { currentBettor, isGuestSlug } from '@/lib/auth';
 import {
   salaryPool,
+  lockedPlayers,
   lineupFor,
   contestField,
   LINEUP,
@@ -48,6 +49,7 @@ export default async function LobbyPage({ params }) {
   }
 
   const guest = isGuestSlug(slug);
+  const started = await lockedPlayers(lobby.season, lobby.week).catch(() => new Set());
   const [pool, field, entry] = await Promise.all([
     salaryPool(lobby.season, lobby.week),
     contestField(lobby.id),
@@ -124,6 +126,7 @@ export default async function LobbyPage({ params }) {
           cap={SALARY_CAP}
           pool={pool}
           initialSlots={entry?.slots ?? null}
+          lockedIds={[...started]}
         />
       ) : (
         <section className="section">

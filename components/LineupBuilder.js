@@ -45,6 +45,9 @@ export default function LineupBuilder({
   cap,
   pool,
   initialSlots = null,
+  // Players whose games have kicked off. Their slots are frozen; every other
+  // slot stays editable, because nothing is known about those players yet.
+  lockedIds = [],
   readOnly = false,
 }) {
   const router = useRouter();
@@ -58,6 +61,8 @@ export default function LineupBuilder({
   const [saved, setSaved] = useState(false);
 
   const byId = useMemo(() => new Map(pool.map((p) => [String(p.player_id), p])), [pool]);
+  const locked = useMemo(() => new Set(lockedIds.map(String)), [lockedIds]);
+  const isLocked = (id) => id != null && locked.has(String(id));
   const filled = slots.filter(Boolean).length;
   const used = slots.reduce((n, id) => n + (id ? Number(byId.get(String(id))?.salary ?? 0) : 0), 0);
   const left = cap - used;
@@ -223,12 +228,14 @@ export default function LineupBuilder({
                   <button
                     type="button"
                     className="dfs-slot-swap"
-                    disabled={readOnly}
+                    disabled={readOnly || isLocked(slots[i])}
                     onClick={() => {
                       setPicking(i);
                       setQuery('');
                     }}
-                    aria-label={`Change ${p.name}`}
+                    aria-label={
+                      isLocked(slots[i]) ? `${p.name} has played` : `Change ${p.name}`
+                    }
                   >
                     <PlayerPhoto
                       src={photo(p)}
@@ -252,16 +259,21 @@ export default function LineupBuilder({
                     </span>
                     <span className="dfs-slot-cost">{money(p.salary)}</span>
                   </button>
-                  {!readOnly && (
-                    <button
-                      type="button"
-                      className="dfs-slot-x"
-                      onClick={() => clearSlot(i)}
-                      aria-label={`Remove ${p.name}`}
-                    >
-                      ×
-                    </button>
-                  )}
+                  {!readOnly &&
+                    (isLocked(slots[i]) ? (
+                      <span className="dfs-slot-locked" title="His game has started">
+                        🔒
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        className="dfs-slot-x"
+                        onClick={() => clearSlot(i)}
+                        aria-label={`Remove ${p.name}`}
+                      >
+                        ×
+                      </button>
+                    ))}
                 </>
               ) : (
                 <button
@@ -339,12 +351,16 @@ export default function LineupBuilder({
                   // remaining slots could not all be filled afterwards.
                   const tooDear = Number(p.salary) > affordable;
                   const tight = !tooDear && Number(p.salary) > budgetFor;
+                  // His game has begun, so he cannot be added: picking him now
+                  // would be picking with points already on the board.
+                  const played = isLocked(p.player_id);
                   return (
                     <button
                       key={p.player_id}
                       type="button"
-                      className={`dfs-candidate ${tooDear ? 'dfs-candidate-dear' : ''} ${tight ? 'dfs-candidate-tight' : ''}`}
-                      disabled={tooDear}
+                      className={`dfs-candidate ${tooDear ? 'dfs-candidate-dear' : ''} ${tight ? 'dfs-candidate-tight' : ''} ${played ? 'dfs-candidate-played' : ''}`}
+                      disabled={tooDear || played}
+                      title={played ? 'His game has already started' : undefined}
                       onClick={() => choose(p)}
                     >
                       <PlayerPhoto

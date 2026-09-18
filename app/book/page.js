@@ -335,11 +335,29 @@ export default async function BookPage({ searchParams }) {
                     {b.is_parlay ? `${b.leg_count}-leg parlay` : b.title}
                   </span>
                   <span className="dim">
-                    {b.is_parlay
-                      ? (myLegs[b.id] ?? []).map((l) => l.option_label).join(' + ')
-                      : b.option_label}{' '}
-                    · {formatMoney(b.stake_cents)} at {formatOdds(b.odds)}
+                    {b.is_parlay ? null : `${b.option_label} · `}
+                    {formatMoney(b.stake_cents)} at {formatOdds(b.odds)}
                   </span>
+                  {/* Every leg on its own line, with the market it is on. The
+                      option labels alone read "Over 126 + Under 16.5" -- which
+                      says nothing about WHO, and those are the two that matter
+                      most on a player prop. */}
+                  {b.is_parlay && (myLegs[b.id] ?? []).length > 0 && (
+                    <span className="my-legs">
+                      {(myLegs[b.id] ?? []).map((l) => (
+                        <span key={`${l.market_id}-${l.option_key}`} className="my-leg">
+                          <span className="my-leg-pick">{l.option_label}</span>
+                          <span className="dim"> · {l.title}</span>
+                          {l.status && l.status !== 'pending' && (
+                            <span className={`my-leg-status ${statusClass(l.status)}`}>
+                              {' '}
+                              {l.status}
+                            </span>
+                          )}
+                        </span>
+                      ))}
+                    </span>
+                  )}
                 </span>
                 <span className={`row-value ${statusClass(b.status)}`}>{statusLabel(b)}</span>
               </div>

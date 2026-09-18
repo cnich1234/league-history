@@ -2585,6 +2585,28 @@ tbody tr:last-child td {
   letter-spacing: 0.3px;
 }
 
+/* The legs of one of your own parlays, under My bets. One per line with the
+   market it is on: "Under 16.5" alone never said which player. */
+.my-legs {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+  font-size: 12px;
+}
+.my-leg {
+  line-height: 1.35;
+}
+.my-leg-pick {
+  font-weight: 700;
+}
+.my-leg-status {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 10.5px;
+  letter-spacing: 0.3px;
+}
+
 /* A daily-fantasy slot whose player has kicked off: frozen, while every other
    slot stays editable. The whole lineup used to freeze on the first kickoff,
    which locked seven Sunday slots behind a Thursday quarterback for no reason. */

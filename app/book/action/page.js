@@ -190,8 +190,32 @@ export default async function ActionPage() {
                 {rows.length} · {note}
               </span>
             </div>
+            {byOwner(rows, slug).map(({ bettor, name, bets: mine, staked, toWin, isYou }) => (
+              <details
+                key={bettor}
+                className="act-owner"
+                // Your own bets open; everyone else's folded, since the page is
+                // for scanning who is exposed rather than reading every line.
+                // One manager with eleven bets used to push everybody else off
+                // the screen.
+                open={isYou}
+              >
+                <summary className="act-owner-head">
+                  <span className="act-owner-main">
+                    <span className="act-owner-name">
+                      {name}
+                      {isYou && <span className="dim"> · you</span>}
+                    </span>
+                    <span className="dim">
+                      {mine.length} {mine.length === 1 ? 'bet' : 'bets'} ·{' '}
+                      {formatMoney(staked)} staked ·{' '}
+                      <span className="pos">+{formatMoney(toWin)}</span> to win
+                    </span>
+                  </span>
+                  <span className="act-owner-chevron" aria-hidden="true" />
+                </summary>
             <div className="rows">
-              {rows.map((b) => {
+              {mine.map((b) => {
                 const stake = Number(b.stake_cents);
                 const returns = payoutCents(stake, b.odds);
                 // What a win actually banks. The stake is consumed either way,
@@ -276,9 +300,43 @@ export default async function ActionPage() {
                 );
               })}
             </div>
+              </details>
+            ))}
           </section>
         );
       })}
     </>
+  );
+}
+
+/**
+ * Bets grouped by who placed them, with each owner's totals.
+ *
+ * Sorted by money at stake, so whoever is most exposed reads first -- which is
+ * what an attacker is looking for. Yours goes last regardless, the same order
+ * the ungrouped list used.
+ */
+function byOwner(rows, slug) {
+  const groups = new Map();
+  for (const b of rows) {
+    const key = b.bettor;
+    if (!groups.has(key)) {
+      groups.set(key, {
+        bettor: key,
+        name: b.bettor_name,
+        isYou: key === slug,
+        bets: [],
+        staked: 0,
+        toWin: 0,
+      });
+    }
+    const g = groups.get(key);
+    const stake = Number(b.stake_cents);
+    g.bets.push(b);
+    g.staked += stake;
+    g.toWin += payoutCents(stake, b.odds) - stake;
+  }
+  return [...groups.values()].sort(
+    (a, b) => Number(a.isYou) - Number(b.isYou) || b.staked - a.staked,
   );
 }

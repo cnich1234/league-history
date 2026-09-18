@@ -2575,6 +2575,63 @@ tbody tr:last-child td {
   letter-spacing: 0.3px;
 }
 
+/* The Action, grouped by who placed the bets.
+   One manager with eleven open bets used to push everybody else off the
+   screen, so each owner folds into a summary of what they have at stake. */
+.act-owner {
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+.act-owner:first-of-type {
+  border-top: none;
+}
+.act-owner-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 11px 2px;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+.act-owner-head::-webkit-details-marker {
+  display: none;
+}
+.act-owner-head:focus-visible {
+  outline: 2px solid var(--teal-dim);
+  outline-offset: -2px;
+}
+.act-owner-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+.act-owner-name {
+  font-weight: 800;
+  font-size: 15px;
+}
+.act-owner-chevron {
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--text-dim);
+  border-bottom: 2px solid var(--text-dim);
+  transform: rotate(45deg);
+  transition: transform 0.15s ease;
+  margin-top: -4px;
+  flex-shrink: 0;
+}
+.act-owner[open] .act-owner-chevron {
+  transform: rotate(-135deg);
+  margin-top: 2px;
+}
+/* The rows sit slightly inset so an open group reads as belonging to its
+   heading rather than as a new list. */
+.act-owner > .rows {
+  padding-bottom: 6px;
+}
+
 /* A daily-fantasy slot whose player has not kicked off: the photo's footprint
    with nothing in it, so the rows stay aligned with the revealed ones. */
 .dfs-slot-blank {

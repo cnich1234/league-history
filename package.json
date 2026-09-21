@@ -75,7 +75,8 @@
     "test:implies": "node scripts/implies.test.mjs",
     "test:dfsreveal": "node --env-file=.env.local scripts/dfsreveal.test.mjs",
     "test:dfsedit": "node scripts/dfsedit.test.mjs",
-    "test:scratched": "node scripts/scratched.test.mjs"
+    "test:scratched": "node scripts/scratched.test.mjs",
+    "test:standing": "node scripts/standing.test.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.125.0",

@@ -2629,6 +2629,35 @@ tbody tr:last-child td {
   text-decoration: line-through;
 }
 
+/* How a closed bet stands, before Tuesday's settlement records it. The games
+   are over and everybody watching knows the result; the page used to be the
+   only thing still saying "Closed". */
+.act-standing {
+  display: inline-block;
+  padding: 6px 13px;
+  border-radius: 999px;
+  border: 1px solid rgba(140, 140, 150, 0.28);
+  color: var(--text-muted);
+  font-size: 12.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.act-standing-won {
+  border-color: rgba(18, 214, 172, 0.4);
+  background: var(--teal-ghost);
+  color: var(--teal);
+}
+.act-standing-lost {
+  border-color: rgba(255, 92, 92, 0.32);
+  color: var(--negative);
+}
+/* A push or a void returns the stake, so neither is a result worth colouring. */
+.act-standing-push,
+.act-standing-void {
+  color: var(--text-dim);
+}
+
 /* The Action, grouped by who placed the bets.
    One manager with eleven open bets used to push everybody else off the
    screen, so each owner folds into a summary of what they have at stake. */

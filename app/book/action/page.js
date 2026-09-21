@@ -1,5 +1,5 @@
 import { currentBettor, isGuestSlug } from '@/lib/auth';
-import { attackableBets, currentWeek, phasesForBets } from '@/lib/book';
+import { attackableBets, currentWeek, phasesForBets, standingForBets } from '@/lib/book';
 import { getInventory, openBounties, getPoints, minimumStake } from '@/lib/shop';
 import { listBettors } from '@/lib/auth';
 import { byKind, BOOSTS } from '@/lib/boosts';
@@ -128,11 +128,25 @@ export default async function ActionPage() {
   // bet can be attacked at all -- a finished game cannot -- and whether it
   // can still be copied, which only an unstarted one can.
   const phases = await phasesForBets(bets.map((b) => b.id));
+
+  // How the CLOSED bets would settle. Only the closed ones: a live bet's
+  // standing result would be a spoiler, and an open one has no result at all.
+  // Settlement runs Tuesday and the last game ends Monday night, so without
+  // this the page spends a day saying "Closed" about bets whose outcome
+  // everybody watching already knows.
+  const closedIds = bets.filter((b) => (phases[Number(b.id)] ?? 'open') === 'closed').map((b) => b.id);
+  const standing = closedIds.length ? await standingForBets(closedIds).catch(() => ({})) : {};
   const grouped = { open: [], live: [], locked: [], closed: [] };
   // Other people's bets first within a group, yours at the bottom.
   for (const b of [...bets.filter((b) => b.bettor !== slug), ...bets.filter((b) => b.bettor === slug)]) {
     (grouped[phases[Number(b.id)] ?? 'open'] ??= []).push(b);
   }
+  const STANDING_LABEL = {
+    won: 'Won',
+    lost: 'Lost',
+    push: 'Push',
+    void: 'Void',
+  };
   const GROUPS = [
     ['open', 'Open bets', 'games not started'],
     ['live', 'Live bets', 'prices moving'],
@@ -290,9 +304,21 @@ export default async function ActionPage() {
                         rideable={phase === 'open' && !b.is_parlay}
                       />
                     )}
-                    {!guest && !isMine && phase === 'closed' && (
-                      <span className="attack-spent" title="The game is over">
-                        Closed
+                    {phase === 'closed' && (
+                      /* The games are over but settlement runs on Tuesday, so
+                         for a day this said only "Closed" about bets whose
+                         result everybody watching already knew. Projected from
+                         the same scores and the same resolver settlement uses,
+                         so it cannot disagree with the money when it lands. */
+                      <span
+                        className={`act-standing act-standing-${standing[Number(b.id)] ?? 'unknown'}`}
+                        title={
+                          standing[Number(b.id)]
+                            ? 'Final, pending settlement on Tuesday'
+                            : 'The game is over; the result is not in yet'
+                        }
+                      >
+                        {STANDING_LABEL[standing[Number(b.id)]] ?? 'Closed'}
                       </span>
                     )}
                     {isMine && <span className="row-value dim">yours</span>}

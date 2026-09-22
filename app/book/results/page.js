@@ -24,11 +24,23 @@ export default async function ResultsPage() {
   ]);
 
   // Group by week so a long season stays readable.
-  const byWeek = {};
-  for (const b of bets) (byWeek[b.week] ??= []).push(b);
-  const weeks = Object.keys(byWeek)
-    .map(Number)
-    .sort((a, b) => b - a);
+  //
+  // Keys come back off the buckets themselves rather than from Object.keys +
+  // Number. A bet with no week made Object.keys yield the string "null",
+  // Number("null") is NaN, and byWeek[NaN] is undefined -- so the render threw
+  // on .length and the whole page 500'd. Parlays now carry their stake's week,
+  // but a single unweeked row should not be able to take the page down again.
+  const byWeek = new Map();
+  for (const b of bets) {
+    // Number(null) is 0, not NaN, so null has to be rejected before the
+    // cast -- otherwise an unweeked bet files itself under "Week 0".
+    if (b.week == null) continue;
+    const week = Number(b.week);
+    if (!Number.isFinite(week)) continue;
+    if (!byWeek.has(week)) byWeek.set(week, []);
+    byWeek.get(week).push(b);
+  }
+  const weeks = [...byWeek.keys()].sort((a, b) => b - a);
 
   return (
     <>
@@ -70,17 +82,21 @@ export default async function ResultsPage() {
           <section className="section" key={week}>
             <div className="section-head">
               <h2>Week {week}</h2>
-              <span className="dim">{byWeek[week].length} bets</span>
+              <span className="dim">{byWeek.get(week).length} bets</span>
             </div>
             <div className="rows">
-              {byWeek[week].map((b) => (
+              {byWeek.get(week).map((b) => (
                 <div key={b.id} className={`row ${b.bettor === slug ? 'row-me' : ''}`}>
                   <span className="row-main">
                     <span className="row-name">
-                      {b.bettor_name} · {b.option_label}
+                      {b.bettor_name}
+                      {b.option_label ? ` · ${b.option_label}` : ''}
                     </span>
                     <span className="dim">
-                      {b.title} · {formatMoney(b.stake_cents)} at {formatOdds(b.odds)}
+                      {/* A parlay has no market and no option, so naming it by
+                          its leg count beats printing two empty separators. */}
+                      {b.title ?? `${b.leg_count}-leg parlay`} ·{' '}
+                      {formatMoney(b.stake_cents)} at {formatOdds(b.odds)}
                     </span>
                   </span>
                   <span className={`row-value ${resultClass(b.status)}`}>{resultLabel(b)}</span>

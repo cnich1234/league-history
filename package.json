@@ -77,7 +77,8 @@
     "test:dfsedit": "node scripts/dfsedit.test.mjs",
     "test:scratched": "node scripts/scratched.test.mjs",
     "test:standing": "node scripts/standing.test.mjs",
-    "test:settlebulk": "node --env-file=.env.local scripts/settlebulk.test.mjs"
+    "test:settlebulk": "node --env-file=.env.local scripts/settlebulk.test.mjs",
+    "test:banks": "node --env-file=.env.local scripts/banks.test.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.125.0",

@@ -7,6 +7,7 @@
  * set. Pure, so this runs without a feed.
  */
 import {
+  bestLineupPoints,
   expectedLineup,
   expectedIds,
   slotFits,
@@ -173,6 +174,46 @@ console.log('\ninjury status does not change the pick');
   const ids = expectedIds({ starters: set, players: roster }, opts());
   ok('the better projection starts, injured or not', ids.includes('wr1'), true);
   ok('and the weaker man he set does not', ids.includes('wr4'), false);
+}
+
+console.log('\nthe best lineup a roster could have fielded, after the fact');
+{
+  // Chris R, week 2 of 2026: the trophies called this perfect. Andrews (TE,
+  // 10.9) sat while McConkey (WR, 6.5) played the FLEX.
+  const chrisR = [
+    { position: 'QB', points: 16.8 }, { position: 'RB', points: 17.5 },
+    { position: 'RB', points: 7.1 }, { position: 'WR', points: 10 },
+    { position: 'WR', points: 7.3 }, { position: 'WR', points: 6.8 },
+    { position: 'TE', points: 20.3 }, { position: 'WR', points: 6.5 },
+    { position: 'K', points: 17 }, { position: 'DEF', points: 2 },
+    // bench
+    { position: 'TE', points: 10.9 }, { position: 'RB', points: 6.4 },
+    { position: 'WR', points: 5.7 },
+  ];
+  ok('a benched TE can take the FLEX', bestLineupPoints(chrisR), 115.7);
+  ok('which is 4.40 more than he scored', +(bestLineupPoints(chrisR) - 111.3).toFixed(2), 4.4);
+
+  // A QB on the bench cannot fill the FLEX, however many points he scores.
+  const qbBench = [
+    { position: 'QB', points: 10 }, { position: 'QB', points: 40 },
+    { position: 'RB', points: 5 }, { position: 'RB', points: 5 },
+    { position: 'WR', points: 5 }, { position: 'WR', points: 5 }, { position: 'WR', points: 5 },
+    { position: 'TE', points: 5 }, { position: 'RB', points: 1 },
+    { position: 'K', points: 5 }, { position: 'DEF', points: 5 },
+  ];
+  ok('only the better QB counts; the other cannot flex', bestLineupPoints(qbBench), 81);
+  ok('but a SUPER_FLEX takes the second QB over a 1-point RB',
+    bestLineupPoints(qbBench, ['QB', 'RB', 'RB', 'WR', 'WR', 'WR', 'TE', 'SUPER_FLEX', 'K', 'DEF']), 90);
+
+  // A dedicated slot gets first pick, so the FLEX never steals the only TE.
+  const oneTE = [
+    { position: 'TE', points: 30 }, { position: 'WR', points: 20 },
+    { position: 'WR', points: 10 }, { position: 'WR', points: 9 }, { position: 'WR', points: 8 },
+  ];
+  ok('FLEX is filled last', bestLineupPoints(oneTE, ['WR', 'WR', 'WR', 'TE', 'FLEX']), 77);
+
+  ok('bench slots are ignored', bestLineupPoints([{ position: 'QB', points: 9 }], ['QB', 'BN', 'BN']), 9);
+  ok('an empty slot scores nothing', bestLineupPoints([], ['QB']), 0);
 }
 
 console.log(failed ? `\n${failed} FAILED` : '\nall good');

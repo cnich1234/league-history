@@ -9,6 +9,7 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { SLEEPER_OWNERS } from './sleeper-owners.mjs';
 import { ACHIEVEMENTS, inTheRunning } from './achievements.mjs';
+import { bestLineupPoints, slotFits, startingSlotsOf, DEFAULT_SLOTS } from '../lib/lineup.js';
 
 const LEAGUE_ID = process.env.SLEEPER_LEAGUE_ID ?? '1389735198932877312';
 const SEASON = Number(process.env.BOOK_SEASON ?? 2026);
@@ -123,7 +124,10 @@ async function loadWeekExtras(season, week) {
 }
 
 export async function buildWeek(week) {
-  const [users, rosters, matchups, transactions] = await Promise.all([
+  const [league, users, rosters, matchups, transactions] = await Promise.all([
+    // For roster_positions: which slots exist, and so who could have filled
+    // the FLEX. Falls back to this league's known layout if it cannot load.
+    api(`/league/${LEAGUE_ID}`).catch(() => null),
     api(`/league/${LEAGUE_ID}/users`),
     api(`/league/${LEAGUE_ID}/rosters`),
     api(`/league/${LEAGUE_ID}/matchups/${week}`),
@@ -143,6 +147,10 @@ export async function buildWeek(week) {
 
   const teams = [];
   const allStarters = [];
+  const slots = Array.isArray(league?.roster_positions) && league.roster_positions.length
+    ? league.roster_positions
+    : DEFAULT_SLOTS;
+  const startingSlots = startingSlotsOf(slots);
 
   for (const m of matchups) {
     const r = rosterById[m.roster_id];
@@ -169,15 +177,17 @@ export async function buildWeek(week) {
         played: (pts[id] ?? 0) !== 0 || (st.recYards ?? 0) > 0 || (st.rushYards ?? 0) > 0,
       };
     };
-    const starters = starterIds.map(named);
+    // Sleeper lists starters in slot order, so index i sat in startingSlots[i].
+    const starters = starterIds.map((id, i) => ({ ...named(id), slot: startingSlots[i] ?? null }));
     const bench = benchIds.map(named);
     for (const s of starters) allStarters.push({ ...s, slug: owner.slug });
 
-    // Same-position comparison only: a benched QB is not evidence you should
-    // have started him over an RB.
+    // A bench player could only have replaced a starter in a slot he fits: a
+    // benched QB is not evidence you should have started him over an RB, but a
+    // benched tight end IS evidence against a receiver in the FLEX.
     let worst = null;
     for (const b of bench) {
-      const swappable = starters.filter((s) => s.position === b.position);
+      const swappable = starters.filter((s) => slotFits(s.slot ?? s.position, b.position));
       const weakest = [...swappable].sort((x, y) => x.points - y.points)[0];
       if (weakest && b.points > weakest.points) {
         const swing = +(b.points - weakest.points).toFixed(2);
@@ -213,16 +223,20 @@ export async function buildWeek(week) {
       // started in place of someone weaker at the same position. The old
       // benchPoints figure counted injured and bye-week players, so a manager
       // with a thin bench won the lineup award by having nothing to leave.
-      missedPoints: +bench
-        .filter((b) => b.played)
-        .reduce((total, b) => {
-          const swappable = starters.filter((x) => x.position === b.position);
-          const weakest = [...swappable].sort((x, y) => x.points - y.points)[0];
-          return weakest && b.points > weakest.points
-            ? total + (b.points - weakest.points)
-            : total;
-        }, 0)
-        .toFixed(2),
+      //
+      // Measured as the best lineup this roster could have fielded minus what
+      // it scored. The old version compared each bench player only against
+      // starters at his own position, so the FLEX was invisible (week 2 of
+      // 2026: Andrews 10.9 benched behind McConkey 6.5 in the FLEX, scored as
+      // a perfect lineup), and two bench players beating the same weakest
+      // starter were both counted though only one could have taken his spot.
+      missedPoints: Math.max(
+        0,
+        +(
+          bestLineupPoints([...starters, ...bench.filter((b) => b.played)], slots) -
+          starters.reduce((sum, x) => sum + x.points, 0)
+        ).toFixed(2),
+      ),
       recordBefore: `${pr.w}-${pr.l}`,
       winPctBefore: pr.w + pr.l ? pr.w / (pr.w + pr.l) : 0,
       winStreak: Math.max(0, pr.streak),

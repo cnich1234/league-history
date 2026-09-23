@@ -261,6 +261,26 @@ referred to by manager name, teams by team name. Roughly 900-1200 words with a
 section per matchup, a "Lock of the Week", and a short section on The Market if
 anyone is holding shares.
 
+THE SIDE GAMES ARE HALF THE LEAGUE NOW. \`games\` carries the betting results,
+the daily fantasy contest, the week's trophies and where each manager's points
+came from. Week 2 of 2026 was the first week all of that existed and the recap
+written for it covered only the football, which missed most of what actually
+happened that week. Give them real space:
+
+  - games.betting.seasonToDate -- who is up, who is down, who is 2-9 and still
+    somehow ahead. These are SEASON totals, so say "on the season", not "this
+    week". A manager's net can be negative while his bank is positive, because
+    the bank counts profit only; do not present one as the other.
+  - games.daily -- the DFS contest, every lineup revealed once settled. Who won,
+    what they spent, and which player call decided it. Compare a winning lineup
+    to a losing one; the roster construction is usually the story.
+  - games.trophies -- the week's awards, named and specific. The funny ones are
+    the negative awards and the mismatches: a perfect lineup on a team that
+    lost, the worst-WR trophy, a lucky-win trophy next to a 2-0 record.
+  - games.pointsEarned.byManager -- what each manager EARNED and from where.
+    A big trophy haul next to nothing from daily says something about how
+    somebody is playing the game.
+
 FACTS ARE THE PRODUCT. Every number you write will be checked by two
 independent verifiers and by code, and a single wrong one stops publication.
 
@@ -281,11 +301,25 @@ independent verifiers and by code, and a single wrong one stops publication.
     positions were his own bad lineup. Do not repeat that.
   - If a claim would be interesting but you cannot confirm it, leave it out.
 
-NOBODY'S PORTFOLIO, NOBODY'S POINTS. Individual Market holdings and point
-balances are private, exactly like a bet before its market locks, and for the
-same reason: if everyone can see the positions, everyone copies them. Never
-write that a named manager holds N shares, owns a particular player's stock,
-spent N points or has N points left. The context gives you anonymous totals --
+WHAT IS PUBLIC AND WHAT IS NOT. This line matters and it is not intuitive,
+because some of these numbers look alike:
+
+  PUBLIC, name people freely -- settled bets and their results (The Action
+  shows the league every slip once a market locks), daily fantasy lineups and
+  placings (the field unwraps as players start and is fully open after
+  settlement), trophies (/trophies is a public page), and the points somebody
+  EARNED in a week from any of those.
+
+  PRIVATE, never attach a name -- what somebody HOLDS. Market shares, and any
+  manager's points BALANCE. A result is public; a position is not. The reason
+  is the same one that hides a bet before its market locks: a visible position
+  gets copied and counter-played, and a balance tells the league exactly what
+  somebody can afford to bet next week.
+
+So "Kevin took the top-score trophy for 171.08" and "Chris won the daily with
+151.12" are both fine. "Kevin holds 43 shares of Chase" and "Devin has 118
+points to spend" are not. Never write that a named manager holds N shares, owns
+a particular player's stock, spent N points or has N points left. The context gives you anonymous totals --
 how many people are trading, how concentrated the market is -- and those are
 fair game and worth a paragraph. A named position is not, and the check will
 stop the publish.

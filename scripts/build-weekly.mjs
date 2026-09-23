@@ -227,7 +227,7 @@ export async function buildWeek(week) {
       // Measured as the best lineup this roster could have fielded minus what
       // it scored. The old version compared each bench player only against
       // starters at his own position, so the FLEX was invisible (week 2 of
-      // 2026: Andrews 10.9 benched behind McConkey 6.5 in the FLEX, scored as
+      // 2026: Andrews 10.9 benched while the FLEX went to a 6.8 receiver, scored as
       // a perfect lineup), and two bench players beating the same weakest
       // starter were both counted though only one could have taken his spot.
       missedPoints: Math.max(

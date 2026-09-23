@@ -179,7 +179,8 @@ console.log('\ninjury status does not change the pick');
 console.log('\nthe best lineup a roster could have fielded, after the fact');
 {
   // Chris R, week 2 of 2026: the trophies called this perfect. Andrews (TE,
-  // 10.9) sat while McConkey (WR, 6.5) played the FLEX.
+  // 10.9) sat while receivers scoring 6.5 and 6.8 started; the FLEX could
+  // have taken him.
   const chrisR = [
     { position: 'QB', points: 16.8 }, { position: 'RB', points: 17.5 },
     { position: 'RB', points: 7.1 }, { position: 'WR', points: 10 },

@@ -81,6 +81,11 @@ console.log('\npositions never reach the writer');
   // The market summary is the one place holdings appear, and it is anonymous.
   ok('the market summary carries no owner', /"owner"/.test(JSON.stringify(context.book)), false);
   ok('it does carry the totals worth writing about', context.book.marketSummary.totalShares > 0, true);
+  // Points spent on shares and paid out by them are Market activity. Named,
+  // they say who is trading; even their absence says who is not.
+  const reasons = new Set(Object.values(g.pointsEarned.byManager).flatMap((v) => Object.keys(v)));
+  ok('no market spending in the points', reasons.has('trade'), false);
+  ok('no market dividends in the points', reasons.has('dividend'), false);
 }
 
 console.log('\nthe privacy gate knows which is which');

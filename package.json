@@ -80,7 +80,8 @@
     "test:settlebulk": "node --env-file=.env.local scripts/settlebulk.test.mjs",
     "test:banks": "node --env-file=.env.local scripts/banks.test.mjs",
     "test:results": "node --env-file=.env.local scripts/results.test.mjs",
-    "test:gamecontext": "node --env-file=.env.local scripts/gamecontext.test.mjs"
+    "test:gamecontext": "node --env-file=.env.local scripts/gamecontext.test.mjs",
+    "test:decide": "node scripts/decide.test.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.125.0",

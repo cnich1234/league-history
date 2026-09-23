@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node --env-file=.env.local -e:*)",
+      "Bash(node -e:*)",
+      "Bash(node scripts/:*)",
+      "Bash(npm run test:*)",
+      "WebFetch(domain:api.sleeper.app)",
+      "WebFetch(domain:api.sleeper.com)"
+    ]
+  }
+}

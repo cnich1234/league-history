@@ -63,9 +63,11 @@ function teamsFor(kind, meta) {
   // A total belongs to ONE roster and carries rosterId; everything else
   // matchup-shaped carries both sides.
   const ids = [meta?.homeRoster, meta?.awayRoster, meta?.rosterId].filter((x) => x != null);
-  // A positional showdown rides on that position alone.
+  // A positional showdown rides on that position alone; the FLEX battle on
+  // every RB, WR and TE, since any of them might be the one left over.
   if (kind === 'showdown' && meta?.position) {
-    const teams = ids.flatMap((id) => teamsByRosterPos[id]?.[meta.position] ?? []);
+    const positions = meta.position === 'FLEX' ? ['RB', 'WR', 'TE'] : [meta.position];
+    const teams = ids.flatMap((id) => positions.flatMap((pos) => teamsByRosterPos[id]?.[pos] ?? []));
     if (teams.length) return teams;
   }
   return ids.flatMap((id) => teamsByRoster[id] ?? []);

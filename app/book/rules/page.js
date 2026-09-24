@@ -393,13 +393,25 @@ export default function RulesPage() {
           <h2>Position battles</h2>
           <p>
             Your starters at one position against your opponent&apos;s, with a handicap —
-            <strong>your WRs vs his WRs +5.5</strong>. QB, RB, WR and TE for every
+            <strong>your WRs vs his WRs +5.5</strong>. QB, RB, WR, TE and FLEX for every
             matchup.
           </p>
           <p>
+            Both sides count the <strong>same number of players</strong>, one per
+            dedicated lineup spot: your starting QB, your best two RBs, your best three
+            WRs and your best TE, by points scored, wherever Sleeper has them slotted.
+            Whoever starts beyond that is your <strong>FLEX</strong>, and the FLEX battle
+            is those two players head to head. Between them, the five battles cover
+            every RB, WR, TE and QB you start, each exactly once.
+          </p>
+          <p>
+            Starting an extra RB in your flex gives you three RBs for two spots, and the
+            best two count. That is worth something, and the line already includes it.
+          </p>
+          <p>
             Only <strong>starters</strong> count, so a monster game on your bench does
-            nothing. If either side started nobody at that position the bet is voided and
-            you get your money back — there was never a bet to win.
+            nothing. If either side has nobody to count, the bet is voided and you get
+            your money back — there was never a bet to win.
           </p>
 
           <h2>Blowout lines</h2>

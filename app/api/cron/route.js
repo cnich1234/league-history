@@ -2,7 +2,10 @@ import { NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 
 export const dynamic = 'force-dynamic';
-export const maxDuration = 60;
+// Settlement, trophies, daily fantasy and next week's board all share this one
+// invocation. At 60 seconds the board build was killed partway through on
+// week 3 of 2026; Pro allows 300.
+export const maxDuration = 300;
 
 /**
  * Weekly upkeep, run by Vercel Cron so nothing has to happen by hand.
@@ -268,20 +271,39 @@ export async function GET(request) {
       log.push(`money allowance skipped: ${e.message}`);
     }
 
-    // Build the current week's board if it does not exist yet -- and ONLY
-    // then. The builder dedupes market by market, so re-running it once lines
-    // have moved adds a second spread at the new number beside the first: a
-    // rerun mid-week 1 created 47 such markets on games already played. The
-    // cron now runs several times a Tuesday, so a week with any market at all
-    // is left alone.
-    const [{ n: existing }] = await sql`
-      select count(*)::int as n from markets where season = ${season} and week = ${week}`;
-    if (existing > 0) {
-      log.push(`week ${week}: board already built (${existing} market(s))`);
-    } else {
-      const { buildWeek } = await import('@/lib/cron');
-      const built = await buildWeek(sql, season, week);
-      log.push(`week ${week}: ${built.created} market(s) created, ${built.skipped} existing`);
+    // Build the current week's board, or finish one that is half-built.
+    //
+    // This used to run only when the week had no markets at all, because the
+    // builder deduped on title and a title carries the line: a rerun after the
+    // lines moved added a second spread beside the first (47 such markets
+    // mid-week 1). But the board was also written market by market, and on
+    // week 3 of 2026 the run hit its time limit 120 markets in -- before the
+    // four specials. The gate then saw "week 3 has markets" on every later
+    // run, and the specials never appeared.
+    //
+    // Both halves are fixed underneath: the board is written in one statement,
+    // so a killed run leaves nothing behind, and markets are matched on who and
+    // what rather than title (marketIdentity), so a rerun only adds what is
+    // missing and never reprices a line someone may have bet. Which makes it
+    // safe to run on every scheduled run, each one a chance to repair.
+    //
+    // Up to the week's first lock, and no further. Early on a Tuesday Sleeper
+    // can still report the week that just finished, and filling THAT in would
+    // post markets on games already played -- the week 1 mistake again. A week
+    // with no markets at all is still built whenever it is found, as before.
+    try {
+      const [{ n: existing, first_lock: firstLock }] = await sql`
+        select count(*)::int as n, min(locks_at) as first_lock
+        from markets where season = ${season} and week = ${week}`;
+      if (existing > 0 && firstLock && new Date(firstLock) <= new Date()) {
+        log.push(`week ${week}: under way, board left alone (${existing} market(s))`);
+      } else {
+        const { buildWeek } = await import('@/lib/cron');
+        const built = await buildWeek(sql, season, week);
+        log.push(`week ${week}: ${built.created} market(s) created, ${built.skipped} already there`);
+      }
+    } catch (e) {
+      log.push(`board skipped: ${e.message}`);
     }
 
     return NextResponse.json({ ok: true, season, week, log });

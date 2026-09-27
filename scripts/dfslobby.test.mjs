@@ -243,6 +243,24 @@ try {
     ok('and it is off the list', (await openLobbies(S, W)).length, 0);
   }
 
+  console.log('\na contest past its first kickoff still takes entries');
+  {
+    // Week 3 of 2026: the cron set the weekly's locks_at to Thursday's
+    // kickoff, and enterContest refused every entry after it -- Sunday players
+    // included. Locking is per player; nothing in this sentinel week has
+    // kicked off, so the entry has to go through.
+    const weekly = await weeklyContest(S, W, new Date(Date.now() - 3 * 86400e3));
+    ok('its locks_at is in the past', new Date(weekly.locks_at) < new Date(), true);
+    let entered = null;
+    try {
+      entered = await enterContest({ slug: C, contestId: Number(weekly.id), slots: lineup(2) });
+    } catch (e) {
+      entered = e.message;
+    }
+    ok('an entry of unplayed players is accepted', entered?.edited ?? entered, false);
+    await sql`delete from dfs_entries where contest_id = ${weekly.id} and bettor = ${C}`;
+  }
+
   console.log('\nthe weekly MINTS instead');
   {
     const weekly = await weeklyContest(S, W);

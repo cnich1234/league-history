@@ -206,8 +206,10 @@ export async function GET(request) {
       // weeks. Zero here means the week was already priced, which is correct.
       log.push(`daily: priced ${built.written} of ${built.priced} for week ${week}`);
 
-      // The weekly contest, created on demand and locking at the first kickoff
-      // of the week so the board has a deadline to show.
+      // The weekly contest, created on demand. Its locks_at records the week's
+      // first kickoff but is NOT a deadline: entries lock player by player
+      // (lib/dfs.js enterContest). Enforcing it shut the week 3 contest to
+      // everyone on Thursday night.
       const dates = await teamGameDates(season, week).catch(() => ({}));
       // The first ACTUAL kickoff. This used to parse the game date, which gave
       // midnight UTC and locked the contest most of a day early.

@@ -14,7 +14,7 @@
  * Pure: exercises the comparison directly rather than standing up a contest,
  * so it needs no database and no real Thursday.
  */
-import { fitSlots, LINEUP } from '../lib/dfs.js';
+import { fitSlots, LINEUP, lockedSlotChange } from '../lib/dfs.js';
 
 let failed = 0;
 const ok = (label, actual, expected) => {
@@ -27,20 +27,18 @@ const ok = (label, actual, expected) => {
 };
 
 /**
- * The rule as saveLineup applies it: walk the slots and refuse a change that
- * touches a started player from either side.
+ * The REAL rule, lockedSlotChange from lib/dfs.js, read back as which slot and
+ * which direction. This used to be a copy of the rule, which is how a second,
+ * contest-wide lock in enterContest went untested: the copy passed while every
+ * real entry was refused.
  */
 function rejectedSlot(before, after, locked) {
-  const was = fitSlots(before) ?? [];
-  const now = fitSlots(after) ?? [];
-  for (let i = 0; i < now.length; i++) {
-    const a = was[i] == null ? null : String(was[i]);
-    const b = now[i] == null ? null : String(now[i]);
-    if (a === b) continue;
-    if (a && locked.has(a)) return { slot: i, why: 'out' };
-    if (b && locked.has(b)) return { slot: i, why: 'in' };
-  }
-  return null;
+  const why = lockedSlotChange(before, after, locked, (id) => id);
+  if (!why) return null;
+  const id = why.split(' ')[0];
+  const out = why.includes('that slot is locked');
+  const slots = fitSlots(out ? before : after) ?? [];
+  return { slot: slots.findIndex((x) => String(x) === id), why: out ? 'out' : 'in' };
 }
 
 // Eight slots. The QB played Thursday; everyone else plays later.

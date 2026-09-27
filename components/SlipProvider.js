@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useMemo, useState } from 'react';
+import { MAX_PARLAY_LEGS } from '@/lib/odds';
 
 const SlipContext = createContext(null);
 
@@ -21,6 +22,11 @@ export function SlipProvider({ children }) {
   const value = useMemo(
     () => ({
       legs,
+      // The slip stops taking NEW markets at the parlay limit. It used to take
+      // a seventh, and the slip then hid its stake box and Review button
+      // behind a small grey "Maximum 6 legs" -- on a phone that read as a
+      // button you could not scroll to.
+      full: legs.length >= MAX_PARLAY_LEGS,
       has: (marketId) => legs.some((l) => l.marketId === String(marketId)),
       selected: (marketId, optionKey) =>
         legs.some((l) => l.marketId === String(marketId) && l.optionKey === optionKey),
@@ -33,6 +39,9 @@ export function SlipProvider({ children }) {
           if (existing && existing.optionKey === leg.optionKey) {
             return current.filter((l) => l.marketId !== id);
           }
+          // Swapping the side of a market already in the slip is always fine;
+          // a new market past the limit is not.
+          if (!existing && current.length >= MAX_PARLAY_LEGS) return current;
           const without = current.filter((l) => l.marketId !== id);
           return [...without, { ...leg, marketId: id }];
         }),

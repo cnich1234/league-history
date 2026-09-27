@@ -286,6 +286,7 @@ export default function BetSlip({
             <button
               className="btn-parlay"
               type="button"
+              disabled={slip.full && !slip.has(market.id)}
               onClick={() => {
                 const o = market.options?.find((x) => x.option_key === placed.option_key);
                 slip.toggle({
@@ -297,7 +298,7 @@ export default function BetSlip({
                 });
               }}
             >
-              {slip.has(market.id) ? 'In parlay slip' : '+ Parlay'}
+              {slip.has(market.id) ? 'In parlay slip' : slip.full ? 'Parlay slip full' : '+ Parlay'}
             </button>
           </div>
         )}
@@ -356,6 +357,7 @@ export default function BetSlip({
                 <button
                   className="btn-parlay btn-parlay-sm"
                   type="button"
+                  disabled={slip.full && !slip.has(market.id)}
                   onClick={() => {
                     const o = market.options?.find(
                       (x) => String(x.option_key) === String(b.option_key),
@@ -369,7 +371,11 @@ export default function BetSlip({
                     });
                   }}
                 >
-                  {slip.selected(market.id, b.option_key) ? 'In slip' : '+ Parlay'}
+                  {slip.selected(market.id, b.option_key)
+                    ? 'In slip'
+                    : slip.full && !slip.has(market.id)
+                      ? 'Slip full'
+                      : '+ Parlay'}
                 </button>
               )}
             </div>
@@ -633,6 +639,7 @@ export default function BetSlip({
           <button
             className="btn-parlay"
             type="button"
+            disabled={slip.full && !slip.has(market.id)}
             onClick={() =>
               slip.toggle({
                 marketId: market.id,
@@ -643,7 +650,7 @@ export default function BetSlip({
               })
             }
           >
-            + Parlay
+            {slip.full && !slip.has(market.id) ? 'Slip full' : '+ Parlay'}
           </button>
         </div>
       )}

@@ -2040,8 +2040,23 @@ tbody tr:last-child td {
   color: var(--text-dim);
 }
 
+/* .slip-note's grey is declared after .neg, so a warning came out grey. */
+.slip-note.neg {
+  color: var(--negative);
+}
+
+/* The assistant button floats bottom-right at z-index 60, over the slip --
+   squarely on its chevron when collapsed and on the Confirm button when
+   open. Building a parlay is not the moment for it. */
+body:has(.slip) .assistant-fab {
+  display: none;
+}
+
 .slip-place {
   display: flex;
+  /* Lets .stake-preview drop to its own line, as it does on a straight bet.
+     Without it the preview ran off the right edge on a phone. */
+  flex-wrap: wrap;
   align-items: center;
   gap: 9px;
   margin-top: 12px;

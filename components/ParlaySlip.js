@@ -2,12 +2,12 @@
 
 import { useState } from 'react';
 import { useSlip } from './SlipProvider';
-import { MIN_STAKE_CENTS, MAX_STAKE_CENTS } from '@/lib/odds';
+import { MIN_STAKE_CENTS, MAX_STAKE_CENTS, MIN_PARLAY_LEGS, MAX_PARLAY_LEGS } from '@/lib/odds';
 
 const MIN = MIN_STAKE_CENTS / 100;
 const MAX = MAX_STAKE_CENTS / 100;
-const MIN_LEGS = 2;
-const MAX_LEGS = 6;
+const MIN_LEGS = MIN_PARLAY_LEGS;
+const MAX_LEGS = MAX_PARLAY_LEGS;
 
 /** Mirrors lib/odds.js. Display only -- the server re-prices everything. */
 function americanToDecimal(odds) {
@@ -95,7 +95,11 @@ export default function ParlaySlip({ bankrollCents, slipBoosts = [] }) {
         <span className="slip-count">{legs.length}</span>
         <span className="slip-summary">
           {legs.length === 1 ? 'Add another leg' : `${legs.length}-leg parlay`}
-          {enough && odds != null && <span className="slip-odds"> {fmtOdds(odds)}</span>}
+          {tooMany ? (
+            <span className="neg"> · max {MAX_LEGS}</span>
+          ) : (
+            enough && odds != null && <span className="slip-odds"> {fmtOdds(odds)}</span>
+          )}
         </span>
         <span className={`slip-chevron ${open ? 'slip-chevron-up' : ''}`} aria-hidden="true" />
       </button>
@@ -121,7 +125,18 @@ export default function ParlaySlip({ bankrollCents, slipBoosts = [] }) {
           ))}
 
           {!enough && <p className="slip-note">Pick at least one more leg.</p>}
-          {tooMany && <p className="slip-note neg">Maximum {MAX_LEGS} legs.</p>}
+          {legs.length === MAX_LEGS && (
+            <p className="slip-note">That is the most a parlay can have: {MAX_LEGS} legs.</p>
+          )}
+          {/* The slip refuses a new market past the limit, so this should not
+              happen -- but if it does, say what to do, where the stake box
+              would have been, rather than leaving an empty space. */}
+          {tooMany && (
+            <p className="slip-note neg">
+              A parlay can have at most {MAX_LEGS} legs. Remove {legs.length - MAX_LEGS} to place
+              it.
+            </p>
+          )}
 
           {enough && !tooMany && !reviewing &&
             extras.map((b) => (

@@ -358,6 +358,21 @@ tbody tr:last-child td {
   color: var(--text-muted);
 }
 
+/* The 🎯 on The Action is a button: tap it for the attack's name. */
+.hit-pill {
+  margin-left: 4px;
+  border: 0;
+  font-family: inherit;
+  cursor: pointer;
+}
+.hit-pill[aria-expanded='true'] {
+  background: rgba(255, 107, 107, 0.14);
+  color: var(--text);
+}
+.hit-pill-name {
+  margin-left: 5px;
+}
+
 .pill.teal {
   background: var(--teal-ghost);
   color: var(--teal);

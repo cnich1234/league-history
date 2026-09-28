@@ -52,7 +52,8 @@ export default function RulesPage() {
           </p>
           <p>
             A bet showing 🛡️ is insured and cannot be touched. One showing 🎯 has already
-            been hit by someone.
+            been hit by someone — tap the 🎯 to see which attack. Never who; that takes a
+            Receipt.
           </p>
           <p>
             Bets are grouped by where their game is. <strong>Open</strong>: nothing has

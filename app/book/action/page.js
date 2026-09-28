@@ -5,6 +5,7 @@ import { listBettors } from '@/lib/auth';
 import { byKind, BOOSTS } from '@/lib/boosts';
 import { formatMoney, formatOdds, payoutCents } from '@/lib/odds';
 import AttackButton from '@/components/AttackButton';
+import HitPill from '@/components/HitPill';
 
 export const metadata = { title: 'The Action' };
 export const dynamic = 'force-dynamic';
@@ -268,7 +269,12 @@ export default async function ActionPage() {
                           </span>
                         ))}
                         {b.shielded > 0 && <span className="pill" style={{ marginLeft: 6 }}>🛡️</span>}
-                        {b.attacked > 0 && <span className="pill" style={{ marginLeft: 4 }}>🎯</span>}
+                        {b.attacked > 0 && (
+                          <HitPill
+                            icon={byKind[b.attack_kind]?.icon ?? ''}
+                            name={byKind[b.attack_kind]?.name ?? 'An attack'}
+                          />
+                        )}
                       </span>
                       <span className="dim">
                         {formatMoney(stake)} at {formatOdds(b.odds)} ·{' '}

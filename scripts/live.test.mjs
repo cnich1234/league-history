@@ -100,6 +100,24 @@ console.log('\nan empty lineup is not final');
   check('a side from before players were counted still finals on remaining', sideFinal({ remaining: 0 }), true);
 }
 
+console.log('\nno schedule is not a bye week for everyone');
+{
+  // Week 4 of 2026: every live market on the board (5 matchups, 5 spreads, 10
+  // totals) locked on the Tuesday it was built. An empty scores feed made every
+  // starter look like he was on a bye, every lineup had "nothing left to
+  // come", every roster read as finished, and lockDueMarkets shut the lot.
+  const team = { 1: 'KC', 2: 'BUF' };
+  const proj = { 1: 20, 2: 15 };
+  const lineup = { starters: ['1', '2'], starters_points: [0, 0] };
+  const blank = sides(lineup, proj, {}, team);
+  check('with no games known, nobody is on a bye', blank.remaining, 35);
+  check('so the lineup is not final', sideFinal(blank), false);
+
+  // A real bye still counts as one when the schedule IS known.
+  const withBye = sides(lineup, proj, { BUF: { status: 'pre_game', metadata: {} } }, team);
+  check('a team missing from a known schedule is on a bye', withBye.remaining, 15);
+}
+
 console.log('\nspreads');
 // Favourite leads by 20 with a 6.5 line: covering is likelier than not.
 const covering = liveSpreadProbability({ scored: 100, remaining: 20 }, { scored: 80, remaining: 20 }, 6.5);

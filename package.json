@@ -82,7 +82,8 @@
     "test:results": "node --env-file=.env.local scripts/results.test.mjs",
     "test:gamecontext": "node --env-file=.env.local scripts/gamecontext.test.mjs",
     "test:decide": "node scripts/decide.test.mjs",
-    "test:boardwrite": "node --env-file=.env.local scripts/boardwrite.test.mjs"
+    "test:boardwrite": "node --env-file=.env.local scripts/boardwrite.test.mjs",
+    "test:cadence": "node scripts/cadence.test.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.125.0",

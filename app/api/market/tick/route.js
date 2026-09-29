@@ -3,14 +3,17 @@ import { neon } from '@neondatabase/serverless';
 import { snapshot } from '@/lib/market/source';
 import { ensureRolled } from '@/lib/market/baselines';
 import { voidScratchedProps } from '@/lib/scratched';
+import { nflState } from '@/lib/market/universe';
+import { tickCadence, shouldTick } from '@/lib/market/cadence';
 
 export const dynamic = 'force-dynamic';
 
 /**
- * The Market's heartbeat. Vercel calls this every minute; a tick is written
- * once a minute while any game is on and once a quarter hour otherwise, so
- * the log has no gaps when everyone is watching the TV instead of the app.
- * Same bearer secret as the weekly cron.
+ * The Market's heartbeat. Vercel calls this every minute, but it only touches
+ * the database every minute while a game is on or about to start, and once an
+ * hour otherwise (lib/market/cadence.js). Every minute around the clock kept
+ * Neon awake permanently and ran the free plan's compute out on 2026-09-29,
+ * which took The Book down. Same bearer secret as the weekly cron.
  */
 export async function GET(request) {
   const auth = request.headers.get('authorization');
@@ -19,6 +22,17 @@ export async function GET(request) {
     return NextResponse.json({ error: 'Not allowed.' }, { status: 401 });
   }
   try {
+    // Decided from Sleeper, not the database, so a quiet minute wakes nothing.
+    // If the feed cannot be read, err towards doing the work: a missed scratch
+    // costs somebody money, an extra tick costs a few seconds of compute.
+    const now = Date.now();
+    const { season, week } = await nflState();
+    const games = await fetch(`https://api.sleeper.com/scores/nfl/regular/${season}/${week}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .catch(() => null);
+    const cadence = games ? tickCadence(games, now) : 'hot';
+    if (!shouldTick(cadence, now)) return NextResponse.json({ skipped: true, cadence });
+
     const snap = await snapshot();
     // The first tick after Sleeper flips the week rolls the premiums forward.
     const roll = await ensureRolled(snap.season, snap.week).catch((e) => ({ error: e.message }));

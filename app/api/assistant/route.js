@@ -89,7 +89,15 @@ export async function POST(request) {
   } catch (e) {
     // The real error goes to the server log; the window gets something useful.
     console.error('assistant:', e?.message ?? e);
-    const status = e?.status === 401 ? 'That API key was rejected.' : 'That did not work.';
+    // An empty Anthropic balance comes back as a 400 whose message says so. It
+    // used to fall through to "That did not work.", which told nobody that the
+    // fix is a top-up in the Anthropic console rather than anything in the app.
+    const status =
+      e?.status === 401
+        ? 'That API key was rejected.'
+        : /credit balance/i.test(String(e?.message ?? ''))
+          ? 'The assistant is out of API credit for now. The commissioner has to top it up.'
+          : 'That did not work.';
     return NextResponse.json({ error: status }, { status: 502 });
   }
 }

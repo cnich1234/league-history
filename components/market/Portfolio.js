@@ -108,7 +108,11 @@ export default function Portfolio({ initial }) {
                   </span>
                 )}
               </div>
-              <div className="mk-name">{p.name}</div>
+              <div className="mk-name">
+                {p.name}
+                {/* A bye or ruled out: priced where he last traded, not at zero. */}
+                {p.idle && <span className="mk-idle"> · not playing this week</span>}
+              </div>
             </div>
             <div className="mk-row-right">
               <div className="mk-price">{fmt(p.value)}</div>

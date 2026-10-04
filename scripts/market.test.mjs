@@ -17,6 +17,7 @@ import {
 import { RANGES, DEFAULT_RANGE, rangeWindow, toCandles } from '../lib/market/candles.js';
 import { basePrice, livePrice, gameRemaining, gameLive, rollPremium, dividendFor } from '../lib/market/price.js';
 import { explainMove, explainTrack, trackCsv } from '../lib/market/why.js';
+import { keepInUniverse, idlePrice, UNIVERSE_SIZE } from '../lib/market/idle.js';
 
 let failed = 0;
 const ok = (label, actual, expected) => {
@@ -260,6 +261,24 @@ console.log('\nwhy did it move');
   ok('csv has a header and a row per tick', csv.length, 3);
   ok('csv first row is the first tick', csv[1].includes(',10,0,"first"'), true);
   ok('csv names the reason', csv[2].includes('"scored"'), true);
+}
+
+console.log('\nheld players who are not playing this week');
+{
+  // 2026-10-04: Chase and Barkley were ruled out, Sleeper gave them no
+  // projection, and the universe dropped them before checking who held them.
+  // Devin's portfolio showed "?" at 0.00 and he could not sell.
+  const held = new Set(['7564']);
+  ok('a held player with no projection stays', keepInUniverse({ id: '7564', projection: 0 }, 400, held), true);
+  ok('even far down the list', keepInUniverse({ id: '7564', projection: 0 }, 2000, held), true);
+  ok('an unheld one with no projection does not', keepInUniverse({ id: '1', projection: 0 }, 3, held), false);
+  ok('the top of the projections is still in', keepInUniverse({ id: '2', projection: 12 }, 0, held), true);
+  ok('and the cut still applies', keepInUniverse({ id: '3', projection: 4 }, UNIVERSE_SIZE, held), false);
+
+  ok('frozen at his last recorded price', idlePrice(7.95, -3), 7.95);
+  ok('not dropped to the floor, which would be a free trade on every bye', idlePrice(7.95, 0) > 0.25, true);
+  ok('never logged at all: what the model says', idlePrice(undefined, 0), 0.25);
+  ok('which includes a positive premium', idlePrice(undefined, 2), 2);
 }
 
 console.log(failed ? `\n${failed} FAILED` : '\nall good');

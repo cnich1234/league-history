@@ -15,7 +15,7 @@ import {
   mockCandles,
 } from '../lib/market/mock.js';
 import { RANGES, DEFAULT_RANGE, rangeWindow, toCandles } from '../lib/market/candles.js';
-import { basePrice, livePrice, gameRemaining, gameLive, rollPremium, dividendFor } from '../lib/market/price.js';
+import { basePrice, livePrice, gameRemaining, gameLive, rollPremium, dividendFor, cappedPremium } from '../lib/market/price.js';
 import { explainMove, explainTrack, trackCsv } from '../lib/market/why.js';
 import { keepInUniverse, idlePrice, UNIVERSE_SIZE } from '../lib/market/idle.js';
 
@@ -261,6 +261,23 @@ console.log('\nwhy did it move');
   ok('csv has a header and a row per tick', csv.length, 3);
   ok('csv first row is the first tick', csv[1].includes(',10,0,"first"'), true);
   ok('csv names the reason', csv[2].includes('"scored"'), true);
+}
+
+console.log('\na bad run can take at most half off a price');
+{
+  // Colston Loveland, week 4 of 2026: carried -6.78 after three busts, then
+  // finished 11.7 against a 10.36 projection. Uncapped he stayed at 0.25.
+  const loveland = { projection: 10.36, points: 11.7, remaining: 0, premium: -6.78 };
+  ok('Loveland trades at half his finish, not the floor', livePrice(loveland), 2.93);
+  ok('and beating his projection by more now moves the price',
+    livePrice({ ...loveland, points: 15 }) > livePrice(loveland), true);
+  ok('before kickoff too', basePrice(10.36, -6.78), 2.59);
+  ok('a small bust still counts in full', basePrice(20, -2), 8);
+  ok('a hot streak keeps its whole premium', basePrice(20, 13.75), 23.75);
+  ok('in a game as well', livePrice({ projection: 20, premium: 13.75 }), 23.75);
+  ok('the cap is half the base, never more', cappedPremium(-100, 10), -5);
+  ok('a positive premium passes through untouched', cappedPremium(7, 2), 7);
+  ok('the floor still holds when there is no base at all', basePrice(0, -3), 0.25);
 }
 
 console.log('\nheld players who are not playing this week');

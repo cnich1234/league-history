@@ -293,6 +293,12 @@ console.log('\nheld players who are not playing this week');
   ok('and the cut still applies', keepInUniverse({ id: '3', projection: 4 }, UNIVERSE_SIZE, held), false);
 
   ok('frozen at his last recorded price', idlePrice(7.95, -3), 7.95);
+  // Barkley: ruled out mid-game, recorded at 0.25 under the old uncapped
+  // premium. His last live inputs, recomputed under today's model.
+  ok('recomputed from his last live inputs under the current model',
+    idlePrice({ price: 0.25, inputs: [2, 0.5, 14.68, 'live', -7.99] }), 2);
+  ok('a tick from before inputs were logged uses its recorded price',
+    idlePrice({ price: 6.1, inputs: null }), 6.1);
   ok('not dropped to the floor, which would be a free trade on every bye', idlePrice(7.95, 0) > 0.25, true);
   ok('never logged at all: what the model says', idlePrice(undefined, 0), 0.25);
   ok('which includes a positive premium', idlePrice(undefined, 2), 2);

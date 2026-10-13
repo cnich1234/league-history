@@ -45,7 +45,7 @@ export default async function TrophiesPage() {
       <header className="page-head">
         <h1>Trophy Room</h1>
         <p className="dim">
-          {weeks.length} week{weeks.length === 1 ? '' : 's'} scored · points earned
+          {weeks.length} week{weeks.length === 1 ? '' : 's'} scored · trophy points
         </p>
       </header>
 
@@ -75,10 +75,14 @@ export default async function TrophiesPage() {
 
       <section className="section">
         <div className="section-head">
-          <h2>Points Earned</h2>
-          {/* Total earned all season, not what is left to spend -- the Store
-              tab holds the balance, which goes down as boosts are bought. */}
-          <span className="dim">all season · spend them in The Book</span>
+          <h2>Trophy Points</h2>
+          {/* Trophies only. This used to read "points earned · spend them in
+              The Book", which made it look like everything somebody had
+              earned -- and Chris's 16 looked wrong against the 212 he had
+              actually earned once the allowance, the daily and Market
+              dividends were counted. Everyone's full totals stay off this
+              page on purpose: dividends would show who holds what. */}
+          <span className="dim">all season · allowance, daily and dividends come on top</span>
         </div>
         <div className="rows">
           {season.map((s, i) => (

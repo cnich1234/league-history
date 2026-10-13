@@ -406,8 +406,43 @@ console.log('\nevery starter has a position when a battle settles');
     positionOf: pos,
   });
   const qb = { kind: 'showdown', meta: { position: 'QB', counts, homeRoster: HOME, awayRoster: AWAY, spread: 1.5, favouriteSide: 'home' } };
-  check('with only the slim file, the QB battle voided', resolveMarket(qb, ctxFor(positionLookup({}, slim))), 'void');
+  // With only the slim file, Jordan Love has no position. That used to void
+  // the battle; now it is "cannot tell", which leaves it locked and reported.
+  check('with only the slim file, the QB battle cannot be decided', resolveMarket(qb, ctxFor(positionLookup({}, slim))), null);
   check('with the feed, it settles', resolveMarket(qb, ctxFor(positionOf)), 'nocover');
+}
+
+console.log('\na battle voids only when a side genuinely has nobody there');
+{
+  const counts = { QB: 1, RB: 2, WR: 3, TE: 1 };
+  const te = { kind: 'showdown', meta: { position: 'TE', counts, homeRoster: HOME, awayRoster: AWAY, spread: 2.5, favouriteSide: 'home' } };
+  const P = { hte: 'TE', awr: 'WR', mystery: '?' };
+  const ctx2 = (starters) => ({
+    pointsByRoster: {}, pointsByPlayer: {}, startedPlayers: new Set(),
+    starterRosters: starters, positionOf: (id) => P[id] ?? '?',
+  });
+  check('a side that started no TE, everyone placed: void',
+    resolveMarket(te, ctx2({ hte: { rosterId: HOME, points: 9 }, awr: { rosterId: AWAY, points: 12 } })), 'void');
+  check('a side with a starter nobody could place: cannot tell, not void',
+    resolveMarket(te, ctx2({ hte: { rosterId: HOME, points: 9 }, awr: { rosterId: AWAY, points: 12 }, mystery: { rosterId: AWAY, points: 7 } })), null);
+  check('an unplaceable starter on the side that DID field one changes nothing',
+    resolveMarket(te, ctx2({ hte: { rosterId: HOME, points: 9 }, mystery: { rosterId: HOME, points: 7 }, awr: { rosterId: AWAY, points: 12 } })), 'void');
+}
+
+console.log('\nthe highest-scoring specials, with a starter nobody could place');
+{
+  const rb = { kind: 'special', meta: { special: 'position', position: 'RB' } };
+  const P = { rb1: 'RB', rb2: 'RB', mystery: '?' };
+  const ctx3 = (starters) => ({
+    pointsByRoster: {}, pointsByPlayer: {}, startedPlayers: new Set(),
+    starterRosters: starters, positionOf: (id) => P[id] ?? '?',
+  });
+  check('he outscored the leader: he might have been the top RB, so cannot tell',
+    resolveMarket(rb, ctx3({ rb1: { rosterId: 1, points: 20 }, mystery: { rosterId: 2, points: 25 } })), null);
+  check('he scored less: the leader stands',
+    resolveMarket(rb, ctx3({ rb1: { rosterId: 1, points: 20 }, rb2: { rosterId: 3, points: 11 }, mystery: { rosterId: 2, points: 6 } })), '1');
+  check('everyone placed: unchanged',
+    resolveMarket(rb, ctx3({ rb1: { rosterId: 1, points: 20 }, rb2: { rosterId: 3, points: 11 } })), '1');
 }
 
 console.log(failed ? `\n${failed} check(s) FAILED\n` : '\nall checks passed\n');

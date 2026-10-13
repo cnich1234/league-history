@@ -78,6 +78,28 @@ export async function GET(request) {
       if (result.settled || result.voided) {
         log.push(`week ${w}: settled ${result.settled}, voided ${result.voided}`);
       }
+      // Markets left locked because a starter's position could not be read.
+      // Silence is how 25 wrongly voided battles went unnoticed for a month,
+      // so this says so -- in the log, and on the commissioner's phone. The
+      // tag collapses a repeat on the next run into the same notification.
+      if (result.unresolved?.length) {
+        const titles = result.unresolved.map((m) => m.title);
+        log.push(`week ${w}: ${titles.length} unresolved, left locked: ${titles.join('; ')}`);
+        try {
+          const { notify } = await import('@/lib/push');
+          const bosses = await sql`select slug from bettors where is_commissioner`;
+          for (const { slug } of bosses) {
+            await notify(slug, {
+              title: `⚠️ Week ${w}: ${titles.length} market(s) could not settle`,
+              body: `A starter's position could not be read, so these were left open rather than voided: ${titles.slice(0, 3).join('; ')}${titles.length > 3 ? '…' : ''}`,
+              url: '/book/results',
+              tag: `unresolved-${season}-${w}`,
+            });
+          }
+        } catch (e) {
+          log.push(`unresolved notify skipped: ${e.message}`);
+        }
+      }
     }
 
     // Score last week's trophies.

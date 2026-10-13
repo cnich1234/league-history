@@ -160,6 +160,36 @@ try {
     ok('both legs resolved', legs.map((l) => l.status).sort(), ['won', 'won']);
   }
 
+  console.log('\na battle that cannot be decided is left locked and reported');
+  {
+    const counts = { QB: 1, RB: 2, WR: 3, TE: 1 };
+    const [sd] = await sql`
+      insert into markets (season, week, kind, title, locks_at, status, live, meta)
+      values (${S}, ${W}, 'showdown', ${'SB TE battle ' + Math.random()}, ${new Date(Date.now() - 3600e3)}, 'locked', false,
+              ${JSON.stringify({ position: 'TE', counts, homeRoster: 1, awayRoster: 6, spread: 2.5, favouriteSide: 'home' })}::jsonb)
+      returning id`;
+    for (const k of ['cover', 'nocover']) {
+      await sql`insert into market_options (market_id, option_key, label, odds) values (${sd.id}, ${k}, ${k}, -110)`;
+    }
+    // Roster 6 started someone the position lookup could not place.
+    const blind = {
+      ...INPUTS,
+      starterRosters: { te1: { rosterId: 1, points: 9 }, x: { rosterId: 6, points: 7 } },
+      positionOf: (id) => (id === 'te1' ? 'TE' : '?'),
+    };
+    const res = await settleWeek(sql, S, W, { inputs: blind });
+    ok('it is reported', res.unresolved.map((m) => m.id), [String(sd.id)]);
+    const [still] = await sql`select status from markets where id = ${sd.id}`;
+    ok('and left locked, not voided', still.status, 'locked');
+
+    // Once the player can be placed, the next run settles it.
+    const known = { ...blind, positionOf: (id) => (id === 'te1' || id === 'x' ? 'TE' : '?') };
+    const res2 = await settleWeek(sql, S, W, { inputs: known });
+    ok('the next run settles it', res2.unresolved.length, 0);
+    const [done] = await sql`select status, winning_option from markets where id = ${sd.id}`;
+    ok('with the real result', [done.status, done.winning_option], ['settled', 'nocover']);
+  }
+
   console.log('\nrunning it twice changes nothing');
   const again = await settleWeek(sql, S, W, { inputs: INPUTS });
   ok('a settled week settles nothing further', again.settled + again.voided, 0);

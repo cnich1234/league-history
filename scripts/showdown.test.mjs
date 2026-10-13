@@ -12,6 +12,7 @@
  */
 import { resolveMarket } from '../lib/settle.js';
 import { battleScore, battleCounts, priceBattles } from '../lib/showdown.js';
+import { positionLookup } from '../lib/cron.js';
 import {
   h2hProbability,
   twoWayOdds,
@@ -383,6 +384,30 @@ console.log('\npriced by simulating the bet as it will be settled');
 
   const noTE = priceBattles(iCashed, jsn.filter((p) => p.position !== 'TE'), battles, { seed: 'test' });
   check('a side with nobody to count gets no market', noTE[3], null);
+}
+
+console.log('\nevery starter has a position when a battle settles');
+{
+  // Weeks 2-5 of 2026: positions came only from public/players.json, a
+  // 160-player snapshot. Jordan Love was not in it, so Seal Team Nix "started
+  // no QB" and the QB battle voided. 25 battles voided this way.
+  const slim = { 4881: { n: 'Lamar Jackson', p: 'QB' } };
+  const feed = { 4881: 'QB', 7547: 'QB' };
+  const positionOf = positionLookup(feed, slim);
+  check('a player missing from the slim file still has a position', positionOf('7547'), 'QB');
+  check('one in both reads the same', positionOf('4881'), 'QB');
+  check('the slim file still answers when the feed is down', positionLookup({}, slim)('4881'), 'QB');
+  check('nobody knows him: no position, which voids rather than guesses', positionOf('999'), '?');
+
+  const counts = { QB: 1, RB: 2, WR: 3, TE: 1 };
+  const ctxFor = (pos) => ({
+    pointsByRoster: {}, pointsByPlayer: {}, startedPlayers: new Set(),
+    starterRosters: { 4881: { rosterId: HOME, points: 20 }, 7547: { rosterId: AWAY, points: 24 } },
+    positionOf: pos,
+  });
+  const qb = { kind: 'showdown', meta: { position: 'QB', counts, homeRoster: HOME, awayRoster: AWAY, spread: 1.5, favouriteSide: 'home' } };
+  check('with only the slim file, the QB battle voided', resolveMarket(qb, ctxFor(positionLookup({}, slim))), 'void');
+  check('with the feed, it settles', resolveMarket(qb, ctxFor(positionOf)), 'nocover');
 }
 
 console.log(failed ? `\n${failed} check(s) FAILED\n` : '\nall checks passed\n');
